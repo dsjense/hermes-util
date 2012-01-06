@@ -1,0 +1,199 @@
+# Makefile for mdutil library test programs
+
+# $Id$
+# 
+# Copyright (2008) Sandia Corporation. Under the terms of
+# Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+# Government retains certain rights in this software.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+
+PRODUCT = mdutest
+BLD_SRC_EXTS = -sF -sf -sc
+BLD_INC_EXTS = -iinc
+LIBS = mdutil.lib
+
+LGRPFLAGS =
+MAKE = make
+LIB_EXT =
+EXT_OBJS = $(INTDIR)\nulaux.obj
+TAUXDIR = ..\taux
+
+!INCLUDE $(HERMES_ROOT)\etc\makeopts.$(HERMES_SYS_TYPE)
+
+F_INCDIRS = /I..\..\..\finclude
+C_INCDIRS = 
+
+CFG=""
+!IF "$(OS)" == "Windows_NT"
+NULL=
+!ELSE 
+NULL=nul
+!ENDIF 
+
+LIB_EXT =
+
+OUTDIR=.\Release$(LIB_EXT)
+INTDIR=.\Release$(LIB_EXT)
+LIBDIR=..\..\$(HERMES_SYS_TYPE)
+
+!IF  "$(CFG)" == "release"
+
+# Begin Custom Macros
+# End Custom Macros
+
+FFLAGS_CFG= $(FFLAGS_OPT)
+CFLAGS_CFG= $(CFLAGS_OPT)
+LFLAGS_CFG=
+CLEAN_CFG=
+
+!ELSEIF  "$(CFG)" == "debug"
+
+OUTDIR=.\Debug$(LIB_EXT)
+INTDIR=.\Debug$(LIB_EXT)
+LIBDIR=..\..\debug\$(HERMES_SYS_TYPE)
+# Begin Custom Macros
+# End Custom Macros
+
+FFLAGS_CFG= $(FFLAGS_DBG) /pdbfile:$(INTDIR)\$(TARG).PDB
+CFLAGS_CFG= $(CFLAGS_DBG)
+LFLAGS_CFG=/debug /pdbtype:sept
+CLEAN_CFG=$(INTDIR)\*.pdb $(OUTDIR)\*.pdb
+
+!ENDIF 
+
+DIRS_NEEDED="$(INTDIR)"
+!if "$(INTDIR)" != "$(OUTDIR)"
+DIRS_NEEDED="$(INTDIR)" "$(OUTDIR)"
+!endif
+
+PRODNAME=$(PRODUCT)$(LIB_EXT)
+
+MACRO_LIST_FILE = $(PRODNAME)_macro_list.nmake
+DEP_LIST_FILE = $(PRODNAME)_dep_list.nmake
+DEP_INCDIRS = $(C_INCDIRS:/=-) $(F_INCDIRS:/=-)
+
+SYS_LIBS=kernel32.lib user32.lib gdi32.lib \
+         winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib \
+         oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
+
+.SUFFIXES:
+.SUFFIXES:  .obj .inc .f .F .c
+
+LINK32=link.exe
+
+FFLAGS_FPP= $(FFLAGS_SYS) $(F_OPTS) /nodefine /fpp:"/m"
+
+CPPFLAGS = $(CFLAGS_SYS:/=-) $(CPP_OPTS)
+FPPFLAGS = $(FFLAGS_SYS:/=-) $(FPP_OPTS)
+
+FFLAGS = $(FFLAGS_ALL) $(FFLAGS_CFG) $(FFLAGS_FPP) $(F_INCDIRS) \
+         /module:$(INTDIR)
+CFLAGS = $(CFLAGS_ALL) $(CFLAGS_CFG) $(CFLAGS_SYS) $(C_INCDIRS) \
+	 /Fp"$(INTDIR)\$(PRODNAME).pch" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c
+
+LINK32_FLAGS= $(LIBS) $(SYS_LIBS)  /nologo /subsystem:console \
+      /incremental:no /pdb:$(OUTDIR)\$(TARG).pdb /machine:I386 \
+      $(LFLAGS_CFG)  /libpath:$(LIBDIR)
+
+!IF EXISTS("$(MACRO_LIST_FILE)")
+!INCLUDE "$(MACRO_LIST_FILE)"
+
+ALL_OBJS = $(OBJS) $(EXT_OBJS) $(MAIN_OBJS)
+LINK_OBJS = $(OBJS) $(EXT_OBJS)
+
+default:
+   @$(MAKE) /$(MAKEFLAGS) CFG=release ALL
+
+dbg:
+   @$(MAKE) /$(MAKEFLAGS) CFG=debug ALL
+
+ALL :
+!if "$(INTDIR)" != "$(OUTDIR)"
+   @$(MAKE) CFG=$(CFG) $(INTDIR)
+!endif
+   @$(MAKE) CFG=$(CFG) $(OUTDIR)
+!IF "$(TARGETS)" != ""
+   @for %i in ($(TARGETS)) do \
+     $(MAKE) /$(MAKEFLAGS) TARG=%~ni CFG=$(CFG) %i
+!ENDIF
+!IF "$(STANDALONE_TARGETS)" != ""
+   @for %i in ($(STANDALONE_TARGETS)) do \
+     $(MAKE) /$(MAKEFLAGS) TARG=%~ni CFG=$(CFG) LINK_OBJS="" %i
+!ENDIF
+
+!IF  "$(TARGETS)" != ""
+$(TARGETS) : $(ALL_OBJS)
+!ENDIF
+
+!ELSE
+bootstrap:
+	@$(MAKE) /$(MAKEFLAGS) CFG=$(CFG) depend
+	@$(MAKE) /$(MAKEFLAGS) CFG=$(CFG)
+!ENDIF
+
+depend :
+	@$(MAKE) /$(MAKEFLAGS) bld_macro_list
+	@$(MAKE) /$(MAKEFLAGS) $(DEP_LIST_FILE)
+
+$(MACRO_LIST_FILE) bld_macro_list :
+	@bld_macro_list -nmain $(BLD_SRC_EXTS) $(BLD_INC_EXTS) -WP \
+	               $(LGRPFLAGS) -SSRCS -IINCS $(PRODNAME) .nmake
+	@bld_macro_list -mmain $(BLD_SRC_EXTS) -OMAIN_OBJS -WPa \
+	               $(LGRPFLAGS) $(PRODNAME) .nmake
+	@bld_macro_list -mmain -nstandalone $(BLD_SRC_EXTS) -OTARGETS -EaWP \
+	                $(LGRPFLAGS) $(PRODUCT) .nmake
+	@bld_macro_list -mstandalone $(BLD_SRC_EXTS) -OSTANDALONE_TARGETS \
+	                $(LGRPFLAGS) -EaWd $(PRODUCT) .nmake
+
+$(DEP_LIST_FILE) : $(SRCS) $(INCS)
+	@bld_dep_list $(DEP_INCDIRS) $(FPPFLAGS) $(CPPFLAGS) $(BLD_SRC_EXTS) \
+	             $(BLDDEPLST_ARGS) $(LGRPFLAGS) -W -e0 $(PRODUCT) .nmake
+
+CLEAN clobber :
+	-@erase /Q $(OBJS) $(MAIN_OBJS) $(CLEAN_CFG) $(TARGETS) \
+	           $(STANDALONE_TARGETS)
+!if "$(INTDIR)" != "$(OUTDIR)"
+	-@rmdir /Q /S $(INTDIR)
+!endif
+	-@rmdir /Q /S $(OUTDIR)
+
+$(DIRS_NEEDED) :
+    @if not exist "$@/$(NULL)" mkdir "$@"
+
+.c{$(INTDIR)}.obj:
+   $(CC) $(CFLAGS) $< 
+
+.f{$(INTDIR)}.obj:
+   $(FC) $(FFLAGS) /object:$*.obj $<  
+
+{$(INTDIR)}.obj{$(OUTDIR)}.exe:
+    $(LINK32) $(LINK32_FLAGS) /out:$@ $(INTDIR)\$(@B).obj $(LINK_OBJS)
+
+!IF EXISTS("$(DEP_LIST_FILE)")
+!INCLUDE "$(DEP_LIST_FILE)"
+!ELSE 
+!MESSAGE Warning: cannot find "$(DEP_LIST_FILE)"
+!ENDIF 
+
+# External dependencies
+
+$(INTDIR)\nulaux.obj : ..\taux\nulaux.f
+	$(FC) $(FFLAGS) /object:$*.obj $?
+
+!IF "$(CFG)" == "release" || "$(CFG)" == "debug"
+!message Updating $(CFG) Configuration ...
+!ENDIF 

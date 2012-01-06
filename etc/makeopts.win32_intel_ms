@@ -1,0 +1,61 @@
+# $Id$
+# 
+# Copyright (2008) Sandia Corporation. Under the terms of
+# Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+# Government retains certain rights in this software.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+
+# Windows (win32) on X86 processors w/ Intel Fortran and Microsoft 
+#                                      VisualC++.net C/C++ compilers.
+
+HU_SYS_LOCAL = :win32_intel_ms:
+HU_SYSTEM    = WIN32
+HU_MACRO_DEF =   /D
+HU_ENDIAN     = HU_ENDIAN_IS_LSB_FIRST
+HU_MANGLING   = HU_F77_MANGLING_L00
+HU_PTR_BYTES  = 4
+HU_PTR_TYPE   = integer
+HU_POSIX      = HU_POSIX
+HU_LRSHIFT    = HU_HAVE_LRSHIFT
+HU_RSEED_TYPE = HU_RSEED_RAN
+HU_RSEED_SIZE = 1
+HU_EOF_STAT   = 36
+HU_RECLU_SIZE = 4
+CFLAGS_ALL = /TC /c /nologo /D "WIN32" /D "_WINDOWS" /D "__STDC__"
+CFLAGS_DBG = /MLd /Gm /ZI /Od /D "_DEBUG" /GZ
+CFLAGS_OPT = /ML /D "NDEBUG"
+CXXFLAGS_ALL  = /TP /EHsc /c /nologo /D "WIN32" /D "_WINDOWS"
+CXXFLAGS_OPT  = /ML /D "NDEBUG"
+CXXFLAGS_DBG  = /MLd /Gm /ZI /Od /D "_DEBUG" /GZ
+FFLAGS_ALL = /c /nologo /4Yd /warn:unused /iface:cref
+FFLAGS_BSLSH = /nbs
+FFLAGS_DBG = /dbglibs /debug:full /traceback
+FFLAGS_OPT = /O2
+CC  =  cl.exe
+CXX =  cl.exe
+FC  =  ifort.exe
+
+# now build the system independent macros using pieces defined above
+
+CFFLAGS_SYS = /D$(HU_SYSTEM)sys /D$(HU_ENDIAN) /DHU_PTR_BYTES=$(HU_PTR_BYTES) \
+              /D$(HU_POSIX)
+
+CFLAGS_SYS = $(CFFLAGS_SYS) /D$(HU_MANGLING)
+
+FFLAGS_SYS = $(CFFLAGS_SYS) /D$(HU_LRSHIFT)  /DHU_PTR_TYPE=$(HU_PTR_TYPE)\
+             /D$(HU_RSEED_TYPE) /DHU_RSEED_SIZE=$(HU_RSEED_SIZE) \
+             /DHU_EOF_STAT=$(HU_EOF_STAT) /DHU_RECLU_SIZE=$(HU_RECLU_SIZE)

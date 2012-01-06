@@ -1,0 +1,68 @@
+# $Id$
+# 
+# Copyright (2008) Sandia Corporation. Under the terms of
+# Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+# Government retains certain rights in this software.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+
+# Solaris OS and standard Sun Workshop compilers.
+
+HU_SYS_LOCAL = :solaris:solaris_64:
+HU_SYSTEM        = SUN
+FC            = f90
+MPI_FC        = mpif77
+MPI_CC        = mpicc
+MPI_CXX       = CC      #  local hack to avoid stlport4
+HU_MACRO_DEF =   -D
+HU_ENDIAN     = HU_ENDIAN_IS_LSB_LAST
+HU_MANGLING   = HU_F77_MANGLING_L11
+HU_PTR_BYTES  = 4
+HU_PTR_TYPE   = integer
+HU_POSIX      = HU_POSIX
+HU_LRSHIFT    = HU_NEED_LRSHIFT
+HU_RSEED_TYPE = HU_RSEED_F90
+HU_RSEED_SIZE = 4
+HU_EOF_STAT   = 1066
+HU_RECLU_SIZE = 1
+CFLAGS_ALL    =
+CFLAGS_OPT    = -O
+CFLAGS_DBG    = -g
+CFLAGS_ANSI   = -Xa
+# CFLAGS_KR     = -Xs  forces use of old cpp which is not compatible with new machine independence macros
+CFLAGS_KR     = -Xt -xtransition
+CXX           = CC
+CXXFLAGS_ALL  = -pto
+CXXFLAGS_OPT  = -O
+CXXFLAGS_DBG  = -g
+FFLAGS_ALL    = -u
+FFLAGS_BSLSH  = -f77=%none
+FFLAGS_OPT    = -O
+FFLAGS_HIPRF  = -fast -ftrap=common -fsimple=1 -nodepend -O3
+FFLAGS_DBG    = -g
+LDFLAGS_ALL   =
+LDFLAGS_HIPRF = -fast
+AWK           = nawk
+SYSLIB        = -lCstd -lCrun
+SHR_EXT       = so
+SHR_FFLAGS    = -xcode=pic32
+SHR_CFLAGS    = -xcode=pic32
+SHR_LFLAGS    = -dy -G -s
+MPI_SYS       = 1
+MPI_LIB       =
+
+# now build the system independent macros using pieces defined above
+include $(HERMES_GLOBAL)makeopts.

@@ -1,0 +1,157 @@
+# Makefile for tio library
+#
+#-----------------------------------------------------------------------
+#     $Id$
+#     
+#     Copyright (2008) Sandia Corporation. Under the terms of
+#     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+#     Government retains certain rights in this software.
+#     
+#     Hermes is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Lesser General Public License as
+#     published by the Free Software Foundation, either version 3 of
+#     the License, or (at your option) any later version.
+#     
+#     Hermes is distributed in the hope that it will be useful, but
+#     WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Lesser General Public License for more details.
+#     
+#     You should have received a copy of the GNU Lesser General
+#     Public License along with Hermes.  If not, see
+#     <http://www.gnu.org/licenses/>.
+#     
+#-----------------------------------------------------------------------
+
+PRODUCT = tio
+BLD_SRC_EXTS = -sF -sf -sc
+BLD_INC_EXTS = -iinc
+LGRPFLAGS = -nmpi
+LIB_EXT =
+CPP_OPTS =
+F_OPTS =
+MAKE = make
+
+!INCLUDE $(HERMES_ROOT)\etc\makeopts.$(HERMES_SYS_TYPE)
+
+F_INCDIRS = 
+C_INCDIRS =
+
+CFG=""
+!IF "$(OS)" == "Windows_NT"
+NULL=
+!ELSE 
+NULL=nul
+!ENDIF
+
+INTDIR=.\Release$(LIB_EXT)
+!IF  "$(CFG)" == "release"
+
+OUTDIR=..\$(HERMES_SYS_TYPE)
+# Begin Custom Macros
+# End Custom Macros
+
+FFLAGS_CFG= $(FFLAGS_OPT)
+CFLAGS_CFG= $(CFLAGS_OPT)
+CLEAN_CFG="$(INTDIR)\vc60.idb" "$(INTDIR)\vc60.pdb"
+
+!ELSEIF  "$(CFG)" == "debug"
+
+OUTDIR=..\Debug\$(HERMES_SYS_TYPE)
+INTDIR=.\Debug$(LIB_EXT)
+# Begin Custom Macros
+# End Custom Macros
+
+FFLAGS_CFG= $(FFLAGS_DBG) /pdbfile:$(INTDIR)\$(TARG).PDB
+CFLAGS_CFG= $(CFLAGS_DBG)
+CLEAN_CFG="$(INTDIR)\vc60.idb" "$(INTDIR)\vc60.pdb" "$(INTDIR)\DF60.PDB"
+
+!ENDIF
+
+DIRS_NEEDED="$(INTDIR)"
+!if "$(INTDIR)" != "$(OUTDIR)"
+DIRS_NEEDED="$(INTDIR)" "$(OUTDIR)"
+!endif
+
+PRODNAME=$(PRODUCT)$(LIB_EXT)
+MACRO_LIST_FILE = $(PRODNAME)_macro_list.nmake
+DEP_LIST_FILE = $(PRODNAME)_dep_list.nmake
+
+DEP_INCDIRS = $(C_INCDIRS:/=-) $(F_INCDIRS:/=-)
+
+.SUFFIXES:
+.SUFFIXES:  .obj .inc .f .F
+
+FPP= fpp.exe
+LIB32=link.exe -lib
+
+FFLAGS_FPP= $(FFLAGS_SYS) $(F_OPTS) /nodefine /fpp:"/m"
+
+CPPFLAGS = $(CFLAGS_SYS:/=-) $(CPP_OPTS)
+FPPFLAGS = $(FPPFLAGS_SYS:/=-) $(FPP_OPTS)
+
+LIB32_FLAGS=/nologo /out:"$(OUTDIR)\$(PRODNAME).lib" 
+
+FFLAGS = $(FFLAGS_ALL) $(FFLAGS_CFG) $(FFLAGS_FPP) $(F_INCDIRS) \
+	 /module:$(INTDIR)
+CFLAGS = $(CFLAGS_ALL) $(CFLAGS_CFG) $(CFLAGS_SYS) $(CPP_OPTS) $(C_INCDIRS) \
+	 /Fp"$(INTDIR)\$(PRODUCT).pch" \
+	 /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /c
+
+!IF EXISTS("$(MACRO_LIST_FILE)")
+!INCLUDE $(MACRO_LIST_FILE)
+
+default:
+   @$(MAKE) /$(MAKEFLAGS) CFG=release ALL
+
+dbg:
+   @$(MAKE) /$(MAKEFLAGS) CFG=debug ALL
+
+ALL :
+   @$(MAKE) /$(MAKEFLAGS) CFG=$(CFG) "$(OUTDIR)\$(PRODNAME).lib"
+
+"$(OUTDIR)\$(PRODNAME).lib" : "$(INTDIR)" "$(OUTDIR)" $(DEF_FILE) $(OBJS)
+    $(LIB32) $(LIB32_FLAGS) $(DEF_FLAGS) $(OBJS)
+
+!ELSE
+bootstrap:
+	@$(MAKE) /$(MAKEFLAGS) CFG=$(CFG) depend
+	@$(MAKE) /$(MAKEFLAGS) CFG=$(CFG)
+!ENDIF
+
+depend :
+	@$(MAKE) /$(MAKEFLAGS) bld_macro_list
+	@$(MAKE) /$(MAKEFLAGS) $(DEP_LIST_FILE)
+
+
+$(MACRO_LIST_FILE) bld_macro_list :
+	@bld_macro_list $(BLD_SRC_EXTS) $(BLD_INC_EXTS) $(LGRPFLAGS) -Wd \
+	               -SSRCS -IINCS $(PRODNAME) .nmake
+
+$(DEP_LIST_FILE) : $(SRCS) $(INCS)
+	@bld_dep_list $(DEP_INCDIRS) $(FPPFLAGS) $(CPPFLAGS) $(BLD_SRC_EXTS) \
+	              $(LGRPFLAGS) -W -e0 $(PRODNAME) .nmake
+
+CLEAN clobber :
+	-@erase /Q $(OBJS) $(CLEAN_INCS) $(CLEAN_CFG) \
+	  "$(OUTDIR)\$(PRODNAME).lib"
+	-@rmdir /Q /S $(INTDIR)
+
+$(DIRS_NEEDED) :
+    @if not exist "$@/$(NULL)" mkdir "$@"
+
+.c{$(INTDIR)}.obj:
+   $(CC) $(CFLAGS) $<
+
+.f{$(INTDIR)}.obj:
+   $(FC) $(FFLAGS) /object:$*.obj $<  
+
+!IF EXISTS("$(DEP_LIST_FILE)")
+!INCLUDE $(DEP_LIST_FILE)
+!ELSE 
+!MESSAGE Warning: cannot find "$(DEP_LIST_FILE)"
+!ENDIF 
+
+!IF "$(CFG)" == "release" || "$(CFG)" == "debug"
+!message Updating $(CFG) Configuration ...
+!ENDIF 

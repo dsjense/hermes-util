@@ -1,0 +1,299 @@
+! Id: manpage.gen,v 1.1 2004/12/10 00:22:35 dbseide Exp $
+!
+NAME
+pffdiff - utility for comparing data in PFF files
+
+SYNOPSIS
+pffdiff  [ controlfile | - ]
+
+DESCRIPTION
+The pffdiff utility can perform various forms of analysis on the data
+in a PFF file, including its comparison to baseline data in another
+PFF file. Its actions are determined through commands in an input
+controlfile. If the special symbol "-" is specified on the command
+line in place of the name of a control file, the input commands are
+taken from standard input. If neither controlfile or "-" is
+specified, this description of the utility is printed to standard
+output.
+
+OPTIONS
+None.
+
+CONTROL FILE SYNTAX
+The input control file is composed of a sequence of commands (see
+SUPPORTED COMMANDS) that are separated by a delimiter sequences. A
+delimiter sequence is composed one or more consecutive delimiter
+characters. PFFDIFF interprets spaces, commas, semicolons, left and
+right parentheses, and left and right brackets ([]) as delimiter
+characters. The variety of delimiter characters is provided to allow
+the user to customize the appearance of input commands for maximum
+readability. In addition, the end of an input line is also interpreted
+as if it were a delimiter character. Note this means that individual
+commands can span multiple lines and multiple commands can be on a
+single line. In fact, commands needn't even start at the beginning of
+an input line, although such usage is probably best avoided in the
+interest of readability. In addition, comments can be inserted into
+the input file using the special comment character '#'. The comment
+character, when not quoted or escaped (described later), causes itself
+and the remainder of the input line containing it to be discarded.
+
+COMMAND SYNTAX
+All PFFDIFF commands have the form:
+
+     cmd_name<delimiter_sequence>arg1 ...
+
+where "cmd_name" is the name of a supported command, followed by
+multiple, possibly optional, order-independent arguments. Arguments
+can be of two forms: a keyword-value argument, or an option-flag
+argument. A keyword-value argument has the form:
+
+     kwrd<kwrd_separator>val
+
+where "kwrd_separator" is one of the valid keyword separator
+characters '=' or ':', optionally proceeded and/or followed by any
+number of delimiter characters. "kwrd" is a valid keyword for the
+command and "val" is the value to be used for the keyword. A
+option-flag argument has the form:
+
+     <opt_flg>opt
+
+where "opt_flag" is the option flag character '/' and "opt" is a valid
+option name for the command.
+
+PFFDIFF matches command names, keywords, or options (referred to
+collectively as identifiers) referenced in the input control file by
+performing a case-insensitive comparison of each supplied identifier
+to the corresponding supported identifiers. Identifiers can usually be
+abbreviated by using only their first few characters. The minimum
+number of characters for the abreviation can be determined from the
+documentation for the particular identifier. For example, if the
+command TESTFILE is documented by TEST[FILE], then the shortest
+recognized abreviation would be TEST. For this example, "TEST",
+"testfile", or "TestFi" would all be recognized as the TESTFILE
+command, but "TES", "testp", and "testfile1" would not be recognized.
+
+A value supplied in the control file for a keyword can be either a
+number (a string that can be interpreted as an integer or real
+number), a string (any other string not containing an unquoted or
+unescaped special character, i.e., a delimiter, comment, keyword
+sparator, or option flag character), or a list of number or string
+values separated by delimiter characters. The documentation for each
+keyword will define which of these value types are expected, and
+providing an unexpected type is processed as a parsing error. Also
+note that string values are case sensitive.
+
+To specify a string value that contains one or more characters with
+special meaning, two methods are available.  If a string of characters
+containing one or more special characters is is delimited by the
+special quote character '"', all enclosed special characters (except
+the quote character itself and the escape character described next)
+will lose their special meaning and be interpreted literally. Note
+that the quote character is NOT itself a delimiter. This means that
+the string `Needs" "A" "Space' is interpreted as a single string
+value, and is equivalent to `"Needs A Space"' Alternatively, any
+special character (and only special characters) can be "escaped" by
+immediately preceeding them with the special escape character '\', in
+which case they lose their special meaning and are interpreted
+literally. Note that to include a '"' or '\' character literally, it
+must be escaped, whether within delimiting quote characters or not.
+
+SUPPORTED COMMANDS
+PFFDIFF commands fall into one of two distinct types. The first type
+are used to manage the PFF file or files that will be used for the
+analysis. The second type perform some sort of analysis of the data,
+and optionally can produce a status (pass or fail) for that
+analysis. Note that one particular choice of delimiter usage has been
+made for this documentation. The reader is reminded that delimiter
+sequences are interchangable and can consist of an arbitrary number of
+contiguous delimiter characters.
+
+The following two commands deal with PFF file management:
+
+TEST[FILE] F[ILE]=filename /C[LOSE]
+
+The TESTFILE command supports management of the PFF file (referred to
+as the test file) whose data is to be analyzed. Only one of the two
+arguments is allowed on a single command. If the FILE keyword is
+specified, the file specified by "filename" is opened as the current
+test file. If the file is successfully opened, the previously open
+test file (if any) is closed. If the file cannot be opened, the
+previous status of the test file is left unchanged. If instead the
+CLOSE option is specified, the test file, if currently open, is
+closed.
+
+BASE[FILE] F[ILE]=filename /C[LOSE]
+
+The BASEFILE command supports management of the PFF file (referred to
+as the base file) that is required by most of the analysis commands to
+provide baseline data for comparison purposes. Its usage is identical
+to that of the TESTFILE command, except that the operations are
+associated with the base file rather than the test file.
+
+The remaining commands are used to activate a specific analysis of
+data in the test file. Note that these commands will fail if there is
+not a currently open test file. Some of the analysis commands compare
+data in the test file to similar data in the base file; these will
+also fail if there is not an open base file. Most of the commands that
+require both PFF files also require that the data to be compared in
+the two files be stored in the PFF files with the same dataset title
+and index, be of the same PFF data type, and have the same shape in
+terms of number of blocks, number of spatial dimensions, number of
+attribute dimensions, and grid size in each block/spatial dimension
+combination. Any exceptions to the general condition will be
+specifically noted in the command's individual documentation. Three
+keywords are common to most of these commands and will be described
+here.
+
+The DS_INDEX keyword is used to specify the the dataset index
+associated with the data to be analyzed by the command. The value
+supplied must be an integer. The TITLE keyword is alternately used to
+supply the dataset title associated with the data to be analyzed. The
+value supplied must be a string that exactly matches (in a
+case-sensitive manner) the entire title of one (and only one)
+dataset. If both the DS_INDEX and TITLE keywords are specified, they
+must be consistent.
+
+The optional SUBRANGE specification is used to provide a subrange for
+one of the spatial (independent) dimensions over which the requested
+analysis of data is to be performed. The format for a subrange
+specification is:
+
+  SUB[RANGE] : [dir] LOW=number HI[GH]=number
+
+"dir" is an integer value that specifies the spatial dimension to
+which the subrange specification applies. It is optional for datasets
+with only one spatial dimension. The LOW and HIGH keywords provide
+lower and upper limits for the subrange, respectively, and at least
+one of the two must be specified. If either LOW or HIGH is not
+specified, then no lower or upper limit, respectively, is
+used. Multiple SUBRANGE specifications can be provided for a single
+command, limited only by the number of spatial dimensions in the
+dataset to which the command is applied.
+
+If the /GRID option is specified immediately after the command name
+(note this is the one case where command arguments are not
+position-independent), the requested analysis is performed on the
+dataset's grid rather that its attribute data. If the /GRID option is
+specified, two additional keywords are recognized: BLOCK and
+DIRECTION. By default, GRID analysis is performed for all blocks and
+all spatial dimensions in the dataset. The BLOCK keyword is used to
+limit the analysis to the single block specified by its supplied
+integer value. Similarly, the DIRECTION keyword is used to limit the
+analysis to the single spatial direction specified by its supplied
+integer value.
+
+MAX[_DEVIATION] [ /GRID [ BL[OCK]=integer ] [ DIR[ECTION]=integer ] ]
+                DS[_INDEX]=integer TI[TLE]=string [ subrange_spec ... ]
+                [ LIM[IT]=number ]
+
+The MAX_DEVIATION command computes the maximum difference between the
+test file data and the corresponding base file data at any point in
+the specified dataset's grid (or subrange of the grid, if specified).
+It requires that both the base and test files be open. If the range of
+the data in the base file dataset in nonzero, this maximum difference
+is normalized to (divided by) that range. If the optional LIMIT
+keyword is specified, the computed (normalized) maximum deviation is
+compared to the value specified. If the computed value does not exceed
+the supplied value of limit, the command's status is considered to
+"pass". If not, the status is "fail". If the LIMIT keyword is not
+supplied, there is no status associated with the test.
+
+MEAN[_DEVIATION] [ /GRID [ BL[OCK]=integer ] [ DIR[ECTION]=integer ] ]
+                 DS[_INDEX]=integer TI[TLE]=string [ subrange_spec ... ]
+                 [ LIM[IT]=number ]
+
+The MEAN_DEVIATION command computes the mean difference between the
+test file data and the corresponding base file data over all points in
+the specified dataset's grid (or subrange of the grid, if specified).
+It requires that both the base and test files be open. Specifically,
+the differences at each grid point are summed over all grid points,
+and the mean is obtained by dividing that sum by the total number of
+grid points. If the range of the data in the base file dataset in
+nonzero, the this mean difference is normalized to (divided by) that
+range. If the optional LIMIT keyword is specified, the computed
+(normalized) mean deviation is compared to the value specified. If the
+computed value does not exceed the supplied value of limit, the
+command's status is considered to "pass". If not, the status is
+"fail". If the LIMIT keyword is not supplied, there is no status
+associated with the test.
+
+RMS[_DEVIATION] [ /GRID [ BL[OCK]=integer ] [ DIR[ECTION]=integer ] ]
+                DS[_INDEX]=integer TI[TLE]=string [ subrange_spec ... ]
+                [ LIM[IT]=number ]
+
+The RMS_DEVIATION command computes the Root-Mean-Square (rms)
+difference between the test file data and the corresponding base file
+data over all points in the specified dataset's grid (or subrange of
+the grid, if specified). It requires that both the base and test files
+be open. Specifically, the square of the differences at each grid
+point are summed over all grid points, the mean square is then
+obtained by dividing that sum by the total number of grid points, and
+the rms value is then obtained by taking the square root of the mean
+square value. If the range of the data in the base file dataset in
+nonzero, the this rms difference is normalized to (divided by) that
+range. If the optional LIMIT keyword is specified, the computed
+(normalized) rms deviation is compared to the value specified. If the
+computed value does not exceed the supplied value of limit, the
+command's status is considered to "pass". If not, the status is
+"fail". If the LIMIT keyword is not supplied, there is no status
+associated with the test.
+
+RAN[GE_ALLOWED] [ /GRID [ BL[OCK]=integer ] [ DIR[ECTION]=integer ] ]
+                DS[_INDEX]=integer TI[TLE]=string [ subrange_spec ... ]
+                [ LIM[ITS]=number [number] ]
+
+The RANGE_ALLOWED command computes the range of the test file data
+over all points in the specified dataset's grid (or subrange of the
+grid, if specified). It requires that only the test file be open. The
+optional LIMITS keyword consists of two numbers which specify the
+limits of a range of real numbers. The two numbers can be specified in
+either order. If the second number is not provided, it defaults to
+0.0. If LIMITS is specified, the computed range of the test file data
+is compared to the range supplied by the LIMITS keyword. If the
+computed range falls with in the supplied range limits, the command's
+status is considered to "pass". If it exceeds the supplied range
+limit, the status is "fail". If the LIMITS keyword is not supplied,
+there is no status associated with the test.
+
+RETURN VALUE
+If the commands processed by PFFDIFF are processed without any errors,
+and there are no analysis commands that produce a "fail" status,
+PFFDIFF returns 0.  Otherwise it returns the sum of all the errors
+encountered and the number of commands that produce a "fail" status.
+
+EXAMPLE
+The following file will direct PFFDIFF to perform data analysis on
+datasets in the file regress_1.pff. The file baseline_1.pff will
+provide baseline data for any commands that require a base
+file. RANGE_ALLOWED tests will be performed on datasets 1 and 2, a
+RMS_DEVIATION test will be performed on the dataset whose title is
+"Voltage", and a MEAN_DEVIATION test will be performed on the dataset
+whose title is "Current @ inlet". Next, it performs a RANGE_ALLOWED
+test, without specifying any limits, on dataset 8 from a new test file
+regress_2.pff. It next performes a MAX_DEVIATION test on dataset 10,
+subject to a SUBRANGE restriction in the second spatial (independent)
+coordinate. Finally, a RANGE_ALLOWED test is performed the grid in the
+first coordinate direction of the third block of dataset 11, with no
+supplied limiting values.
+
+   # Sample input file
+
+   test, file = regress_1.pff
+   range, ds=1, lim = [ -1 , 1 ]
+   range, ds=2, limits = 450.        # allowed range is 0.0 to 450.
+
+   base, file=baseline_1.pff
+
+   rms, title=Voltage   limit : 1.5e-5
+   mean, tit = "Current @ inlet" lim:1e-7
+
+   test,fi=regress_2.pff  # first closes test file that's already open
+   base, /cl              # close base file -- not really necessary
+
+   range, ds=8
+
+   max, ds=10, sub:2 (low=0.012 hi=0.085)
+
+   range /grid, ds=11, block=3 dir=1
+
+   # end of sample input file

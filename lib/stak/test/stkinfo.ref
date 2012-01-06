@@ -1,0 +1,27 @@
+stkinit:  bin     5 allocated with         50 words
+stkinit:  bin     1 allocated with         64 words
+stkptr: i allocated in bin     1 offset=         1 length=        25
+stkptr: c3 allocated in bin     1 offset=        33 length=         4
+stkptr: f allocated in bin     5 offset=         1 length=        20
+stkptr: c4 allocated in bin     1 offset=        44 length=         5
+stkptr: c5 allocated in bin     1 offset=        56 length=         7
+stkfptr:  variable c5 released from bin     1
+stkfptr:  variable c4 released from bin     1
+stkrbin:  bin     1 released
+stkinit:  bin     1 allocated with         40 words
+stkrbin:  bin     5 released
+stkrbin:  bin     1 released
+stkinit:  bin     1 allocated with         64 words
+stkinit:  bin     5 allocated with         50 words
+stkptr: i allocated in bin     1 offset=         1 length=        25
+stkptr: c3 allocated in bin     1 offset=        33 length=         4
+stkptr: f allocated in bin     5 offset=         1 length=        20
+stkptr: c5 allocated in bin     1 offset=        44 length=         7
+stkptr: f allocated in bin     5 offset=        28 length=        20
+stkinit:  bin     3 allocated with      50000 words
+stkptr: i allocated in bin     3 offset=         1 length=     49998
+stkgrow:  bin     3 reallocated with     100000 words
+stkgrow:  variable i in bin     3 with offset          1
+          resized to      99998 words
+stkfptr:  variable i released from bin     3
+stkgrow:  bin     3 reallocated with         10 words

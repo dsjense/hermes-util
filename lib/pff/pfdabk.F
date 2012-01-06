@@ -1,0 +1,263 @@
+      subroutine pfdabk ( fid, iblk, ierr )
+c
+c***********************************************************************
+c     $Id$
+c     
+c     Copyright (2008) Sandia Corporation. Under the terms of
+c     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+c     Government retains certain rights in this software.
+c     
+c     Hermes is free software: you can redistribute it and/or modify
+c     it under the terms of the GNU Lesser General Public License as
+c     published by the Free Software Foundation, either version 3 of
+c     the License, or (at your option) any later version.
+c     
+c     Hermes is distributed in the hope that it will be useful, but
+c     WITHOUT ANY WARRANTY; without even the implied warranty of
+c     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+c     GNU Lesser General Public License for more details.
+c     
+c     You should have received a copy of the GNU Lesser General
+c     Public License along with Hermes.  If not, see
+c     <http://www.gnu.org/licenses/>.
+c     
+C_Groups @(#)
+c***********************************************************************
+c
+c     Summary:
+c
+c       - This routine allocates and returns a pointer to a directory
+c         block
+c       - If the routine has not been called before (first = .TRUE.),
+c         then any needed initialization is performed
+c
+c ----------------------------------------------------------------------
+c
+c     Input:
+c       fid     -  File ID of PFF file
+c       iblk    -  the file's directory block #
+c       ierr    -  if not zero, return with no operation
+c
+c     Output:
+c       ierr    -  error status flag;
+c                      0,   No error
+#ifdef STATIC_MEM
+c                      1,   Free directory-block list has been exhausted
+#else
+c                      1,   Directory block initialization error
+c                      2,   Directory block allocation error
+#endif
+c
+c     Internals:
+c       first   -  flag indicating that initialization needs to be performed
+#ifdef STATIC_MEM
+c       dirblk  -  pointer to directory block
+c       i       -  do loop index over free directory-block stack
+#endif
+c
+c ----------------------------------------------------------------------
+c     Call common blocks and associated parameter modules
+c ----------------------------------------------------------------------
+c
+c ... Included parameter decks:
+#ifdef STATIC_MEM
+c     pfbsiz  -  DBLKMX
+c     pfstfg  -  DFAULT
+#else
+c     pfbsiz  -  DBLKSZ, MXFILS
+#endif
+c
+c ... Included common decks:
+#ifdef STATIC_MEM
+c ... pfbufd
+c       w:    dblkpr(*)
+c       r/w:  tpdblk, nfdblk, dblksk(*)
+c ... pferrs
+c       r:    OFFLUN, ludbg
+#else
+c       r:    NDINFO
+#endif
+c
+#include "pfbsiz.inc"
+#ifdef STATIC_MEM
+# include "pfstfg.inc"
+#endif
+#include "pfbufd.inc"
+#include "pferrs.inc"
+c
+c ----------------------------------------------------------------------
+c
+c     Declare variables:
+c
+c     Passed:
+      integer   fid, iblk, ierr
+c
+c ... Parameters:
+      character PFMODU*6
+      parameter ( PFMODU = 'PFDABK' )
+
+c     Internal
+      logical   first
+      save      first
+#ifdef STATIC_MEM
+      integer   dirblk
+      integer   i
+#endif
+c
+c     External functions
+#ifndef STATIC_MEM
+      integer   assign_dirblk, dirblk_init
+#endif
+c
+c ... External Block Data
+      external  pffbd
+c
+      data first / .TRUE. /
+c
+c ----------------------------------------------------------------------
+c
+c
+c     write status message if DEBUG is on
+c
+      if (ludbg.ne.OFFLUN)then
+        write (ludbg,1000) PFMODU, 'Entry', ierr
+      endif
+c
+c     return if error flag is not zero on entry
+c
+      if(ierr.ne.0)then
+        call pfserr ( PFMODU, 0, 0, 'Error Flag Non-zero on Entry' )
+        goto 999
+      endif
+c
+c ----------------------------------------------------------------------
+c
+      if ( first ) then
+#ifdef STATIC_MEM
+c
+c ..... Set up the free block stack
+c
+        do i=1,DBLKMX
+          dblksk(i) = i - 1
+        end do
+        tpdblk = DBLKMX
+#else
+        if ( dirblk_init(MXFILS, DBLKSZ*NDINFO).ne.0 ) then
+          ierr = 1
+          call pfserr ( PFMODU, ierr, fid,
+     &                  'Directory block initialization error' )
+          goto 999
+        endif
+#endif
+        first = .FALSE.
+      endif
+c
+#ifdef STATIC_MEM
+c     Are we out of free directory blocks ??
+c
+      if ( tpdblk.eq.0 ) then
+        ierr   = 1
+        call pfserr ( PFMODU, ierr, 0,
+     &                'Free directory-block list has been exhausted' )
+        goto 999
+      endif
+c
+c ... set block pointer to top of stack; set new top-of-stack pointer
+c
+      dirblk = tpdblk
+      dblkpr(iblk,fid) = dirblk
+      tpdblk = dblksk(dirblk)
+c
+c ... set allocate flag (DFAULT) on block to be allocated; decrement
+c ... free block count
+c
+      dblksk(dirblk) = DFAULT
+      nfdblk = nfdblk - 1
+#else
+      if ( assign_dirblk(iblk,fid).ne.0 ) then
+        ierr = 2
+        call pfserr ( PFMODU, ierr, fid,
+     &                'Directory block assignment error' )
+        goto 999
+      endif
+#endif
+c
+c ----------------------------------------------------------------------
+c
+  999 continue
+c
+c     write status message if DEBUG is on and return
+c
+      if (ludbg.ne.OFFLUN)then
+        write (ludbg,1000) PFMODU, 'Exit', ierr
+      endif
+c
+      return
+c
+ 1000 format(' %PFF-',a,'-DBG:  ',a,' Error Status = ',i5)
+c
+      end
+
+#ifndef STATIC_MEM
+      function dblkpr ( blk, fid )
+c
+c     Summary:
+c
+c       - This function sets the pointer to the dirinfo array according
+c         to the supplied directory block and file identifiers.
+c       - This always returns 1 to mimic the behavior of the static
+c         dblkpr array in pfbufd.INC
+c       - Note that the function is typed (integer) in common block pfbufd
+c
+c ----------------------------------------------------------------------
+c
+c     Input:
+c       blk     -  directory block index
+c       fid     -  File ID of PFF file
+c
+c ----------------------------------------------------------------------
+c
+c     Output: None
+c
+c     Return value:  1
+c
+c ----------------------------------------------------------------------
+c
+c     Internals:
+c       ierr    -  Error flag from get_dirblk
+c
+c ----------------------------------------------------------------------
+c     Call common blocks and associated parameter modules
+c ----------------------------------------------------------------------
+c
+c ... Included parameter decks:
+c     pfbsiz
+c
+c ... Included common decks:
+c ... pfbufd
+c       r:    dirinfo_ptr
+c
+# include "pfbsiz.inc"
+# include "pfbufd.inc"
+c
+c ----------------------------------------------------------------------
+c
+c     Declare variables:
+c
+c     Passed:
+      integer   blk, fid
+c
+c     Internal
+      integer   ierr
+c
+c     External functions
+      integer   get_dirblk
+c
+c ----------------------------------------------------------------------
+c
+      ierr = get_dirblk(blk,fid,dirinfo_ptr)
+      dblkpr = 1
+c
+      return
+      end
+#endif

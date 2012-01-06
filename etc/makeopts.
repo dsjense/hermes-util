@@ -1,0 +1,71 @@
+# $Id$
+# 
+# Copyright (2008) Sandia Corporation. Under the terms of
+# Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+# Government retains certain rights in this software.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+
+# Need a dummy file for first make call for which SYS_TYPE macro is empty.
+
+# Use it to do any common operations needed at the end of the makeopts.xxx 
+# include files.
+
+# Macro definitions
+
+#   HU_ENDIAN       - Hardware byte ordering, legal values are:
+#                     HU_ENDIAN_IS_LSB_LAST, HU_ENDIAN_IS_LSB_FIRST
+#   HU_LRSHIFT      - Indicates where or not Fortran has the lshift and
+#                     rshift intrinsic functions, legal values are:
+#                     HU_HAVE_LRSHIFT, HU_NEED_LRSHIFT
+#   HU_PTR_BYTES    - Length of pointers, in bytes (integer)
+#   HU_PTR_TYPE     - Fortran type to be used for pointer values
+#   HU_POSIX        - POSIX or POSIX-like file naming.
+#   HU_RSEED_TYPE   - Generic type of Fortran random number generator. Legal
+#                     values are:
+#                     HU_RSEED_RAN, HU_RSEED_RAN_PLUS_EPS, HU_RSEED_F90
+#   HU_RSEED_SIZE   - Number of integer words required for Fortran random
+#                     number seed (integer)
+#   HU_EOF_STAT     - Fortran error status value returned when an attempt is
+#                     made to read beyond the last record in a direct-access
+#                     file.
+#   HU_RECLU_SIZE   - Number of bytes in the unit that Fortran file records
+#                     are measured in (integer)
+#   HU_MANGLING     - C name mangling to conform to Fortran naming conventions.
+#                     See lib/mdqs/mdf77mangle.h for description and legal
+#                     values.
+
+# these lines should be system independent using macros defined in the
+# system-specific makeopts files.
+
+CFLAGS_SYS = -D$(HU_ENDIAN) -DHU_PTR_BYTES=$(HU_PTR_BYTES) \
+             -D$(HU_POSIX) -D$(HU_MANGLING) -D$(HU_SYSTEM)sys
+
+FPPFLAGS_SYS = -D$(HU_ENDIAN) -D$(HU_LRSHIFT) -DHU_PTR_BYTES=$(HU_PTR_BYTES) \
+               -DHU_PTR_TYPE=$(HU_PTR_TYPE) -D$(HU_POSIX) \
+               -D$(HU_RSEED_TYPE) -DHU_RSEED_SIZE=$(HU_RSEED_SIZE) \
+               -DHU_EOF_STAT=$(HU_EOF_STAT) -DHU_RECLU_SIZE=$(HU_RECLU_SIZE) \
+               -D$(HU_SYSTEM)sys 
+
+FFLAGS_SYS = $(HU_MACRO_DEF)$(HU_ENDIAN) $(HU_MACRO_DEF)$(HU_LRSHIFT) \
+             $(HU_MACRO_DEF)HU_PTR_BYTES=$(HU_PTR_BYTES) \
+             $(HU_MACRO_DEF)HU_PTR_TYPE=$(HU_PTR_TYPE) \
+             $(HU_MACRO_DEF)$(HU_POSIX) \
+             $(HU_MACRO_DEF)$(HU_RSEED_TYPE) \
+             $(HU_MACRO_DEF)HU_RSEED_SIZE=$(HU_RSEED_SIZE) \
+             $(HU_MACRO_DEF)HU_EOF_STAT=$(HU_EOF_STAT) \
+             $(HU_MACRO_DEF)HU_RECLU_SIZE=$(HU_RECLU_SIZE) \
+             $(HU_MACRO_DEF)$(HU_SYSTEM)sys

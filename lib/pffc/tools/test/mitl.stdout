@@ -1,0 +1,77 @@
+                  Hermes Utilities -- PFFDIFF
+ *********************************************************************
+ * Copyright (2008) Sandia Corporation. Under the terms of
+ * Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+ * Government retains certain rights in this software.
+ * 
+ * Hermes is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ * 
+ * Hermes is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General
+ * Public License along with Hermes.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ *********************************************************************
+pass: MAX_DEVIATION, "esurv"(#1) -- Deviation = 0.000e+00, Limit = 1.000e-01
+pass: MEAN_DEVIATION, "esurv"(#1) -- Deviation = 0.000e+00, Limit = 2.000e-02
+pass: RMS_DEVIATION, "esurv"(#1) -- Deviation = 0.000e+00, Limit = 2.000e-02
+pass: MAX_DEVIATION, "ecre"(#2) -- Deviation = 7.804e-04, Limit = 2.000e-02
+pass: MEAN_DEVIATION, "ecre"(#2) -- Deviation = 1.724e-04, Limit = 1.000e-02
+pass: RMS_DEVIATION, "ecre"(#2) -- Deviation = 4.019e-04, Limit = 1.000e-02
+pass: RANGE_ALLOWED, "ekill"(#3) -- Range = [0.000e+00, 5.226e+04], Limits = [0.000e+00, 1.000e+05]
+pass: MAX_DEVIATION, "ekill"(#3) -- Deviation = 1.501e-03, Limit = 2.000e-02
+pass: MEAN_DEVIATION, "ekill"(#3) -- Deviation = 3.673e-04, Limit = 1.000e-02
+pass: RMS_DEVIATION, "ekill"(#3) -- Deviation = 7.576e-04, Limit = 1.000e-02
+FAIL: RANGE_ALLOWED, "ekill"(#3) -- Range = [0.000e+00, 5.226e+04], Limits = [2.000e+01, 8.000e+04]
+RANGE_ALLOWED, "divdmro_rms"(#4)  Range = [0.000e+00, 2.886e-05]
+pass: RANGE_ALLOWED, "divdmro_rms"(#4) -- Range = [0.000e+00, 2.886e-05], Limits = [0.000e+00, 6.000e-05]
+FAIL: RANGE_ALLOWED, "divdmro_rms"(#4) -- Subrange specification inconsistent with dataset:  
+FAIL: RANGE_ALLOWED, "divdmro_rms"(#4) -- Dataset contains no data:  
+pass: RANGE_ALLOWED, "divdmro_max"(#5) -- Range = [0.000e+00, 4.191e-05], Limits = [0.000e+00, 8.000e-05]
+pass: RANGE_ALLOWED, "divdmro_max"(#5) ([1.500e-11:1.500e-09] count=990) -- Range = [0.000e+00, 2.148e-05], Limits = [0.000e+00, 8.000e-05]
+pass: MAX_DEVIATION, "vin"(#6) -- Deviation = 4.367e-03, Limit = 2.000e-02
+pass: MEAN_DEVIATION, "vin"(#6) -- Deviation = 1.022e-05, Limit = 1.000e-02
+pass: RMS_DEVIATION, "vin"(#6) -- Deviation = 3.016e-03, Limit = 1.000e-02
+pass: MEAN_DEVIATION, "vmid"(#7) -- Deviation = 7.141e-04, Limit = 2.000e-02
+pass: RMS_DEVIATION, "vmid"(#7) -- Deviation = 3.283e-03, Limit = 2.000e-02
+pass: MAX_DEVIATION, "iain"(#8) -- Deviation = 6.976e-03, Limit = 2.000e-02
+pass: MEAN_DEVIATION, "iain"(#8) -- Deviation = 9.524e-05, Limit = 1.000e-02
+pass: RMS_DEVIATION, "iain"(#8) -- Deviation = 4.802e-03, Limit = 1.000e-02
+pass: MAX_DEVIATION, "icin"(#9) -- Deviation = 7.962e-03, Limit = 2.000e-02
+pass: MEAN_DEVIATION, "icin"(#9) -- Deviation = 1.089e-04, Limit = 1.000e-02
+pass: RMS_DEVIATION, "icin"(#9) -- Deviation = 5.492e-03, Limit = 1.000e-02
+pass: MEAN_DEVIATION, "iamid"(#10) -- Deviation = 1.071e-03, Limit = 2.000e-02
+pass: RMS_DEVIATION, "iamid"(#10) -- Deviation = 4.311e-03, Limit = 2.000e-02
+pass: MEAN_DEVIATION, "icmid"(#11) -- Deviation = 1.094e-03, Limit = 2.000e-02
+pass: RMS_DEVIATION, "icmid"(#11) -- Deviation = 3.655e-03, Limit = 2.000e-02
+pass: MAX_DEVIATION/GRID, "Full"(#1) (DIM 1) -- Deviation = 7.625e-06, Limit = 1.000e-01
+pass: MAX_DEVIATION/GRID, "Full"(#1) (DIM 2) -- Deviation = 7.625e-06, Limit = 1.000e-01
+pass: MAX_DEVIATION/GRID, "Full"(#1) (DIM 3) -- Deviation = 9.765e-04, Limit = 1.000e-01
+pass: MAX_DEVIATION/GRID, "Full"(#1) (DIM 1) -- Deviation = 7.625e-06, Limit = 1.000e-01
+pass: MAX_DEVIATION/GRID, "HALF"(#2) (DIM 1) -- Deviation = 6.943e-06, Limit = 1.000e-03
+pass: MAX_DEVIATION/GRID, "HALF"(#2) (DIM 2) -- Deviation = 6.943e-06, Limit = 1.000e-03
+FAIL: MAX_DEVIATION/GRID, "HALF"(#2) (DIM 3) -- Deviation = 3.953e-03, Limit = 1.000e-03
+pass: MEAN_DEVIATION/GRID, "HALF"(#2) (DIM 1) -- Deviation = 8.819e-10, Limit = 1.000e-03
+pass: MEAN_DEVIATION/GRID, "HALF"(#2) (DIM 2) -- Deviation = 8.819e-10, Limit = 1.000e-03
+pass: MEAN_DEVIATION/GRID, "HALF"(#2) (DIM 3) -- Deviation = 3.879e-05, Limit = 1.000e-03
+pass: RMS_DEVIATION/GRID, "HALF"(#2) (DIM 1) -- Deviation = 4.201e-06, Limit = 1.000e-03
+pass: RMS_DEVIATION/GRID, "HALF"(#2) (DIM 2) -- Deviation = 4.201e-06, Limit = 1.000e-03
+pass: RMS_DEVIATION/GRID, "HALF"(#2) (DIM 3) -- Deviation = 3.914e-04, Limit = 1.000e-03
+RANGE_ALLOWED/GRID, "HALF"(#2) (DIM 1)  Range = [-5.000e-04, 1.050e-02]
+RANGE_ALLOWED/GRID, "HALF"(#2) (DIM 2)  Range = [-5.000e-04, 1.050e-02]
+RANGE_ALLOWED/GRID, "HALF"(#2) (DIM 3)  Range = [-5.000e-04, 1.005e-01]
+RANGE_ALLOWED/GRID, "HALF"(#2) (DIM 1)  Range = [-5.000e-04, 1.050e-02]
+RANGE_ALLOWED/GRID, "HALF"(#2) (DIM 2)  Range = [-5.000e-04, 1.050e-02]
+RANGE_ALLOWED/GRID, "HALF"(#2) (DIM 3)  Range = [-5.000e-04, 1.005e-01]
+FAIL: MAX_DEVIATION, "e:all ... t=5.0000E-09 ave=0001 001/001"(#2) -- Dataset contains no data:  
+FAIL: MAX_DEVIATION, "e:all ... t=5.0000E-09 ave=0001 001/001"(#2) -- Subrange specification inconsistent with dataset:  
+pass: MAX_DEVIATION, "e:all ... t=5.0000E-09 ave=0001 001/001"(#2) ([2.000e-02:6.000e-02, 4.000e-03:*, 2.000e-03:3.000e-03] count=126) -- Deviation = 0.000e+00, Limit = 3.000e-04
+pass: MAX_DEVIATION, "b:all ... t=5.0000E-09 ave=0001 001/001"(#3) ([1.000e-02:3.000e-02, *:6.000e-03, *:*] count=198) -- Deviation = 2.630e-07, Limit = 3.000e-04
+
+Error Count: (6/43)

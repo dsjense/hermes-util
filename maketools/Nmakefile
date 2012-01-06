@@ -1,0 +1,205 @@
+# NMAKE Makefile for Hermes Tool library
+#
+#-----------------------------------------------------------------------
+#     $Id$
+#     
+#     Copyright (2008) Sandia Corporation. Under the terms of
+#     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+#     Government retains certain rights in this software.
+#     
+#     Hermes is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Lesser General Public License as
+#     published by the Free Software Foundation, either version 3 of
+#     the License, or (at your option) any later version.
+#     
+#     Hermes is distributed in the hope that it will be useful, but
+#     WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Lesser General Public License for more details.
+#     
+#     You should have received a copy of the GNU Lesser General
+#     Public License along with Hermes.  If not, see
+#     <http://www.gnu.org/licenses/>.
+#     
+#-----------------------------------------------------------------------
+
+PRODUCT = hermes
+C_INCDIRS =
+LIB_EXT =
+CPP_OPTS =
+MAKE = make
+LIBS = hermes.lib hermes++.lib
+
+!INCLUDE $(HERMES_ROOT)\etc\makeopts.$(HERMES_SYS_TYPE)
+
+CFG=""
+!IF "$(OS)" == "Windows_NT"
+NULL=
+!ELSE 
+NULL=nul
+!ENDIF
+
+INTDIR=.\Release$(LIB_EXT)
+!IF  "$(CFG)" == "release"
+
+LIBDIR=..\lib\$(HERMES_SYS_TYPE)
+OUTDIR=..\bin\$(HERMES_SYS_TYPE)
+# Begin Custom Macros
+# End Custom Macros
+
+CFLAGS_CFG= $(CFLAGS_OPT)
+CLEAN_CFG="$(INTDIR)\vc60.idb" "$(INTDIR)\vc60.pdb"
+
+!ELSEIF  "$(CFG)" == "debug"
+
+LIBDIR=..\lib\debug\$(HERMES_SYS_TYPE)
+INTDIR=.\Debug$(LIB_EXT)
+OUTDIR=.\$(HERMES_SYS_TYPE)
+# Begin Custom Macros
+# End Custom Macros
+
+CFLAGS_CFG= $(CFLAGS_DBG)
+CLEAN_CFG="$(INTDIR)\vc60.idb" "$(INTDIR)\vc60.pdb" "$(INTDIR)\DF60.PDB"
+
+!ENDIF
+
+PRODNAME=$(PRODUCT)$(LIB_EXT)
+
+MACRO_LIST_FILE = $(PRODNAME)_macro_list.nmake
+DEP_LIST_FILE = $(PRODNAME)_dep_list.nmake
+DEP_INCDIRS = $(C_INCDIRS:/=-) $(F_INCDIRS:/=-)
+
+.SUFFIXES:
+.SUFFIXES:  .obj .h .hh .c .cc	
+
+LINK32=link.exe
+LIB32=link.exe -lib
+
+LIB32_FLAGS=/nologo 
+LINK32_FLAGS= $(LIBS) $(SYS_LIBS)  /nologo /subsystem:console \
+      /incremental:no /pdb:$(OUTDIR)\$(TARG).pdb /machine:I386 \
+      $(LFLAGS_CFG) /out:$(OUTDIR)\$(TARG).exe /libpath:$(LIBDIR)
+
+SYS_LIBS=kernel32.lib user32.lib gdi32.lib \
+         winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib \
+         oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
+
+CFLAGS = $(CFLAGS_ALL) $(CFLAGS_CFG) $(CFLAGS_SYS) $(CPP_OPTS) $(C_INCDIRS) \
+	 /Fp"$(INTDIR)\$(PRODUCT).pch" \
+	 /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\"
+
+CXXFLAGS = $(CXXFLAGS_ALL) $(CFLAGS_CFG) $(CFLAGS_SYS) $(CPP_OPTS) \
+	 $(C_INCDIRS) /Fp"$(INTDIR)\$(PRODUCT).pch" \
+	 /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\"
+
+CPPFLAGS = $(CFLAGS_SYS:/=-) $(CPP_OPTS)
+
+!IF EXISTS("$(MACRO_LIST_FILE)")
+!INCLUDE $(MACRO_LIST_FILE)
+!ELSE
+# Bootstrap mode -- after this minimal set is made, make dependencies, then
+# make everything
+LIB_OBJS = $(INTDIR)\cppsetup.obj $(INTDIR)\ifparser.obj \
+           $(INTDIR)\include.obj $(INTDIR)\mkdep.obj $(INTDIR)\parse.obj \
+           $(INTDIR)\pr.obj $(INTDIR)\ev_macros.obj $(INTDIR)\winrtl.obj
+LIBCPP_OBJS = $(INTDIR)\ext_match_list.obj $(INTDIR)\file_compare.obj \
+            $(INTDIR)\l_group.obj $(INTDIR)\line_dumper.obj
+TARG_OBJS = $(INTDIR)\lgrp.obj $(INTDIR)\hmakedepend.obj \
+            $(INTDIR)\bld_dep_list.obj $(INTDIR)\bld_macro_list.obj
+TARGETS = $(OUTDIR)\lgrp.exe $(OUTDIR)\hmakedepend.exe \
+          $(OUTDIR)\bld_dep_list.exe $(OUTDIR)\bld_macro_list.exe
+
+bootstrap:
+	$(MAKE) /$(MAKEFLAGS) CFG=release ALL
+	$(MAKE) CFG=$(CFG) depend
+	$(MAKE) CFG=$(CFG)
+!ENDIF
+
+LIBRARY = "$(LIBDIR)\$(PRODUCT)$(LIB_EXT).lib"
+LIBCPP = "$(LIBDIR)\$(PRODUCT)$(LIB_EXT)++.lib"
+
+default:
+   @$(MAKE) /$(MAKEFLAGS) CFG=release ALL
+
+dbg:
+   @$(MAKE) /$(MAKEFLAGS) CFG=debug ALL
+
+ALL : $(INTDIR) $(LIBDIR) $(LIBRARY) $(LIBCPP) $(OUTDIR)
+   @for %i in ($(TARGETS)) do \
+     $(MAKE) /$(MAKEFLAGS) TARG=%~ni CFG=$(CFG) %i
+
+$(TARGETS) : $(LIBRARY) $(LIBCPP)
+
+$(LIBRARY) : $(LIB_OBJS)
+    $(LIB32) $(LIB32_FLAGS)  /out:"$(LIBRARY)" $(DEF_FLAGS) $(LIB_OBJS)
+
+$(LIBCPP) : $(LIBCPP_OBJS)
+    $(LIB32) $(LIB32_FLAGS)  /out:"$(LIBCPP)" $(DEF_FLAGS) $(LIBCPP_OBJS)
+
+depend:
+	@$(MAKE) /$(MAKEFLAGS) bld_macro_list
+	@$(MAKE) /$(MAKEFLAGS) $(DEP_LIST_FILE)
+
+$(MACRO_LIST_FILE) bld_macro_list :
+	@bld_macro_list -mhermes -sc -OLIB_OBJS -W -P $(PRODNAME) .nmake
+	@bld_macro_list -mhermes -scc -OLIBCPP_OBJS -W -aP $(PRODNAME) .nmake
+	@bld_macro_list -nhermes -ntest -sc -scc -OTARG_OBJS -W -aP \
+	                $(PRODNAME) .nmake
+	@bld_macro_list -nhermes -ntest -sc -scc -OTARGETS -EW -aP \
+	                $(PRODNAME) .nmake
+	@bld_macro_list -mtest -sc -scc -OTEST_OBJS -W -aP $(PRODNAME) .nmake
+	@bld_macro_list -mtest -sc -scc -OTEST_TARGETS -EW -ad \
+	                $(PRODNAME) .nmake
+
+$(DEP_LIST_FILE) : $(SRCS) $(INCS)
+	@bld_dep_list -mhermes -sc -e0 -S"# LIBRARY dependencies" \
+	              $(DEP_INCDIRS) $(CPPFLAGS) -W -P -e0 $(PRODNAME) .nmake
+	@bld_dep_list -mhermes -scc -S"# LIBCPP dependencies" \
+	              $(DEP_INCDIRS) $(CPPFLAGS) -W -aP -e0 $(PRODNAME) .nmake
+	@bld_dep_list -nhermes -ntest -sc -scc -S"# Tool dependencies" \
+	              $(DEP_INCDIRS) $(CPPFLAGS) -EW -aP -e0 $(PRODNAME) .nmake
+	@bld_dep_list -nhermes -ntest -sc -scc -S"# Tool dependencies" \
+	              $(DEP_INCDIRS) $(CPPFLAGS) -W -aP -e0 $(PRODNAME) .nmake
+	@bld_dep_list -mtest -sc -scc -S"# Test dependencies" -EW -aP \
+	              $(DEP_INCDIRS) $(CPPFLAGS) -e0 $(PRODNAME) .nmake
+	@bld_dep_list -mtest -sc -scc -S"# Test dependencies" -W -a \
+	              $(DEP_INCDIRS) $(CPPFLAGS) -e0 $(PRODNAME) .nmake
+
+CLEAN clobber :
+	-@erase /Q $(OBJS) $(CLEAN_INCS) $(CLEAN_CFG) \
+	  "$(LIBRARY)" "$(LIBCPP)"
+
+"$(LIBDIR)" :
+    if not exist "$(LIBDIR)/$(NULL)" mkdir "$(LIBDIR)"
+
+"$(OUTDIR)" :
+    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
+
+!if "$(INTDIR)" != "$(LIBDIR)"
+"$(INTDIR)" :
+    if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
+!endif
+
+.c{$(INTDIR)}.obj:
+   $(CC) $(CFLAGS) $<
+
+.cc{$(INTDIR)}.obj:
+   $(CXX) $(CXXFLAGS) $<
+
+{$(INTDIR)}.obj{$(OUTDIR)}.exe:
+    $(LINK32) $(LINK32_FLAGS) $<
+
+!IF EXISTS("$(DEP_LIST_FILE)")
+!INCLUDE $(DEP_LIST_FILE)
+!ELSE 
+# Bootstrap mode -- after this minimal set is made, make dependencies, then
+# make everything
+$(OUTDIR)\lgrp.exe : $(INTDIR)\lgrp.obj 
+$(OUTDIR)\hmakedepend.exe : $(INTDIR)\hmakedepend.obj
+$(OUTDIR)\bld_dep_list.exe : $(INTDIR)\bld_dep_list.obj
+$(OUTDIR)\bld_macro_list.exe : $(INTDIR)\bld_macro_list.obj
+!ENDIF 
+
+!IF "$(CFG)" == "release" || "$(CFG)" == "debug"
+!message Updating $(CFG) Configuration ...
+!ENDIF 

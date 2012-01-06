@@ -1,0 +1,31 @@
+ %TIO-EVALEXPR-ERROR: No output on stack
+    At line #   27 in file: symbol2.cmd
+   ... line #   49 in file: mtest_all.cmd
+ %TIO-EVALEXPR-ERROR: No output on stack
+    At line #   41 in file: symbol2.cmd
+   ... line #   49 in file: mtest_all.cmd
+ %TIO-SUBSTEXPR-ERROR: Undefined variable:  pp
+    At line #   44 in file: symbol2.cmd
+   ... line #   49 in file: mtest_all.cmd
+ %TIO-EVALEXPR-ERROR: No output on stack
+    At line #   47 in file: symbol2.cmd
+   ... line #   49 in file: mtest_all.cmd
+ %TIO-SUBSTEXPR-ERROR: Undefined variable:  gg
+    At line #   51 in file: symbol2.cmd
+   ... line #   49 in file: mtest_all.cmd
+ %TIO-SUBSTEXPR-ERROR: Undefined variable:  b
+    At line #   43 in file: scope2.cmd
+   ... line #   41 in file: scope1.cmd
+   ... line #  129 in file: mtest_all.cmd
+ %TIO-SUBSTEXPR-ERROR: Undefined variable:  ga
+    At line #   51 in file: scope1.cmd
+   ... line #  129 in file: mtest_all.cmd
+ %TIO-IOCMFPDEF-ERROR: Parameter mismatch in file: param2.cmd: n_file, n_passed =    2   0
+    At line #   27 in file: param2.cmd
+   ... line #  204 in file: mtest_all.cmd
+ %TIO-CMDINI-ERROR: Unknown command: xxx
+    At line #   27 in file: err.cmd
+   ... line #  211 in file: mtest_all.cmd
+ %TIO-CMDINI-ERROR: Unknown command: xxx
+    At line #   27 in file: err.cmd
+   ... line #  220 in file: mtest_all.cmd

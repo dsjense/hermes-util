@@ -1,0 +1,28 @@
+! $Id$
+!
+Usage:
+   bldpff  [ -D tio_var[=value] ... ]  [ [-B] -c cmd_file ]
+           [ -b|-a output_file ]  [ [-o] open_file ... ]
+   bldpff  -h
+!#1 Longer description follows:
+
+Options:
+      -D tio_var[=value]   Predefine TIO global symbol "tio_var" with
+                           "value". If value is not supplied, the value
+                           of tio_var is set to 1 (the numeral "one").
+      -c file              Process input commands from "file".
+      -B                   Exit after processing command file. This option
+                           is only valid when used in conjunction with
+                           the ­c option.
+      -a file              Open "file" in append mode.
+      -b file              Open "file" in build mode.
+      -o file              Open "file" in read mode.
+      -h                   Usage help.
+
+BLDPFF allows only one output file to be open at a time, so the -a and
+-b options cannot be used together. However, multiple files in
+"read-only" mode are allowed. Consequently, multiple input files can
+be specified with the ­o option. In addition, any command-line
+arguments supplied after these command-line options are assumed to be
+names of files, which are also opened in "read-only" mode. The last
+"read- only" file specified is considered to be the active input file.

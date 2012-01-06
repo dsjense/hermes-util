@@ -1,0 +1,71 @@
+------------------------------------------------------------------------------
+     $Id$
+     
+     Copyright (2008) Sandia Corporation. Under the terms of
+     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+     Government retains certain rights in this software.
+     
+     Hermes is free software: you can redistribute it and/or modify
+     it under the terms of the GNU Lesser General Public License as
+     published by the Free Software Foundation, either version 3 of
+     the License, or (at your option) any later version.
+     
+     Hermes is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU Lesser General Public License for more details.
+     
+     You should have received a copy of the GNU Lesser General
+     Public License along with Hermes.  If not, see
+     <http://www.gnu.org/licenses/>.
+     
+------------------------------------------------------------------------------
+
+Overview
+
+  TSTAK tests the implementation of the STAK library. All routines are
+  exercised.
+  The ptr_size executable provides the size of the machine's pointer type
+  as well as the size of the machine's C "size_t" type. The HU_PTR_BYTES
+  macro defined in the corresponding makeopts file in the etc directory
+  should be set to the size of the pointer type, and if this is different
+  than the size of the "size_t" type, HU_SIZE_T should be set to that value.
+
+Using TSTAK
+
+  Run make with the command line "make". Some changes to the Makefile
+  may be required.  
+
+  Run TSTAK using the following command 
+  line:
+
+      cat input | tstak > stdout 2> stderr
+
+  Note that this command is provided for Posix shell (sh or ksh).  C-shell
+  users will need to use the appropriate csh command. 
+
+  The test produces four output files, "stdout", "stderr", "stkinfo",
+  and "saveit".
+
+  1. "stderr" should have the same contents as the supplied
+     "stderr.ref" file.
+
+  2. "stkinfo" should have the same contents as "stkinfo.ref" for
+     4-byte pointer systems, or "stkinfo.ref_8" for 8-byte pointer
+     systems.
+
+  3. Four reference files are provided for comparison with "stdout":
+     "stdout.bendian", "stdout.bendian_8", "stdout.lendian", and
+     "stdout.lendian_8", matching the four possible permutations of 4-
+     or 8-byte pointers and "big endian" or "little endian" byte
+     ordering. A particular machine's "endian-ness" is described by the
+     makeopts macros HU_ENDIAN_IS_LSB_LAST (big endian) or
+     HU_ENDIAN_IS_LSB_FIRST (little endian). For example, Intel and DEC
+     architectures are typically "little endian"; HP, SUN, and SGI
+     architectures are typically "big endian". "stdout" should match the
+     appropriate supplied reference file, with the exception of memory
+     addresses. To facilitate their recognition, all such addresses have
+     been set to zero in the supplied reference files.
+
+  4. The file "saveit" is a temporary binary work file and can be
+     ignored.

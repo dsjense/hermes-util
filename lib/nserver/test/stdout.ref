@@ -1,0 +1,104 @@
+ NS_find(EMPTY,...,0):            0
+ NS_find(EMPTY,...,5):           -1
+ NS_find(PARTIAL,...,5):           -1
+Strings allocated: 200   free: 197
+    1  "function_1"
+    2  "function_2"
+    3  "function_3"
+Strings allocated: 200   free: 196
+    1  "function_1"
+    2  "function_2"
+    3  "function_3"
+    4  "function_4"
+Arrays allocated: 200   free: 199
+  handle: 1  low: 6 high: 12
+        6   999
+        7   999
+        8   999
+        9   999
+       10   999
+       11   999
+       12   999
+ putarrval error, index,val:           -2           5         -32
+ getarrval error, index,val:           -2           5         999
+ get-putarrval mismatch:          -32         999
+ putarrval error, index,val:           -2          13          32
+ getarrval error, index,val:           -2          13         999
+ get-putarrval mismatch:           32         999
+ putarrval error 3:           -1
+ getarrval error 3:           -1
+Strings allocated: 200   free: 194
+    1  "function_1"
+    2  "function_2"
+    3  "function_3"
+    4  "function_4"
+    5  "function_4"
+    6  "function_5"
+Arrays allocated: 200   free: 198
+  handle: 1  low: 6 high: 12
+        6   -24
+        7   -16
+        8   -8
+        9   0
+       10   8
+       11   16
+       12   24
+  handle: 2  low: -2 high: 2
+       -2   50
+       -1   -5
+        0   -5
+        1   -5
+        2   -5
+ alist:            1           2           0           0           0
+ List 1 range:            6 to           12
+ List 2 range:           -2 to            2
+Strings allocated: 200   free: 194
+    1  "function_1"
+    2  "function_2"
+    3  "function_3"
+    4  "function_4"
+    5  "function_4"
+    6  "function_5"
+Arrays allocated: 200   free: 199
+  handle: 2  low: -2 high: 2
+       -2   50
+       -1   -5
+        0   -5
+        1   -5
+        2   -5
+ alist:            0           2           0           0           0
+ flist:            1           2           3           5           6
+ mlist:            2          -4           5          -7           0
+ NS_find(function_4,...):            4
+ NS_find(function_6,...):            0
+Strings allocated: 200   free: 193
+    1  "function_1"
+    2  "function_2"
+    3  "function_3"
+    4  "function_4"
+    5  "function_4"
+    6  "function_5"
+    7  "function_6"
+ freeing mlist, h:            2           4           0
+ locate error, h,string:            4           0           7"function_6"
+ CCC: function_6     --- some more  
+ freeing mlist, h:            4           7           0
+ failed unique match w/ NS_find_match:            0
+ failed unique match w/ NS_locate_match:            0
+ failed unique match w/ NS_find_match:           -1
+ failed unique match w/ NS_locate_match:           -1
+ found unique match w/ NS_find_match:            6 function
+ found unique match w/ NS_locate_match:            6 function
+ failed unique match w/ NS_find_match:           -1
+ failed unique match w/ NS_locate_match:           -1
+ freeing handle:            8           0
+Strings allocated: 200   free: 191
+    1  "function_1"
+    2  "function_2"
+    3  "function_3"
+    4  "no_match"
+    5  "function_4"
+    6  "function_5"
+    7  "function_22"
+    9  "function"
+   10  "function"

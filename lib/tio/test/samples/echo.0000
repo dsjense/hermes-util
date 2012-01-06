@@ -1,0 +1,88 @@
+^define x 'a b 1.0 1.d0 44'
+^define d_bad a b 1.0 1.d0 44 4 token
+^define y 'a b 1.0 1.d0 44' 1 token
+^define z 'a b 1.0 1.d0 44' 3 token
+^define d 'a b 1.0 1.d0 44' 4 token
+^define i 'a b 1.0 1.d0 44' 5 token
+cmd1 a b 1.0 1.d0 44 'a b 1.0 1.d0 44'
+cmd1 a 1.0 1.d0 44
+^define p1 44 1 +
+cmd1 45
+^define qq a 1 token
+^define pp a 2 token
+cmd1 qq: -a-
+^define ff 44 1 token
+^define gg 44 2 token
+^define hh 44 10 *
+cmd1 ff: -44-
+cmd1 hh: -440-
+cmd1 1 1.10000E+00 'loop iteration #_1'
+cmd1 2 2.10000E+00 'loop iteration #_2'
+cmd1 3 3.10000E+00 'loop iteration #_3'
+cmd1 1 1.10000E+00 'loop iteration #_1'
+cmd1 2 2.10000E+00 'loop iteration #_2'
+cmd1 3 3.10000E+00 'loop iteration #_3'
+cmd1 1 1 1.10000E+00 'string_1_1'
+cmd1 2 1 2.10000E+00 'string_2_1'
+cmd1 1 2 1.01100E+02 'string_1_2'
+cmd1 2 2 1.02100E+02 'string_2_2'
+cmd1 1 3 2.01100E+02 'string_1_3'
+cmd1 2 3 2.02100E+02 'string_2_3'
+cmd1 1 1.00000E+00 'new_string1_1'
+cmd1 1 1.00000E+00 'new_string2_1'
+cmd1 2 2.00000E+00 'new_string2_2'
+cmd1 1 1.00000E+00 'new_string3_1'
+cmd1 2 2.00000E+00 'new_string3_2'
+cmd1 3 3.00000E+00 'new_string3_3'
+cmd1 1 1.00000E+00 'new_string4_1'
+cmd1 2 2.00000E+00 'new_string4_2'
+cmd1 3 3.00000E+00 'new_string4_3'
+cmd1 4 4.00000E+00 'new_string4_4'
+cmd1 .true.
+cmd2 .false.
+cmd1 .true.
+cmd2 .false.
+cmd2 .false.
+cmd1 .true.
+cmd1 .true.
+cmd1 .true.
+cmd2 .false.
+cmd1 1 .true.
+cmd1 2 .true.
+cmd2 -1 .false.
+cmd2 -2 .false.
+cmd1 .true.
+cmd1 .true.
+cmd1 .true. .true.
+cmd1 '-------------------- level-1 -----------------------'
+cmd1 a-0 b2 ga-orig g3
+cmd1
+cmd1 '-------------------- level-2 -----------------------'
+cmd1 a1 c ga-orig gb-mod gc
+cmd1
+cmd1 '-------------------- level-1 -----------------------'
+cmd1 a-0 b3 gb-mod gc
+cmd1 6.00000E+00 6.00000E+00 6.00000E+00 6.00000E+00
+cmd1 'Hello World' 'Hello World'
+cmd1 6 4.46287E-08 2.00000E+00 7.38906E+00 2.00000E+00
+cmd1 3 5
+cmd1 8.66025E-01 5.00000E-01 1.00000E+00
+cmd1 3.33333E-01 3.33333E-01 2.50000E-01
+cmd1 6 1.00000E-06 1.00000E-06
+cmd1 8 1.00000E-08 1.00000E-08
+cmd1 10 1.00000E-10 1.00000E-10
+cmd1 12 1.00009E-12 1.00009E-12
+cmd1 14 9.99201E-15 9.99201E-15
+cmd1 4 12 17 ENDarr2 21
+cmd1 new-value 10 20 30
+cmd1 '# of elements in array ARR1 = ' 3
+cmd1 c b a
+cmd1 6 4
+cmd1 2 4
+cmd1 12 4
+cmd1 40 4
+^cmfparam par1 par2
+cmd1 abc
+xxx 123
+cmd1 abc
+xxx 123

@@ -1,0 +1,183 @@
+------------------------------------------------------------------------------
+     $Id$
+     
+     Copyright (2008) Sandia Corporation. Under the terms of
+     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+     Government retains certain rights in this software.
+     
+     Hermes is free software: you can redistribute it and/or modify
+     it under the terms of the GNU Lesser General Public License as
+     published by the Free Software Foundation, either version 3 of
+     the License, or (at your option) any later version.
+     
+     Hermes is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU Lesser General Public License for more details.
+     
+     You should have received a copy of the GNU Lesser General
+     Public License along with Hermes.  If not, see
+     <http://www.gnu.org/licenses/>.
+     
+     C_Groups @(#)
+------------------------------------------------------------------------------
+
+Overview
+
+  TREAD and TWRITE test the PFF read and write routines. They can also
+  be used to determine the value of the end-of-file parameter 
+  EOFSTA that should be used in the subroutine PFMIO.
+
+  TFLOAT helps determine the values PF2MIN and PF2MAX.  These parameters
+  determine the minimum and maximum power-of-two exponent for single
+  precision floating point numbers on a specific machine.
+
+  TFLUSH helps determine if the machine-dependent output buffer flush
+  routine (pfmflu) is working properly.
+
+Using TREAD, TWRITE, TFLOAT, and TFLUSH
+
+  Run make with the command line "make". Some changes to the
+  Makefile may be required on a new machine or with a newer version of
+  an operating system.
+
+  Now run TWRITE. Enter the file name "twrite.pff" and TWRITE will create a
+  binary file "twrite.pff" that should be identical to the supplied file
+  "test.pff". 
+
+  If there are differences, there are two likely causes. If the files
+  are the same length, the probable cause is that the BYTE_SWAP macro is
+  being improperly set in pfmio.F. If the files are not the same length,
+  the probable cause is that the PBPRU parameter is does not have the
+  proper value in pfmopn.F. The first 2 records written test the 4-byte
+  integer option. The next 2 records written test the full-precision
+  (IEEE 32-bit) floating point option. Error #2 from mi4 or mf4 probably
+  indicates that the option is not yet implemented on this machine. If
+  this is the case, you must either implement pfmf4.F for this machine,
+  or comment out the code in tread and twrite that tests this option
+  (delineated by "start TEST of FULL-PRECISION MD code" and "end TEST of
+  FULL-PRECISION MD code").
+  
+  Example:
+
+  sahp058% twrite
+   File to write
+  twrite.pff
+  sahp058% cmp twrite.pff test.pff
+  sahp058%
+
+  >>> no differences
+
+  Now run TREAD. Enter the file name "twrite.pff". TREAD reads and
+  prints the 1st word from each of the 14 records in the file. These
+  words should be the same. The first 2 records test the 4-byte integer
+  option. The next 2 records test the full-precision (IEEE 32-bit)
+  floating point option. Errors here are probably the result of the
+  BYTE_SWAP macro being improperly defined. After reading all 14
+  records, the module pfmio attempts to handle the attempt to read
+  beyond the end-of-file. If this is done successfully, pfmio will
+  return a (-1) error status.
+
+  If any other error status is returned, you need to determine the
+  proper error status returned by your system.  A simple way to do that
+  is to concatenate the files tread.f and ../pfmio.F into the file
+  txread.F.  Then insert the line 
+
+           print*, 'EOFSTA = ',ierr, '  ???'
+
+  after statement #10 in subroutine PFMIO.  Now "make txread" and run
+  it.  The value printed for EOFSTA is the value that the parameter
+  EOFSTA in module pfmio must be set to.
+
+  Example:
+
+  sahp058% tread
+   File to read
+  twrite.pff
+       1       1          32257          32257      7E01      7E01
+       2    1025          65025          65025      FE01      FE01
+       3       1 0.10000000E+01 0.10000000E+01  3F800000  3F800000
+       4    1025 0.97560976E-03 0.97560976E-03  3A7FC010  3A7FC010
+       5       1       1
+       6    2049    2049
+       7    4097    4097
+       8    6145    6145
+       9    8193    8193
+      10   10241   10241
+      11   12289   12289
+      12   14337   14337
+      13   16385   16385
+      14   18433   18433
+ mio error =    -1  irec =    15
+
+  >>> EOFSTA has the correct value
+
+  Run TFLOAT. Successively enter integer values.  If the power-of-two
+  exponents are exceeded the program will often abort.  At the minimum
+  end, some machines abort, while others set the value to zero.  Some
+  machines extend their lower range by throwing away mantissa precision.
+  This is indicated if the precision value deviates significantly 
+  from 1.0.
+
+  Example:
+
+  sahp058% tfloat
+   Enter PF2 parameter value
+  127                                  <--------  PF2MAX
+   Decoded MAX value =  1.70141E+38
+   Decoded MIN value =  8.50706E+37
+   Precision     =  1.0
+   1.0/MAX value     =  5.87747E-39    <--------  PFRMIN
+   1/(1/MAX) value   =  1.70141E+38
+   Enter PF2 parameter value
+  128
+   Decoded MAX value =  3.40282
+   Decoded MIN value =  1.70141
+   1.0/MAX value     =  0.29387
+   1/(1/MAX) value   =  3.40282
+   Precision     =  1.00000E-38
+   Enter PF2 parameter value
+  -127                                 <--------  PF2MIN
+   Decoded MAX value =  5.87747E-39
+   Decoded MIN value =  2.93874E-39
+   Precision     =  1.0
+   Enter PF2 parameter value
+  -128
+   Decoded MAX value =  .0
+   Decoded MIN value =  .0
+   Precision     =  .0
+   Enter PF2 parameter value
+
+  >>>  PF2MAX = 127,  PF2MIN = -127,  PFRMIN = 5.87747E-39
+
+
+  Run TFLUSH. This routine writes out consecutive 4096-byte blocks to an 
+  output file.  For each block, it pauses twice, once after writing the block, 
+  and once after calling pfmflu to flush the system output buffer.  After the
+  message "Writing buffer 1" the file may or may not actually contain 4096 
+  bytes, depending upon the operating system's policy for buffer flushing. 
+  However, after the message "Calling PFMFLU", the file should contain 4096 
+  bytes if pfmflu is functioning properly.  Note that the code is restarted
+  after each pause by entering a carriage return, and the program will exit
+  if "q" is entered in response to the "Calling PFMFLU" message.  This test 
+  is most useful if run simultaneously with another process that can monitor
+  the file size thoughout the course of the test.
+
+  Example:
+
+  sahp058% tflush
+   File to write 
+  tflush.pff
+   Writing buffer  1
+                                <--------  File may contain 4096 bytes.
+   Calling PFMFLU
+                                <--------  File should contain 4096 bytes.
+   Writing buffer  2
+                                <--------  File may contain 8192 bytes.
+   Calling PFMFLU
+                                <--------  File should contain 8192 bytes.
+   Writing buffer  3
+                                <--------  File may contain 12288 bytes.
+   Calling PFMFLU
+  q                             <--------  File should contain 12288 bytes.
+

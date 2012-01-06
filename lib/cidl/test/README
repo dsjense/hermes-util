@@ -1,0 +1,176 @@
+------------------------------------------------------------------------------
+     $Id$
+     
+     Copyright (2008) Sandia Corporation. Under the terms of
+     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+     Government retains certain rights in this software.
+     
+     Hermes is free software: you can redistribute it and/or modify
+     it under the terms of the GNU Lesser General Public License as
+     published by the Free Software Foundation, either version 3 of
+     the License, or (at your option) any later version.
+     
+     Hermes is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU Lesser General Public License for more details.
+     
+     You should have received a copy of the GNU Lesser General
+     Public License along with Hermes.  If not, see
+     <http://www.gnu.org/licenses/>.
+     
+------------------------------------------------------------------------------
+
+Overview
+
+  TCIDL tests routines in the CIDL library. All routines are
+  exercised.
+
+Using TCIDL
+
+  Run make with the command line "make". Some changes to the Makefile
+  may be required on a new machine or with a newer version of an
+  operating system.
+
+  First, set the environment variable IDL_STARTUP as follows:
+     export IDL_STARTUP=./pros/idl_startup.pro (Bourne, Korn, or BASH shells)
+     setenv IDL_STARTUP ./pros/idl_startup.pro (C shell)
+
+  Now run TCIDL and answer the questions it asks. Below is a sample session.
+  Lines starting with "*********" are comments edited into the actual terminal
+  output.
+
+  Example:
+
+  $ export IDL_STARTUP=./pros/idl_startup.pro
+  $ tcidl
+   This is a test                                    
+  IDL Version 7.0 (linux x86 m32). (c) 2007, ITT Visual Information Solutions
+  ...
+  All other use is strictly prohibited.
+
+  % Compiled module: PATH_SEP.
+  start_call_idl: IER  =    0
+  IER  =    0
+  % Y = 1.235E+04
+  send_real_var: IER  =    0
+  send_int_var: IER  =    0
+  send_str_var: IER  =    0
+  % At $MAIN$          
+  DISPLAY         STRING    = ':0.0'
+  IDLDIR          STRING    = './pros'
+  IDL_DIR         STRING    = '/opt/rsi/idl'
+  ITS             LONG      =            5
+  STR_TS          STRING    = 'This is the string "STR_TS"'
+  TS              FLOAT     =       5.00000
+  Compiled Procedures:
+      $MAIN$
+
+  Compiled Functions:
+    PATH_SEP
+
+  get_real_var: IER  =    0
+  TS              FLOAT     =       5.00000
+  IER  =    0
+  TS = 5.000E+00
+  get_integer_var: IER  =    0
+  ITS             LONG      =            5
+  ITS =           5
+  % Compiled module: HAK.
+****** "Hit OK to continue..." dialog box is displayed here **********
+  After Hak 5.000E+00    7
+  get_str_var: IER  =    0
+  DISPLAY = :0.0
+  get_str_var: IER  =    0
+  IDL_DIR = /opt/rsi/idl
+  send_real_array: IER  =    0
+  XA              FLOAT     = Array[12]
+       1.00000      2.00000      3.00000      4.00000      5.00000      6.00000
+       7.00000      8.00000      9.00000      10.0000      11.0000      12.0000
+  get_real_array: IER  =    0
+  ndim,dims,npass:   1 12  0  0  0  0  0  0  0 12
+  send_integer_array: IER  =    0
+  IA              LONG      = Array[12]
+             1           2           3           4           5           6
+             7           8           9          10          11          12
+  get_integer_array: IER  =    0
+  ndim,dims,npass:   1 12  0  0  0  0  0  0  0 12
+  send_byte_array: IER  =    0
+  BA              BYTE      = Array[12]
+     1   2   3   4   5   6   7   8   9  10  11  12
+  get_byte_array: IER  =    0
+  ndim,dims,npass:   1 12  0  0  0  0  0  0  0 12
+  send_real_array (3x4): IER  =    0
+  XA2             FLOAT     = Array[3, 4]
+        1.00000      2.00000      3.00000
+        4.00000      5.00000      6.00000
+        7.00000      8.00000      9.00000
+        10.0000      11.0000      12.0000
+  get_real_array (3x4): IER  =    0
+  ndim,dims,npass:   2  3  4  0  0  0  0  0  0 12
+  send_integer_array (3x4): IER  =    0
+  IA2             LONG      = Array[3, 4]
+             1           2           3
+             4           5           6
+             7           8           9
+            10          11          12
+  get_integer_array (3x4): IER  =    0
+  ndim,dims,npass:   2  3  4  0  0  0  0  0  0 12
+  send_real_array (3x2x2): IER  =    0
+  XA3             FLOAT     = Array[3, 2, 2]
+        1.00000      2.00000      3.00000
+        4.00000      5.00000      6.00000
+
+        7.00000      8.00000      9.00000
+        10.0000      11.0000      12.0000
+  get_real_array (3x2x2): IER  =    0
+  ndim,dims,npass:   3  3  2  2  0  0  0  0  0 12
+   Enter number: 43324
+   y =    43324.00               1
+  Enter a string: a string
+  idl_main 1 1 - a string: IER  =    0
+  % Compiled module: GET_IDL_COMMAND.
+***** Window pops up asking for another string *****
+  idl_main 0 1 - another string: IER  =    0
+***** Window pops up asking "Enter command below *****
+***** entering plot,[0,1]  should plot an X-Y plot  *****
+***** entering exit  should return input to terminal  *****
+  idl_main 0 0: IER  =    0
+  IDL> print,'test'
+  test
+  IDL> exit
+  idl_main 1 0: IER  =    0
+  % At $MAIN$          
+  BA              BYTE      = Array[12]
+  CIDL_CMDSTRING  STRING    = 'exit'
+  DISPLAY         STRING    = ':0.0'
+  IA              LONG      = Array[12]
+  IA2             LONG      = Array[3, 4]
+  IDLDIR          STRING    = './pros'
+  IDL_DIR         STRING    = '/opt/rsi/idl'
+  ITS             LONG      =            5
+  STR_TS          STRING    = 'This is the string "STR_TS"'
+  TS              FLOAT     =       5.00000
+  XA              FLOAT     = Array[12]
+  XA2             FLOAT     = Array[3, 4]
+  XA3             FLOAT     = Array[3, 2, 2]
+  Y               FLOAT     =       43324.0
+  Compiled Procedures:
+      $MAIN$  COMMAND_HISTORY_EVENT   GET_IDL_COMMAND
+      GET_IDL_COMMAND_EVENT           GET_IDL_COMMAND_INIT    HAK
+      MAKE_IDL_COM_WID    START_AGAIN WINFORMATION
+
+  Compiled Functions:
+              PATH_SEP
+
+****** "Hit OK to continue..." dialog box is displayed here **********
+   Testing IDL-based command interface:
+****** IDL-based command interface should work properly on non-Windows systems 
+  Command ? This is a command
+  Read "This is a command": IER  =    0
+   Testing Fortran I/O-based command interface:
+ ****** Fortran I/O-based command interface should work properly on Windows
+ Command ? ERROR encountered: IER  =    4
+   Calling end_call_idl
+   end_call_idl returned            0
+  $ 

@@ -1,0 +1,134 @@
+------------------------------------------------------------------------------
+      $Id$
+      
+      Copyright (2008) Sandia Corporation. Under the terms of
+      Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+      Government retains certain rights in this software.
+      
+      Hermes is free software: you can redistribute it and/or modify
+      it under the terms of the GNU Lesser General Public License as
+      published by the Free Software Foundation, either version 3 of
+      the License, or (at your option) any later version.
+      
+      Hermes is distributed in the hope that it will be useful, but
+      WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+      GNU Lesser General Public License for more details.
+      
+      You should have received a copy of the GNU Lesser General
+      Public License along with Hermes.  If not, see
+      <http://www.gnu.org/licenses/>.
+      
+------------------------------------------------------------------------------
+
+Overview
+
+  TREADC and TWRITEC test the PFF read and write routines.
+
+  TA is a utility for manipulating PFF files.
+
+  TFLOATC checks to make sure that the values for floating point limits found
+  in float.h are consistent. This test should always pass.
+
+  TESTMPI and MTESTMPI tests the MPI implementation for writing vertex
+  data in parallel.
+
+Using TREADC, TWRITEC, TFLOATC, and TA
+
+  Run make with the command line "make". Some changes to the
+  Makefile may be required on a new machine or with a newer version of
+  an operating system.
+
+  Run TWRITEC with the command "twritec twrite.pff". This will produce the 
+  file twrite.pff, which should be identical to the supplied file test.pff,
+  found the subdirectory samples.
+
+  If there are differences, the most likely cause is that the BYTE_SWAP 
+  macro is being improperly set in mdep.h. The first 2 records written 
+  test the 4-byte integer option. The next 2 records written test the 
+  full-precision (IEEE 32-bit) floating point option. Error #2 from 
+  pf_u_i4 or pf_u_f4 probably indicates that the option is not yet
+  implemented on this machine. If this is the case, you must either 
+  implement it for this machine, or comment out the code in treadc and 
+  twritec that tests the option.
+  
+  Example:
+
+  sahp058% twritec twrite.pff
+  sahp058% cmp twrite.pff samples/test.pff
+  sahp058%
+
+  >>> no differences
+
+  Now run TREADC using the command "treadc twrite.pff". TREADC reads and
+  prints the 1st word from each of the 14 records in the file.  These
+  words should be the same.  The first 2 records test the 4-byte integer
+  option. The next 2 records test the full-precision (IEEE 32-bit)
+  floating point option. Errors here are probably the result of the
+  BYTE_SWAP macro being improperly defined.  After reading all 14
+  records, the treadc attempts to handle the attempt to read beyond the
+  end-of-file.  If this is done successfully, pf_u_i2io will will return
+  a (-1) error status.
+  
+  Example:
+
+  sahp058% treadc twrite.pff 
+         1       0          32257          32257  00007e01  00007e01
+         2       1          65025          65025  0000fe01  0000fe01
+         3       1 1.00000000e+00 1.00000000e+00  3f800000  3f800000
+         4    1025 9.75609757e-04 9.75609757e-04  3a7fc010  3a7fc010
+         5       1       1
+         6    2049    2049
+         7    4097    4097
+         8    6145    6145
+         9    8193    8193
+        10   10241   10241
+        11   12289   12289
+        12   14337   14337
+        13   16385   16385
+        14   18433   18433
+  pf_u_i2io error: -1  irec = 15
+
+  Now run TFLOATC. Its output will look something like:
+
+  sahp058% tfloatc
+  Current Macro Values:
+    MAX_EXP: 127
+    MIN_EXP: -125
+    FLT_MIN: 1.175494e-38
+  All tests passed.
+
+
+Using TESTMPI and MTESTMPI
+
+  Run make with the command line "make mpi". Some changes to the
+  Makefile may be required on a new machine or with a newer version of
+  an operating system.
+
+  Now run the script "testmpi.sh", which runs the test programs for several
+  possible situations. This script takes as arguments any arguments
+  that need to be passed to mpirun, other that "-np Nprocs". Probably
+  the most common required argument is "-machinefile file", which is
+  needed for P4 mpich installations. Also, this script assumes that if
+  the environment variable MPI_ROOT is defined, mpirun is located in
+  $MPI_ROOT/bin. Otherwise, the correct mpirun must be the first mpirun
+  found on the user's PATH. If the test is successful, the
+  script's output will be of the form:
+
+    $ testmpi.sh  -machinefile ~/.mpi.machines
+     testmpi -r: PASSED
+     testmpi -f: PASSED
+     mpirun -np 1 mtestmpi -r 1 0: PASSED
+     mpirun -np 2 mtestmpi -r 2 0: PASSED
+     mpirun -np 2 mtestmpi -r 2 1: PASSED
+     mpirun -np 2 mtestmpi -r 1 0: PASSED
+          ......
+
+  All lines should end with PASSED. If any of the cases fail, the script's
+  output for those cases will be of the form (for example):
+
+     mpirun -np 3 mtestmpi -f 2 0: FAILED
+     Proc 0: my_box = 0 -- length: 2 -- Precision: Full
+     Proc 1: my_box = 1 -- length: 3 -- Precision: Full
+     Proc 2: No Box -- length: 0
+     pars.pff samples/fp10.pff differ: byte 165, line 1

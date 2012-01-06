@@ -1,0 +1,312 @@
+Enter ng: ierr =        0
+qry 
+        1        0        0        0
+qry 
+        1        0        0       29
+qry 
+        1        0        0       43
+qry 
+        1        0        0       58
+qry 
+        1        0        0       75
+ierr =        0
+qry 
+        1        0        0       75        5        0       55        0
+ierr = 
+        0
+qry 
+        1        0       75        0        5        0       55        0
+qry 
+        1        1       75       29        5        0       55        0
+qry 
+        1        2       75       43        5        0       55        0
+Bin #     1
+  Size         =                   75
+  Used length  =                   43
+  Guard length =                    5
+         0        19         0         0         0         0         0         0         0         0
+         0         0         0         0         0         0         0         0         0         0
+         0         0         0         0         0         0         0         0        19  FFFFFFFF
+  FFFFFFE3  FFFFFFFF  FFFFFFE1  FFFFFFFF  FFFFFFDF         0         4         0         0         0
+         0         0         4
+Bin #     5
+  Size         =                   55
+  Used length  =                   24
+  Guard length =                    5
+         0        14         0         0         0         0         0         0         0         0
+         0         0         0         0         0         0         0         0         0         0
+         0         0         0        14
+qry 
+        1        3       75       58        5        1       55       24
+qry 
+        1        4       75       75        5        1       55       24
+int_array:
+        0        0        0        0        0        0        0        0
+        0        0        0        0        0        0        0        0
+        0        0        0        0        0        0        0        0
+        0
+Bin #     1
+  Size         =                   75
+  Used length  =                   75
+  Guard length =                    5
+         0        19         0         0         0         0         0         0         0         0
+         0         0         0         0         0         0         0         0         0         0
+         0         0         0         0         0         0         0         0        19  FFFFFFFF
+  FFFFFFE3  FFFFFFFF  FFFFFFE1  FFFFFFFF  FFFFFFDF         0         4  30313231  32333233  34333435
+  34353600         0         4  FFFFFFFF  FFFFFFD5  FFFFFFFF  FFFFFFD3  FFFFFFFF  FFFFFFD1         0
+         5  30313233  31323334  32333435  33343536  34353637         0         5  FFFFFFFF  FFFFFFC6
+  FFFFFFFF  FFFFFFC4  FFFFFFFF  FFFFFFC2         0         7  30313233  34313233  34353233  34353633
+  34353637  34353637  38000000         0         7
+Bin #     5
+  Size         =                   55
+  Used length  =                   24
+  Guard length =                    5
+         0        14         0  3F800000  40000000  40400000  40800000  40A00000  40C00000  40E00000
+  41000000  41100000  41200000  41300000  41400000  41500000  41600000  41700000  41800000  41880000
+  41900000  41980000         0        14
+stkchk:        0
+Bin     1 allocated with         75 words
+  Name                             Type             Offset         Length
+  i                                I                     2             25
+  c3                               C      3             37              4
+  c4                               C      4             51              5
+  c5                               C      5             66              7
+Bin     5 allocated with         55 words
+  Name                             Type             Offset         Length
+  f                                F                     2             20
+stklist:        0
+ierr =        0
+qry 
+        1        2       75       43        5        1       55       24
+ierr =        0
+Bin #     1
+  Size         =                   75
+  Used length  =                   43
+  Guard length =                    5
+         0        19         0         0         0         0         0         0         0         0
+         0         0         0         0         0         0         0         0         0         0
+         0         0         0         0         0         0         0         0        19  FFFFFFFF
+  FFFFFFE3  FFFFFFFF  FFFFFFE1  FFFFFFFF  FFFFFFDF         0         4  30313231  32333233  34333435
+  34353600         0         4
+Bin #     5
+  Size         =                   55
+  Used length  =                   24
+  Guard length =                    5
+         0        14         0  3F800000  40000000  40400000  40800000  40A00000  40C00000  40E00000
+  41000000  41100000  41200000  41300000  41400000  41500000  41600000  41700000  41800000  41880000
+  41900000  41980000         0        14
+stkchk:        0
+Bin     1 allocated with         75 words
+  Name                             Type             Offset         Length
+  i                                I                     2             25
+  c3                               C      3             37              4
+Bin     5 allocated with         55 words
+  Name                             Type             Offset         Length
+  f                                F                     2             20
+stklist:        0
+stkchk:  stack corrupted for bin     1
+         variable # =                    2
+         variable name  = c3
+         variable length =                    4
+         variable FWA    =                   37
+         variable type   =     3
+         Lower control word corrupted:
+           offset:                    35
+           address:          0X000000000 (hexadecimal)
+           value:                     34
+       0        0       19        1        2        3        4        5        6        7        8
+      10        9        A        B        C        D        E        F       10       11       12
+      20       13       14       15       16       17       18       19       1A       1B       1C
+      30       1D       1E       1F       20       21       22       23 30313231 32333233 34333435
+      40 34353600        0        4
+Bin #     1
+  Size         =                   75
+  Used length  =                   43
+  Guard length =                    5
+         0        19         1         2         3         4         5         6         7         8
+         9         A         B         C         D         E         F        10        11        12
+        13        14        15        16        17        18        19        1A        1B        1C
+        1D        1E        1F        20        21        22        23  30313231  32333233  34333435
+  34353600         0         4
+Bin #     5
+  Size         =                   55
+  Used length  =                   24
+  Guard length =                    5
+         0        14         0  3F800000  40000000  40400000  40800000  40A00000  40C00000  40E00000
+  41000000  41100000  41200000  41300000  41400000  41500000  41600000  41700000  41800000  41880000
+  41900000  41980000         0        14
+stkchk:  stack corrupted for bin     1
+         variable # =                    2
+         variable name  = c3
+         variable length =                    4
+         variable FWA    =                   37
+         variable type   =     3
+         preceding guard cells corrupted:
+           offset of bad guard cell:                    33
+           address of bad guard cell:          0X000000000
+           guard cell locations, values, (addresses):
+                29                  28   (0X000000000)
+                30                  29   (0X000000000)
+                31                  30   (0X000000000)
+                32                  31   (0X000000000)
+                33                  32   (0X000000000)
+       0        0       19        1        2        3        4        5        6        7        8
+      10        9        A        B        C        D        E        F       10       11       12
+      20       13       14       15       16       17       18       19       1A       1B       1C
+      30       1D       1E       1F       20       21        0        4 30313231 32333233 34333435
+      40 34353600        0        4
+stkchk:  stack corrupted for bin     1
+         variable # =                    1
+         variable name  = i
+         variable length =                   25
+         variable FWA    =                    2
+         variable type   =     0
+         Upper control word corrupted:
+           offset:                    27
+           address:          0X000000000 (hexadecimal)
+           value:           111669149723
+       0        0       19        1        2        3        4        5        6        7        8
+      10        9        A        B        C        D        E        F       10       11       12
+      20       13       14       15       16       17       18       19       1A       1B FFFFFFFF
+      30 FFFFFFE3 FFFFFFFF FFFFFFE1 FFFFFFFF FFFFFFDF        0        4 30313231 32333233 34333435
+      40 34353600        0        4
+stkrbin error:        0
+qry 
+        5        1       55       24
+Bin #     5
+  Size         =                   55
+  Used length  =                   24
+  Guard length =                    5
+         0        14         0  3F800000  40000000  40400000  40800000  40A00000  40C00000  40E00000
+  41000000  41100000  41200000  41300000  41400000  41500000  41600000  41700000  41800000  41880000
+  41900000  41980000         0        14
+qry 
+        1        0       40        0        5        1       55       24
+ierr =        0
+qry 
+
+ saveit opened
+saveit read        1      75      43       5
+ierr =        0
+saveit load        1
+ierr =        0
+saveit read        2      55      24       5
+ierr =        0
+saveit load        2
+ierr =        0
+saveit read        3      -2       0       0
+qry 
+        1        0       75        0        5        0       55        0
+i_array:
+        0        0        0        0        0        0        0        0
+        0        0        0        0        0        0        0        0
+        0        0        0        0        0        0        0        0
+        0
+ 012123234345456
+stkptr:  control word inconsistency - 
+         bin #:                        1
+         addr. of 1st guard word:                    43
+         computed size:                     5
+         lower/upper control size:          0         0
+         guard word values:
+               1                   0
+               2                   0
+               3                   0
+               4                   0
+               5                   0
+               6                   0
+f_array:
+  0.00000E+00  1.00000E+00  2.00000E+00  3.00000E+00  4.00000E+00  5.00000E+00
+  6.00000E+00  7.00000E+00  8.00000E+00  9.00000E+00  1.00000E+01  1.10000E+01
+  1.20000E+01  1.30000E+01  1.40000E+01  1.50000E+01  1.60000E+01  1.70000E+01
+  1.80000E+01  1.90000E+01
+ierr =        0
+Bin #     1
+  Size         =                   75
+  Used length  =                   60
+  Guard length =                    5
+         0        19         0         0         0         0         0         0         0         0
+         0         0         0         0         0         0         0         0         0         0
+         0         0         0         0         0         0         0         0        19  FFFFFFFF
+  FFFFFFE3  FFFFFFFF  FFFFFFE1  FFFFFFFF  FFFFFFDF         0         4  30313231  32333233  34333435
+  34353600         0         4  FFFFFFFF  FFFFFFD5  FFFFFFFF  FFFFFFD3  FFFFFFFF  FFFFFFD1         0
+         7  31323334  35323334  35363334  35363734  35363738  35363738  39000000         0         7
+Bin #     5
+  Size         =                   55
+  Used length  =                   54
+  Guard length =                    5
+         0        14         0  3F800000  40000000  40400000  40800000  40A00000  40C00000  40E00000
+  41000000  41100000  41200000  41300000  41400000  41500000  41600000  41700000  41800000  41880000
+  41900000  41980000         0        14  FFFFFFFF  FFFFFFE8  FFFFFFFF  FFFFFFE6  FFFFFFFF  FFFFFFE4
+         0        14  3F000000  3FC00000  40200000  40600000  40900000  40B00000  40D00000  40F00000
+  41080000  41180000  41280000  41380000  41480000  41580000  41680000  41780000  41840000  418C0000
+  41940000  419C0000         0        14
+Bin     1 allocated with         75 words
+  Name                             Type             Offset         Length
+  i                                I                     2             25
+  c3                               C      3             37              4
+  c5                               C      5             51              7
+Bin     5 allocated with         55 words
+  Name                             Type             Offset         Length
+  f                                F                     2             20
+  f                                F                    32             20
+stkgrow:  illegal request - count > 1 - 
+  bin:     1
+  # of allocations:          3
+ grow error:  -4
+ before 50000
+nsize:    49996
+qry 
+        1        3       75       60        3        1    50000    50000
+        5        2       55       54
+Bin     1 allocated with         75 words
+  Name                             Type             Offset         Length
+  i                                I                     2             25
+  c3                               C      3             37              4
+  c5                               C      5             51              7
+Bin     3 allocated with      50000 words
+  Name                             Type             Offset         Length
+  i                                I                     2          49996
+Bin     5 allocated with         55 words
+  Name                             Type             Offset         Length
+  f                                F                     2             20
+  f                                F                    32             20
+ before 100000
+ grow error:  0000000000
+nsize2:    99996
+ i_ptr,pgrow:  0000000000 0000000000
+qry 
+        1        3       75       60        3        1   100000   100000
+        5        2       55       54
+ i_ptr,pgrow:  0000000000 0000000000
+Bin     1 allocated with         75 words
+  Name                             Type             Offset         Length
+  i                                I                     2             25
+  c3                               C      3             37              4
+  c5                               C      5             51              7
+Bin     3 allocated with     100000 words
+  Name                             Type             Offset         Length
+  i                                I                     2          99996
+Bin     5 allocated with         55 words
+  Name                             Type             Offset         Length
+  f                                F                     2             20
+  f                                F                    32             20
+qry 
+        1        3       75       60        3        0   100000        0
+        5        2       55       54
+ before 10
+ grow error:  0
+qry 
+        1        3       75       60        3        0       10        0
+        5        2       55       54
+ after 10
+Bin     1 allocated with         75 words
+  Name                             Type             Offset         Length
+  i                                I                     2             25
+  c3                               C      3             37              4
+  c5                               C      5             51              7
+Bin     3 allocated with         10 words
+Bin     5 allocated with         55 words
+  Name                             Type             Offset         Length
+  f                                F                     2             20
+  f                                F                    32             20

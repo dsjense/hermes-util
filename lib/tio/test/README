@@ -1,0 +1,69 @@
+------------------------------------------------------------------------------
+     $Id$
+     
+     Copyright (2008) Sandia Corporation. Under the terms of
+     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+     Government retains certain rights in this software.
+     
+     Hermes is free software: you can redistribute it and/or modify
+     it under the terms of the GNU Lesser General Public License as
+     published by the Free Software Foundation, either version 3 of
+     the License, or (at your option) any later version.
+     
+     Hermes is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU Lesser General Public License for more details.
+     
+     You should have received a copy of the GNU Lesser General
+     Public License along with Hermes.  If not, see
+     <http://www.gnu.org/licenses/>.
+     
+     C_Groups @(#)
+------------------------------------------------------------------------------
+
+Overview
+
+  These programs test the implementation of the TIO library. All routines are
+  exercised.  TESTIO tests the sequential (non-MPI) implementation.
+  MTESTIO fully tests the library's MPI version.
+
+Using TESTIO
+
+  Run make with the command line "make". Some changes to the Makefile
+  may be required.  
+
+  Go to the "run" subdirectory and run TESTIO using the following command 
+  line:
+      ../testio < infile > stdout 2> stderr
+  Note that this command is provided for Posix shell (sh or ksh).  C-shell
+  users will need to use the appropriate csh command. The test produces two 
+  output files, stdout and stderr.  stderr should be empty and stdout should 
+  be the same as that provided in the "samples" directory.
+
+Testing MPI Features
+
+  Run make with the command line "make mpi". Some changes to the Makefile
+  may be required. This should produce two executables, TESTIO and MTESTIO.  
+
+  Go to the "run" subdirectory and run TESTIO using the following command 
+  line:
+      ../testio < infile > stdout 2> stderr
+
+  which test the MPI version when running with just one processor. The
+  test produces the same two output files, with the same contents, as 
+  then TESTIO test described above.
+
+Using MTESTIO
+
+  Go to the "run" subdirectory and run MTESTIO using the appropriate command 
+  to run a multiple-processor MPI job.  For example, if using an MPICH
+  implementation of MPI, the command to start MTESTIO using four processors is:
+      mpirun -np 4 ../mtestio
+  The test produces three output files for each processor, out.xxxx, 
+  echo.xxxx, and err.xxxx, where xxxx is the node number of each processor.
+  All of the out.xxxx files should be identical, and should also be the same
+  as out.0000 provided in the "samples" directory.  The files echo.xxxx and
+  err.xxxx should be empty for all processors except node 0.  The files 
+  echo.0000 and err.0000 should be the same as those provided in the "samples" 
+  directory.

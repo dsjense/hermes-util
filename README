@@ -1,0 +1,84 @@
+Building Hermes
+---------------
+
+1. Uncompress and un-tar the supplied file in a directory below which
+you want Hermes to be installed, as follows:
+
+       installdir=$PWD    # path below which hermes will be installed
+       gunzip -c hermes.tgz | tar xvf -
+
+This will create the subdirectory hermes, in which the Hermes
+directory tree has been populated. Change directories to the hermes
+directory.
+
+2. Customize the setup file $installdir/hermes/bin/hermesenv.sh as
+appropriate for your installation. In particular you need to set the
+environment variables HERMES_ROOT (to $installdir/hermes), IDLROOT,
+MPI_ROOT, and MPI_LIB. If your system type is not one of the systems
+specified in the case statement, or you want to use a different
+compiler option than those provided by the case statement, you will
+need to modify it appropriately. Finally, there is a large
+if-elif-...-fi structure that is designed to support building for
+multiple architecture/compiler combinations from the same shared
+directory. If appropriate, modify or add to this. A few of Hermes'
+libraries and utilities provide support for parallel execution using
+the Message-Passing Interface Standard (MPI). If you plan on using any
+of these features, the MPI libraries must be installed on your
+machine. If not installed on you machine, the source code for MPI is
+open-source and readily available.
+
+Before building or executing any Hermes libraries or utilities, the
+user needs to "source" this setup file. For Bourne, Korn, or Bash
+shells, this is accomplished by entering the command
+
+     . $HERMES_ROOT/bin/hermesenv.sh".
+
+Finally, note that a hermesenv.csh file is provided for csh users.
+
+
+3. If you have added any new values of the HERMES_SYS_TYPE environment
+variable to the setup script, you will need to add a new "makopts"
+file for it. All such files are located in $HERMES_ROOT/etc, and the
+existing files provide a template for creating a new one. These files
+provide make macros that make uses to tailor its operation to the
+architecture/compiler environment.
+
+MPI ONLY: For a general parallel installation, the make macro MPI_SYS
+is set (or not set) in the $HERMES_ROOT/etc/makeopts.xxx file
+appropriate to each system. Its presence indicates that the MPI
+include files are implicitly available to the compiler and shouldn't
+appear as dependencies in the dependency files used by the make
+system. It should also be noted that the values of MPI_ROOT and
+MPI_LIB defined in $HERMES_ROOT/bin/hermesenv.[c]sh can be overridden
+(for the make system only) by defining them in the appropriate
+makeopts.xxx file. If possible, in the makeopts.xxx file for your
+system, use the MPI compiler wrappers (mpif77, mpicc, mpicxx) for the
+values of the compiler macros and set MPI_SYS to 1. This will allow
+the wrappers to choose the appropriate locations for libraries and
+include files.
+
+4. Before building any of the libraries or utilities, Hermes'
+maketools must first be built. This is accomplished by first setting
+your environment (see 2 above), changing the working directory to
+$HERMES_ROOT/maketools, and typing the command "make". Note that
+Hermes uses the GNU version of make. If the default version of make is
+not GNU make, then substitute the appropriate command to run it. GNU
+make is free software and readily available for all common operating
+systems (see http://www.gnu.org/software/make).
+
+5. To build all of the libraries with a single command, simply change
+to the $HERMES_ROOT/lib directory and typing "make". To build all of
+the Hermes tools, type "make tools" from the same directory. Several
+of Hermes libraries have "test" subdirectories. These contain code
+that is designed to exercise machine/compiler-dependent portions of
+the library. It is a good idea to build and run these tests,
+particularly when porting to new machines and/or compilers. This is
+accomplished by running "make" in the appropriate test subdirectory,
+then following the instructions found in the README file.
+
+Note that the libraries can also be build individually by changing to
+the appropriate subdirectory of $HERMES_ROOT/lib and typing "make." In
+addition, each library supports several build targets and options,
+some of which are specific to the individual library. Typing "make
+help" lists all the available targets and options available from the
+current directory.

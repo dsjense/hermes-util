@@ -1,0 +1,98 @@
+# $Id$
+# 
+# Copyright (2008) Sandia Corporation. Under the terms of
+# Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+# Government retains certain rights in this software.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+
+# PFFDIFF control file for regression testing
+
+# ----------------------
+# set input files here!!
+# ----------------------
+
+basefile file = tqhis.base_pff
+testfile file= tqhis.pff
+
+max,  ds=1, limit=0.1  # a comment
+mean, title=esurv, limit=0.02
+rms, tit = "esurv", limit = 0.02
+#
+max, ds=2, limit=0.02
+mean ti=ecre, limit:0.01
+rms ds=2, limit=0.01
+range ds=3  limits = 0, 100000
+#
+max, ds=3, limit=0.02
+mean, title = "ekill", limit = 0.01
+rms, ds=3, limit=0.01
+range ds:3  limits = [20 , 80000]
+
+range ds:4
+range ds:4  limit = 6.0e-5
+range ds:4  limit = 6.0e-5 sub:3(low=1.5001e-11,hi=1.5e-9)
+range ds:4  limit = 6.0e-5 sub:1 low=11
+range, titl=divdmro_max, limits: (0.0, 8.0e-5)
+range, titl=divdmro_max, subrange:(low=1.5001e-11,hi=1.5e-9) lim:(0.0, 8.0e-5)
+
+max, ds=6, limit=0.02
+mean, ds=6, limit=0.01
+rms, ti = "vin", limit=0.01
+
+mean, ds=7, limit=0.02
+rms, ds=7, limit=0.02
+
+max, ds=8, limit=0.02
+mean, ds=8, limit=0.01
+rms, ds=8, limit=0.01
+
+max, ds=9, limit=0.02
+mean, ds=9, limit=0.01
+rms, ds=9, limit=0.01
+
+mean, ds=10, limit=0.02
+rms, ds=10, limit=0.02
+
+mean, ds=11, limit=0.02
+rms, ds=11, limit=0.02
+
+basefile file = qsgrid.base_pff
+testfile file= qsgrid.pff
+
+max /grid ds=1, limit=0.1
+
+max /grid dir=1 ds=1, bl=1 limit=0.1
+max/grid title="HALF" limit=0.001
+mean/grid title="HALF" limit=0.001
+rms/grid title="HALF" limit=0.001
+range/grid title="HALF"
+
+basefile /c
+range/grid title="HALF"
+
+testfile, /close
+
+base, file=snap_base.pff
+test, file=qssnp.pff
+
+max_deviation, ds=2, limit=3.0e-4 
+               sub:1 low=1 sub:2 low=1 sub:3 high=-1
+max_deviation, ds=2, limit=3.0e-4  sub:4(low=.004)
+max_deviation, ds=2, limit=3.0e-4 
+               sub:1(low=.02,hi=.06) sub:2(low=.004) sub:3(low=.002,hi=.003)
+max_deviation, ds=3, limit=3.0e-4
+               sub:1(low=.01,hi=.03)sub:2(hi=.006) 
