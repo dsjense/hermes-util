@@ -28,6 +28,7 @@
 #include <iostream>
 #include <string>
 #include "PFFfile.h"
+#include "StringMatch.h"
 #include "pff_get.hh"
 #include "pff_re.hh"
 #include "pff_set.hh"
@@ -146,6 +147,52 @@ int PFF_File::Find_Datasets(std::vector<int> &found, const std::string &match,
     if ( s_match ) found.push_back(ds);
   }
   return found.size() - start_size;
+}
+
+int PFF_File::Find_Datasets_Wild(std::vector<int> &found,
+                                 const std::string &match,
+                                 std::set<int> *dsList, int matchOptions,
+                                 int *subIndices)
+{
+  int nds = Dataset_Count();
+  int len =  -1;
+  if (subIndices) len = subIndices[1] - subIndices[0] + 1;
+
+  // if this is the first call that needs a list of dataset titles, we need to
+  // build the list
+  if ( titles.empty() ) {
+    titles.reserve(nds);
+    for (int ds=1; ds<=nds; ++ds) {
+      PFF::PFFdir *dir = PFF::pf_get_direntry(fid, ds, &last_error);
+      titles.push_back(dir->title);
+    }
+  }
+  StringMatch matcher(match, matchOptions & EXACT_CASE);
+
+  if ( matchOptions & NO_APPEND ) found.clear();
+  bool invert = matchOptions & INVERT_MATCH;
+  std::set<int> local;
+  std::set<int> *dsets = dsList;
+  int cnt = 0;
+  if ( !dsList || dsList->empty() ) {
+    dsets = &local;
+    for(int i=0; i<nds; ++i ) local.insert(i+1);
+  }
+  std::set<int> &use = *dsets;
+  std::set<int>::const_iterator pos = use.begin();
+  for( ; pos != use.end(); ++pos) {
+    int dsId = *pos;
+    // silently ignore out-of-range set members
+    if ( dsId > 0 && dsId <= nds ) {
+      string test(titles[dsId-1]);
+      if (subIndices) test = test.substr(subIndices[0],len);
+      if ( matcher.IsMatch(test) != invert ) {
+        ++cnt;
+        found.push_back(dsId);
+      }
+    }
+  }
+  return cnt;
 }
 
 /****************************************************************************/

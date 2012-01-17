@@ -28,6 +28,7 @@
 #define PFFfile_h 1
 
 #include "pff_ds.hh"
+#include <set>
 #include <string>
 #include <vector>
 
@@ -46,10 +47,15 @@ class PFF_File
   //! Enumeration over the possible PFF floating-point precision settings.
   typedef enum {REDUCED=0, FULL} PFF_FP_Precision;
 
-  //! Enumeration over supported string matching modes.
+  //! Enumeration over supported string matching modes for Find_Datasets().
   typedef enum { EXACT_MATCH = 0,
                  SUBSTRING_MATCH,
                  LEADING_MATCH } PFF_Match_Mode;
+
+  //! Enumeration over supported string match options for Find_Datasets_Wild().
+  typedef enum { EXACT_CASE = 1,
+                 INVERT_MATCH = 2,
+                 NO_APPEND = 4 } PFF_Match_Opts;
 
   /*! \brief Constructor
    * 
@@ -117,6 +123,44 @@ class PFF_File
                     PFF_Match_Mode mode = EXACT_MATCH, bool invert = false,
                     bool append = false);
 
+  /*! \brief Finds all datasets whose titles match the supplied string using
+   *         the specified match criteria.
+   *
+   *  Limited wildcard capability is supported. The following characters have
+   *  special meaning when encountered in the search string:
+   *  \li   * is matched by 0 to n characters
+   *  \li   ? is matched by exactly 1 character
+   *  \li   ^ as a first character anchors the match to the beginning
+   *        of the comment substring
+   *  \li   $ as a final character anchors the match to the end
+   *        of the comment substring
+   *  \li   \ escapes * and ? to be used literally anywhere in the 
+   *        search string and escapes ^ (and $) at the beginning 
+   *        only (and end only) of the search string to force ^ 
+   *        (or $) to be interpreted literally
+   *
+   *  \param found        Reference to vector in which indices of datasets
+   *                      whose titles meet the specified matching criteria
+   *                      are returned.
+   *  \param match        Search string used in matching against dataset titles.
+   *  \param dslist       Set of dataset indicies to be examined for a match.
+   *                      If not supplied, all datasets in the file are
+   *                      examined.
+   *  \param matchOptions Contains all single-bit match options:
+   *                       \li PFFfile::EXACT_CASE,
+   *                       \li PFFfile::INVERT_MATCH,
+   *                       \li PFFfile::NO_APPEND.
+   *
+   *                      If not supplied, none of the options will be set.
+   *  \param subIndices   Array whose first two values are assumed to be
+   *                      beginning and ending indices defining a substring of
+   *                      the dataset comment string to be use for matching.
+   *                      If not supplied, the entire string  will be used.
+   */  
+  int Find_Datasets_Wild(std::vector<int> &found, const std::string &match,
+                         std::set<int> *dslist = 0, int matchOptions = 0,
+                         int *subIndices = 0);
+
   /*! \brief Sets the PFF floating point precision for any datasets written to
    *         this file after a call to this method.
    *
@@ -124,6 +168,16 @@ class PFF_File
    *                  PFF_File::FULL)
    */  
   void Set_File_Precision(PFF_FP_Precision setting);
+
+  /*! \brief returns a pointer to the underlying C PFFfid structure.
+   * 
+   *  This method is provided to allow an application to access functionality
+   *  of the underlying C PFF library that have not yet been implemented in
+   *  the PFF_File class.
+   *
+   *  \note Extreme care should be exercised in using this method!
+   */
+  PFF::PFFfid *Get_BaseFID() const { return fid; }
 
   /*! \brief Static method to set the default PFF floating point precision for
    *         any files opened after a call to this method.

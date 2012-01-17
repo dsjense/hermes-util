@@ -36,9 +36,9 @@
 
 #if defined(__STDC__) || defined(__cplusplus)
 
-  EXTERN void pf_list_dirs  ( PFFfid *fid, int width, int low, int high, 
-                              int nptr,int *ptr_dir, char **ptr_string, 
-                              int *ierr );
+  EXTERN void pf_list_dirs  ( FILE *out, PFFfid *fid, int width, int low,
+                              int *phigh, int nptr,int *ptr_dir,
+                              char **ptr_string,  int *ierr );
   EXTERN void pf_list_files ( int width, int low, int high, int nptr,
                               int *ptr_fid, char **ptr_string,  int *ierr );
 
