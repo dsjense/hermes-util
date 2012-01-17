@@ -28,6 +28,8 @@
 
 #include <cctype>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 #ifdef WIN32sys
@@ -52,6 +54,8 @@ static const char path_delim = '/';
 
 using std::string;
 using std::list;
+using std::strlen;
+using std::strncmp;
 
 extern "C" char *copy(const char *str);
 extern "C" char	*base_name(const char *file);
@@ -69,7 +73,7 @@ void usage(const char *cmd, int status)
   fprintf(f,"       [-E|-W|-l|-L lib_name] [-e errorlog] "
             "[-S '# delimiter_string']\n");
   fprintf(f,"       [-p target_prefix] [product|-] [platform]\n\n");
-  exit(status);
+  std::exit(status);
 }
 
 int main(int argc, char *argv[])
@@ -286,7 +290,7 @@ int main(int argc, char *argv[])
     for(iter=slist.begin(); iter != slist.end(); iter++) {
       char *base = base_name((*iter).c_str());
       fprintf(wfile, "$(OUTDIR)\\%s.exe : $(INTDIR)\\%s.obj\n", base, base);
-      free(base);
+      std::free(base);
     }
     fclose(wfile);
   }

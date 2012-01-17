@@ -24,6 +24,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 // #include <fnmatch.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -42,6 +43,8 @@
 
 using std::string;
 using std::list;
+using std::strlen;
+using std::strcmp;
 
 void Ext_Match_List::AddExtension(const string &ext)
 {

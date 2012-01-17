@@ -29,6 +29,7 @@
 
 #include <cctype>
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 
 #ifdef WIN32sys
@@ -59,7 +60,7 @@ void usage(const char *cmd, int status)
   fprintf(f,"       [-E|-W|-l|-L lib_name] [-d|-D delete_file] "
             "[-p target_prefix]\n");
   fprintf(f,"       [product|-] [platform]\n\n");
-  exit(status);
+  std::exit(status);
 }
 
 int main(int argc, char *argv[])

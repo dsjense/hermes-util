@@ -20,6 +20,7 @@
 //  <http://www.gnu.org/licenses/>.
 //  
 
+#include <cstdio>
 #ifdef WIN32sys
 # include "winrtl.h"
 #else
@@ -29,6 +30,8 @@
 
 using std::string;
 using std::list;
+using std::printf;
+using std::fprintf;
 
 int main(int argc, char *argv[])
 {

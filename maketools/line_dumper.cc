@@ -21,8 +21,11 @@
 //  
 
 #include "line_dumper.h"
+#include <cstring>
 
 using std::string;
+using std::strcpy;
+using std::strcat;
 
 Line_Dumper::Line_Dumper(FILE *f, int width)
   : file(f), lmax(width), cnt(0), is_cont(false), buff(0)
