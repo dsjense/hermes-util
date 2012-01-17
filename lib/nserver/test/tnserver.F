@@ -39,6 +39,9 @@ c
       integer NS_defarray, NS_freearray, NS_putarrval, NS_getarrval,
      &        NS_getarrlims    
 
+      do i=1,5
+        mlist(i) = 0
+      end do
       do i=1,7
         flist(i) = 0
         alist(i) = 0
