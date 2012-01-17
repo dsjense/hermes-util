@@ -37,20 +37,22 @@
 
 #ifdef __STDC__
 
-void pf_list_dirs ( PFFfid *fid, int width, int low, int high, int nptr,
-                        int *ptr_dir, char **ptr_string,  int *ierr );
+void pf_list_dirs ( FILE *out, PFFfid *fid, int width, int low, int *phigh,
+                    int nptr, int *ptr_dir, char **ptr_string,  int *ierr );
 
-void pf_list_dirs ( PFFfid *fid, int width, int low, int high, int nptr,
-                        int *ptr_dir, char **ptr_string,  int *ierr )
+void pf_list_dirs ( FILE *out, PFFfid *fid, int width, int low, int *phigh,
+                    int nptr, int *ptr_dir, char **ptr_string,  int *ierr )
 
 #else
 
 void       pf_list_dirs      ();
 
-void pf_list_dirs ( fid, width, low, high, nptr, ptr_dir, ptr_string, ierr )
+void pf_list_dirs ( out, fid, width, low, phigh, nptr, ptr_dir, ptr_string,
+                    ierr )
 
+FILE    *out;
 PFFfid  *fid;
-int      width, low, high, nptr;
+int      width, low, *phigh, nptr;
 int     *ptr_dir;
 char   **ptr_string;
 int     *ierr;
@@ -59,23 +61,27 @@ int     *ierr;
 
 /* 
        This routine is a DIRECTORY routine that prints some portion 
-       of a PFF file's directory structure to STDOUT.
+       of a PFF file's directory structure to a C file stream.
 
-    Input:  
-      ptr_string  -  array of 2-character strings containing the pointer 
-                    text for the user-defined pointers
+    Input:
+      out         -  A C file stream to which the list is written 
       fid         -  pointer to PFF file structure
-      high        -  upper limit on directory entry for list
-      low         -  lower limit on directory entry for list
+      phigh       -  if low >= 0: directory entry upper limit (pointer to)
+                        low <  0: array of directory entries to be printed
+      low         -  if low >= 0: lower limit on directory entry for list
+                        low <  0: minus of # of entries in the directory
+                                  entry list 
       nptr        -  # of user-defined directory pointers
       ptr_dir     -  array of directory #s associated with user-defined pointers
       width       -  maximum width of listing in characters
-      ierr    -  If not zero, return with no operation
+      ptr_string  -  array of 2-character strings containing the pointer 
+                     text for the user-defined pointers
+      ierr        -  If not zero, return with no operation
 
     Output:
-      ierr    -  error flag:
-                   = 0,  Normal return
-                   = 1,  Illegal File ID (FID)
+      ierr        -  error flag:
+                       = 0,  Normal return
+                       = 1,  Illegal File ID (FID)
 */
 {
   static char        *module    = "PF_LIST_DIRS";
@@ -88,7 +94,10 @@ int     *ierr;
   char                blank[MAX_TITLELEN+1];
   char               *prefix;
   char                tptr[3];
-  PFFdir  *dir;
+  PFFdir             *dir;
+  int                 high = 0;
+  int                 nmap = 0;
+  int                 imap = 0;
 
   /* Check to see if the error flag is set already */
   if( *ierr != 0 ) return;
@@ -100,16 +109,23 @@ int     *ierr;
   }
 
   enddat = FALSE;
+  if ( low < 0 ) nmap = -low;
+  else high = *phigh;
+
   low = MAX(1,low);
   if (fid->dirtop == NULL )
     maxcnt = 0;
   else
     maxcnt = (fid->dirtop)->count;
 
-  if ( high > maxcnt  || high < 1 )   {
-    high = maxcnt;
-    enddat = TRUE;
+  if ( nmap == 0 ) {
+    if ( high > maxcnt  || high < 1 )   {
+      high = maxcnt;
+      enddat = TRUE;
+    }
   }
+  else low = phigh[0];
+
   if (fid->directory == NULL )
     curcnt = 0;
   else
@@ -131,17 +147,17 @@ int     *ierr;
   menoff = MAX_TITLELEN - menmax;
   prefix = blank + MAX_TITLELEN - nblb;
 
-  printf("\n");
-  printf("%sDIRECTORY LISTING of File:  %s\n",
+  fprintf(out,"\n");
+  fprintf(out,"%sDIRECTORY LISTING of File:  %s\n",
                                         blank+MAX_TITLELEN-nblh,fid->name);
 
-  printf("%s+-------+------------------+-%s-+\n",prefix,dash+menoff);
-  printf("%s|     # | Data Type        | Title%s|\n",prefix,blank+menoff+4);
-  printf("%s+-------+------------------+-%s-+\n",prefix,dash+menoff);
+  fprintf(out,"%s+-------+------------------+-%s-+\n",prefix,dash+menoff);
+  fprintf(out,"%s|     # | Data Type        | Title%s|\n",prefix,blank+menoff+4);
+  fprintf(out,"%s+-------+------------------+-%s-+\n",prefix,dash+menoff);
 
   dir = pf_get_direntry ( fid, low, ierr);
-
-  while (  ( dir != NULL )  &&  ( (cnt = dir->count) <= high ) )  {
+  if ( dir != NULL ) cnt = dir->count;
+  while (  dir != NULL )  {
 
     ptrflg = FALSE;
     if ( nptr < 1 )  {
@@ -162,17 +178,26 @@ int     *ierr;
 
     if ( ptrflg ) {
       if ( cnt < 10000 )
-        printf("%s|%2.2s%4d | %-16.16s | %-*.*s |\n",
-              prefix,tptr,cnt,dir->type_name,menmax,menmax,dir->title);
+        fprintf(out,"%s|%2.2s%4d | %-16.16s | %-*.*s |\n",
+                prefix,tptr,cnt,dir->type_name,menmax,menmax,dir->title);
       else
-        printf("%s|%2.2s%4.4d | %-16.16s | %-*.*s |\n",
-              prefix,tptr,cnt % 10000,dir->type_name,menmax,menmax,dir->title);
+        fprintf(out,"%s|%2.2s%4.4d | %-16.16s | %-*.*s |\n",
+                prefix,tptr,cnt % 10000,dir->type_name,menmax,menmax,dir->title);
     }
     else
-      printf("%s| %5d | %-16.16s | %-*.*s |\n",
-                      prefix,cnt,dir->type_name,menmax,menmax,dir->title);
+      fprintf(out,"%s| %5d | %-16.16s | %-*.*s |\n",
+              prefix,cnt,dir->type_name,menmax,menmax,dir->title);
 
-    dir = dir->up;
+    if ( nmap == 0 ) {
+      dir = dir->up;
+      if ( dir && (cnt = dir->count) > high ) dir = NULL;
+    }
+    else {
+      ++imap;
+      if ( imap >= nmap ) dir = NULL;
+      else dir = pf_get_direntry ( fid, phigh[imap], ierr);
+      if ( dir ) cnt = dir->count;
+    }
   }
 
   if ( enddat )   {
@@ -198,19 +223,19 @@ int     *ierr;
 
     if ( ptrflg ) {
       if ( cnt < 10000 )
-        printf("%s|%2.2s%4d | %-16.16s | %-*.*s |\n",
-              prefix,tptr,cnt,eodstr,menmax,menmax,blank);
+        fprintf(out,"%s|%2.2s%4d | %-16.16s | %-*.*s |\n",
+                prefix,tptr,cnt,eodstr,menmax,menmax,blank);
       else
-        printf("%s|%2.2s%4.4d | %-16.16s | %-*.*s |\n",
-              prefix,tptr,cnt % 10000,eodstr,menmax,menmax,blank);
+        fprintf(out,"%s|%2.2s%4.4d | %-16.16s | %-*.*s |\n",
+                prefix,tptr,cnt % 10000,eodstr,menmax,menmax,blank);
     }
     else
-      printf("%s| %5d | %-16.16s | %-*.*s |\n",
+      fprintf(out,"%s| %5d | %-16.16s | %-*.*s |\n",
               prefix,cnt,eodstr,menmax,menmax,blank);
     
   }
 
-  printf("%s+-------+------------------+-%s-+\n",prefix,dash+menoff);
+  fprintf(out,"%s+-------+------------------+-%s-+\n",prefix,dash+menoff);
 
   return;
 }
