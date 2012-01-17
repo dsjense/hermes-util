@@ -71,6 +71,7 @@ static void usage(const char *cmd, int status)
 
 int main(int argc, char *argv[])
 {
+  int                  zero = 0;
   register int         ib,i,j;
   float               *pf;
   char                *cmd;
@@ -172,7 +173,7 @@ int main(int argc, char *argv[])
         if ( fid == NULL ) 
           printf("NO FILES OPEN !!!\n");
         else
-          pf_list_dirs ( fid, width, 1, 0, 0, NULL, NULL, &ierr);
+          pf_list_dirs ( stdout, fid, width, 1, &zero, 0, NULL, NULL, &ierr);
         break;
       case 'f':  case 'F':
           pf_list_files ( width, 1, 0, 0, 0, 0, &ierr);
