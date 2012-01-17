@@ -99,7 +99,7 @@ c     Local variables
       HU_SIZE_T size_st
 c
 c     Called functions
-      HU_PTR_TYPE stkinit_ST
+      integer stkinit_ST
 
       size_st = size
 
