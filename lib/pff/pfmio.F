@@ -190,8 +190,10 @@ c UNICOS 5.1 uses 122 , 6.1 uses 1001
       parameter (M1 = #ff00)
       parameter (M2 = #00ff)
 # else
-      parameter (M1 = 'ff00'x)
-      parameter (M2 = '00ff'x)
+c      parameter (M1 = 'ff00'x)
+      parameter (M1 = -256)
+c      parameter (M2 = '00ff'x)
+      parameter (M2 = 255)
 # endif
       integer*2 b_swap, i2
 #endif
