@@ -31,18 +31,19 @@
 /* function name mangling for F77 linkage */
 #include "mdf77mangle.h"
 #if !defined(HU_F77_MANGLING_L00)
-#define  ns_defarray    HU_F77_FUNC_WITH_UNDERSCORES(  ns_defarray   ,  NS_DEFARRAY    )
-#define  ns_freearray   HU_F77_FUNC_WITH_UNDERSCORES(  ns_freearray  ,  NS_FREEARRAY   )
-#define  ns_putarrval   HU_F77_FUNC_WITH_UNDERSCORES(  ns_putarrval  ,  NS_PUTARRVAL   )
-#define  ns_getarrval   HU_F77_FUNC_WITH_UNDERSCORES(  ns_getarrval  ,  NS_GETARRVAL   )
-#define  ns_getarrlims  HU_F77_FUNC_WITH_UNDERSCORES(  ns_getarrlims ,  NS_GETARRLIMS  )
-#define  ns_debug_array HU_F77_FUNC_WITH_UNDERSCORES(  ns_debug_array,  NS_DEBUG_ARRAY )
+#define  ns_defarray     HU_F77_FUNC_( ns_defarray    , NS_DEFARRAY     )
+#define  ns_freearray    HU_F77_FUNC_( ns_freearray   , NS_FREEARRAY    )
+#define  ns_putarrval    HU_F77_FUNC_( ns_putarrval   , NS_PUTARRVAL    )
+#define  ns_getarrval    HU_F77_FUNC_( ns_getarrval   , NS_GETARRVAL    )
+#define  ns_getarrlims   HU_F77_FUNC_( ns_getarrlims  , NS_GETARRLIMS   )
+#define  nsu_debug_array HU_F77_FUNC_( nsu_debug_array, NSU_DEBUG_ARRAY )
 #endif
 
 #ifndef DEBUG
 # define INCR_SIZE  200
 #endif
 
+/* Container for storing integer array */
 struct s_Array
 {
   int lo, hi;
@@ -51,17 +52,19 @@ struct s_Array
 
 typedef struct s_Array Array;
 
-int     NSA_count    = 0;
-int     NSA_nfree    = 0;
-int    *NSA_freelist = NULL;
-Array  *NSA_arrays  = NULL;
+/* file scope variables */
+static int     NSA_count    = 0;
+static int     NSA_nfree    = 0;
+static int    *NSA_freelist = NULL;
+static Array  *NSA_arrays  = NULL;
 
+/* prototypes */
 int ns_defarray  ( int *lo, int *hi, int *init_val );
 int ns_freearray ( int *handle );
 int ns_putarrval ( int *handle, int *index, int *val );
 int ns_getarrval ( int *handle, int *index, int *val );
 int ns_getarrlims ( int *handle, int *lo, int *hi );
-void ns_debug_array ();
+void nsu_debug_array (int *cnt, int *free);
 
 /*  ns_defarray allocates storage of an integer array w/ min & max indices
     of "lo" and "hi", respectively. Note that all elements in the array are 
@@ -218,19 +221,15 @@ int ns_getarrlims ( int *handle, int *lo, int *hi )
   return 0;
 }
 
-void ns_debug_array ()
-{
-  int i, j;
-  Array *a;
+/*  nsu_debug_array is a utility function used by NS_debug to obtain
+    statistics regarding the server's allocated arrays.
 
-  fflush(stdout);
-  printf("Arrays allocated: %d   free: %d\n", NSA_count, NSA_nfree );
-  for(i=0;i<NSA_count;i++) {
-    a = &NSA_arrays[i];
-    if (a->array) {
-      printf("  handle: %d  low: %d high: %d\n", i+1, a->lo, a->hi);
-      for(j=a->lo;j<=a->hi;j++) printf("    %5d   %d\n",j,a->array[j-a->lo]);
-    }
-  }
-  fflush(stdout);
+      cnt  --  number of allocated arrays (write only)
+      free --  number of allocated arrays that are currently unused
+               (write only)
+*/
+void nsu_debug_array (int *cnt, int *free)
+{
+  *cnt = NSA_count;
+  *free = NSA_nfree;
 }

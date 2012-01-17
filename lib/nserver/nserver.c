@@ -39,18 +39,20 @@
 # define nsu_findorput   HU_F77_FUNC_( nsu_findorput  ,  NSU_FINDORPUT   )
 # define ns_locate       HU_F77_FUNC_( ns_locate      ,  NS_LOCATE       )
 # define ns_locate_match HU_F77_FUNC_( ns_locate_match,  NS_LOCATE_MATCH )
-# define ns_debug        HU_F77_FUNC_( ns_debug       ,  NS_DEBUG        )
+# define nsu_debug       HU_F77_FUNC_( nsu_debug      ,  NSU_DEBUG       )
 #endif
 
 #ifndef DEBUG
 # define INCR_SIZE  200
 #endif
 
-int    NSU_count    = 0;
-int    NSU_nfree    = 0;
-int   *NSU_freelist = NULL;
-char **NSU_strings  = NULL;
+/* file scope variables */
+static int    NSU_count    = 0;
+static int    NSU_nfree    = 0;
+static int   *NSU_freelist = NULL;
+static char **NSU_strings  = NULL;
 
+/* prototypes */
 int nsu_putname ( const int *nblen, const char *name );
 int ns_freename ( int *handle );
 int nsu_getname ( const int *handle, const int *maxlen, char *name );
@@ -62,7 +64,7 @@ int ns_locate ( const int *handle, const int *hlist, const int *nlist );
 int nsu_find_match ( const int *nblen, const char *name, const int *hlist,
                      const int *nlist );
 int ns_locate_match ( const int *handle, const int *hlist, const int *nlist );
-void ns_debug ();
+void nsu_debug (int *cnt, int *free, int *hmax);
 
 /*  nsu_putname stores the supplied string and returns a handle to that string
 
@@ -361,13 +363,22 @@ int ns_locate_match ( const int *handle, const int *hlist, const int *nlist )
   return nsu_find_match(&tlen, NSU_strings[loc], hlist, nlist);
 }
 
-void ns_debug ()
+/*  nsu_debug is a utility function used by NS_debug to obtain statistics
+    regarding the server's allocated strings.
+
+      cnt  --  number of allocated strings (write only)
+      free --  number of allocated strings that are currently unused
+               (write only)
+      hmax --  largest handle index currently in use (write only)
+*/
+void nsu_debug (int *cnt, int *free, int *hmax)
 {
   int i;
 
-  fflush(stdout);
-  printf("Strings allocated: %d   free: %d\n", NSU_count, NSU_nfree );
-  for(i=0;i<NSU_count;i++)  if (NSU_strings[i]) 
-                                printf("%5d  \"%s\"\n", i+1, NSU_strings[i]);
-  fflush(stdout);
+  *cnt = NSU_count;
+  *free = NSU_nfree;
+  *hmax = -1;
+
+  for(i=0;i<NSU_count;i++)  if (NSU_strings[i]) *hmax = i;
+  ++(*hmax);
 }
