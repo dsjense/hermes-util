@@ -55,6 +55,10 @@
   EXTERN void       pf_u_l2i              ( long lval, int *ival, int *ierr );
   EXTERN PFFfid    *pf_u_open             ( const char *name, int mode,
                                             int *nds, int *ierr );
+  EXTERN int       *pf_u_scan             ( PFFfid *fid, const int *dlist,
+                                            const int *range, const char *find,
+                                            int exact, int match, int *nmap,
+                                            int *ierr );
   EXTERN void       pf_u_seek             ( PFFfid *fid,  long offset,
                                             int *ierr );
   EXTERN void       pf_u_sio              ( PFFfid *fid, int iop, long len,
@@ -78,6 +82,7 @@
   extern void       pf_u_i2l              ();
   extern void       pf_u_l2i              ();
   extern PFFfid    *pf_u_open             ();
+  extern int *      pf_u_scan             ();
   extern void       pf_u_seek             ();
   extern void       pf_u_sio              ();
   extern void       pf_u_string_io        ();
