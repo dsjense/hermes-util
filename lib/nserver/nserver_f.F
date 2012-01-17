@@ -200,6 +200,102 @@ c
       return
       end
 
+      subroutine NS_debug ()
+c
+c ----------------------------------------------------------------------
+c
+c     NS_debug dumps a list of currently allocated strings to standard
+c     output.
+c
+c ----------------------------------------------------------------------
+c
+      integer i, cnt, d1, d2, err, free, hmax
+
+      character name*1024, frmt*16
+
+      integer NSU_getname, NSU_lastchr
+
+      call nsu_debug (cnt, free, hmax)
+      d1 = int(log10(max(1.0,float(cnt)))) + 1
+      d2 = int(log10(max(1.0,float(free)))) + 1
+      write(frmt,200) d1, d2
+      print frmt,'Strings allocated: ',cnt,'   free: ',free
+
+      d1 = int(log10(max(1.0,float(hmax)))) + 1
+      write(frmt,100) d1
+      do i=1,cnt
+        err = NSU_getname( i, len(name), name )
+        if (err.ge.0) then
+          err = max(err,1)
+          print frmt, '  ', i, '  "', name(1:err), '"'
+        endif
+      end do
+
+ 100  format('(a,i',i2,',a,a,a)')
+ 200  format('(a,i',i2,',a,i',i2,')')
+
+      return
+      end
+
+      subroutine NS_debug_array ()
+c
+c ----------------------------------------------------------------------
+c
+c     NS_debug_array dumps a list of currently allocated integer arrays,
+c     and their contents, to standard output.
+c
+c ----------------------------------------------------------------------
+c
+      integer i, j, j1, j2, cnt, d0, d1, d2, err, free, hi, low, val
+
+      character name*1024, frmt*24
+
+      integer NS_getarrlims, NS_getarrval
+
+      call nsu_debug_array (cnt, free)
+      d1 = int(log10(max(1.0,float(cnt)))) + 1
+      d2 = int(log10(max(1.0,float(free)))) + 1
+      write(frmt,200) d1, d2
+      print frmt,'Arrays allocated: ',cnt,'   free: ',free
+
+      do i=1,cnt
+        err = NS_getarrlims( i, low, hi)
+        if (err.eq.0) then
+          d0 = int(log10(max(1.0,float(i)))) + 1
+          d1 = int(log10(max(1.0,float(abs(low))))) + 1
+          if ( low .lt. 0 ) d1 = d1 + 1
+          d2 = int(log10(max(1.0,float(abs(hi))))) + 1
+          if ( hi .lt. 0 ) d2 = d2 + 1
+          write(frmt,300) d0, d1, d2
+          print frmt,'  handle: ',i,'  low: ',low,' high: ',hi
+          d1 = max(d1,d2)
+          d2 = 0
+          j2 = low - 1
+          j1 = j2
+          do j=low,hi
+            err = NS_getarrval( i, j, val )
+            if (err.eq.0) then
+              d0 = int(log10(max(1.0,float(abs(val))))) + 1
+              if ( val .lt. 0 ) d0 = d0 + 1
+              d2 = max(d2, d0)
+              j2 = j
+              if ( j1.lt.low ) j1 = j
+            endif
+          end do
+          write(frmt,200) d1, d2
+          do j=j1,j2
+            err = NS_getarrval( i, j, val )
+            if (err.eq.0) print frmt, '    ',j, '   ', val
+          end do
+        endif
+      end do
+
+ 200  format('(a,i',i2,',a,i',i2,')')
+ 300  format('(a,i',i2,',a,i',i2,',a,i',i2,')')
+
+      return
+      end
+
       integer function NSU_lastchr( string )
 c
 c ----------------------------------------------------------------------
