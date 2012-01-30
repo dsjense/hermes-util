@@ -233,7 +233,10 @@ void PFF_File::Set_File_Precision(PFF_FP_Precision setting)
     val = PFF::FP_REDU;
     break;
   case FULL:
-    val = PFF::FP_FULL;
+    val = PFF::FP_ALLFULL;
+    break;
+  case ORD_FULL:
+    val = PFF::FP_ORDFULL;
     break;
   }
   PFF::pf_set_fp_precision(fid, val, &last_error);
@@ -249,7 +252,10 @@ void PFF_File::Set_PFF_Precision(PFF_FP_Precision setting)
     val = PFF::FP_REDU;
     break;
   case FULL:
-    val = PFF::FP_FULL;
+    val = PFF::FP_ALLFULL;
+    break;
+  case ORD_FULL:
+    val = PFF::FP_ORDFULL;
     break;
   }
   int ierr = 0;

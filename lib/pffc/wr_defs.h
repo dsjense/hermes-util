@@ -38,8 +38,8 @@
 
 #if defined(__STDC__) || defined(__cplusplus)
 
-  EXTERN long       pf_wr_fltarray  ( PFFfid *fid, long len, float *farray, 
-                                      int foff10, int *ierr );
+  EXTERN long       pf_wr_fltarray  ( PFFfid *fid, int precision, long len,
+                                      float *farray, int foff10, int *ierr );
   EXTERN void       pf_wr_header    ( PFFfid *fid, PFFhead *head, 
                                       long *lstadr, int *ierr );
   EXTERN void       pf_wr_intarray  ( PFFfid *fid, long len, int *iarr, 

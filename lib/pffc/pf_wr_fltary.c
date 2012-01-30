@@ -39,19 +39,20 @@
 
 #ifdef __STDC__
 
-long pf_wr_fltarray ( PFFfid *fid, long len, float *farray, int foff10, 
-                      int *ierr );
+long pf_wr_fltarray ( PFFfid *fid, int precision, long len, float *farray,
+                      int foff10, int *ierr );
 
-long pf_wr_fltarray ( PFFfid *fid, long len, float *farray, int foff10, 
-                      int *ierr )
+long pf_wr_fltarray ( PFFfid *fid, int precision, long len, float *farray,
+                      int foff10, int *ierr )
 
 #else
 
 long pf_wr_fltarray ();
 
-long pf_wr_fltarray ( fid, len, farray, foff10, ierr )
+long pf_wr_fltarray ( fid, precision, len, farray, foff10, ierr )
 
 PFFfid   *fid; 
+int        precision;
 long      len;
 float    *farray;
 int       foff10;
@@ -86,11 +87,12 @@ int      *ierr;
 ------------------------------------------------------------------------
 
     Input:
-      fid     -  pointer to PFF file structure
-      len     -  length of array written to PFF file
-      farray  -  pointer to float array to be written to PFF file
-      foff10  -  power-of-ten multiplier of "farray"
-      ierr    -  If not zero, return with no operation
+      fid       -  pointer to PFF file structure
+      precision -  Floating-point precision type
+      len       -  length of array written to PFF file
+      farray    -  pointer to float array to be written to PFF file
+      foff10    -  power-of-ten multiplier of "farray"
+      ierr      -  If not zero, return with no operation
 
     Output:
       ierr    -  error flag:
@@ -121,7 +123,7 @@ int      *ierr;
 
   if ( fid->mp_current == 0 && fid->mp_mode == PFFMP_CURRENT ) return 0L;
 
-  if ( fid->fp_precision == FP_FULL )   {
+  if ( precision == FP_FULL )   {
     /* write out full-precision flag and base-10 offset */
     PFF_work_buf[0] = FP_FULL;  PFF_work_buf[1] = foff10;
     pf_u_sio( fid, WR, 2, PFF_work_buf, ierr );

@@ -55,9 +55,11 @@ int     *ierr;
    precision state is queried. This state determines the initial precision state
    of a file when it is opened. The default for this global state is FP_REDU.
    Return value will be one of the following legal values:
-          FP_REDU - reduced precision. <FARRAY>'s are linearly mapped
-                    to a 2-byte integer array.
-          FP_FULL - full IEEE 32-bit precision
+          FP_REDU    - reduced precision. <FARRAY>'s are linearly mapped
+                       to a 2-byte integer array.
+          FP_ALLFULL - all <FARRAY>s at full (4-byte, IEEE) precision
+          FP_ORDFULL - ordinate <FARRAY>s at full (4-byte)
+                       precision, other data at reduced prec.
 
     Input:
       fid     -  pointer to PFF file structure (if NULL, PFF's global precision 

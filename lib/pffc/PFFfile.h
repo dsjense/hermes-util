@@ -45,7 +45,7 @@ class PFF_File
   typedef enum {READ=0, WRITE, READWRITE, WRITE_MP} PFF_File_Modes;
 
   //! Enumeration over the possible PFF floating-point precision settings.
-  typedef enum {REDUCED=0, FULL} PFF_FP_Precision;
+  typedef enum {REDUCED=0, FULL, ORD_FULL} PFF_FP_Precision;
 
   //! Enumeration over supported string matching modes for Find_Datasets().
   typedef enum { EXACT_MATCH = 0,
@@ -164,8 +164,8 @@ class PFF_File
   /*! \brief Sets the PFF floating point precision for any datasets written to
    *         this file after a call to this method.
    *
-   *  \param setting  PFF floating-point precision (PFF_File::REDUCED or
-   *                  PFF_File::FULL)
+   *  \param setting  PFF floating-point precision (PFF_File::REDUCED,
+   *                  PFF_File::FULL, or PFF_File::ORD_FULL)
    */  
   void Set_File_Precision(PFF_FP_Precision setting);
 
@@ -182,8 +182,8 @@ class PFF_File
   /*! \brief Static method to set the default PFF floating point precision for
    *         any files opened after a call to this method.
    *
-   *  \param setting  PFF floating-point precision (PFF_File::REDUCED or
-   *                  PFF_File::FULL)
+   *  \param setting  PFF floating-point precision (PFF_File::REDUCED,
+   *                  PFF_File::FULL, or PFF_File::ORD_FULL)
    */  
   static void Set_PFF_Precision(PFF_FP_Precision setting);
 

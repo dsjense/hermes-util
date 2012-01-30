@@ -111,6 +111,8 @@ int      *ierr;
   PFFds_dir      *dsdir;
   register int    i, j;
   int             NUNF_type = DFAULT;
+  int             prec_x = FP_REDU;
+  int             prec_a = FP_REDU;
 
   /* Check to see if the error flag is set already */
   if( *ierr != 0 ) return;
@@ -159,6 +161,10 @@ int      *ierr;
 
 /* --------------------------------------------------------------------- */
 
+  /* Set precision of ordinate and data float arrays */
+  if ( fid->fp_precision != FP_REDU )    prec_x = FP_FULL;
+  if ( fid->fp_precision == FP_ALLFULL ) prec_a = FP_FULL;
+
   /*  Write out M, N, & grid lengths */
   PFF_work_buf[0] = nonuniform->dims;
   PFF_work_buf[1] = nonuniform->dimd;
@@ -193,12 +199,13 @@ int      *ierr;
 
   /* Write out grid arrays */
   for ( j=0; j<nonuniform->dims; j++ )   {
-    pf_wr_fltarray ( fid, block->nx[j], block->x[j], block->goff10, ierr );
+    pf_wr_fltarray ( fid, prec_x, block->nx[j], block->x[j], block->goff10,
+                     ierr );
   }
 
   /* Write out data arrays */
   for ( j=0; j < nonuniform->dimd; ++j) {
-    pf_wr_fltarray ( fid, nv, block->data[j], block->foff10, ierr );
+    pf_wr_fltarray ( fid, prec_a, nv, block->data[j], block->foff10, ierr );
   }
 
 /* --------------------------------------------------------------------- */

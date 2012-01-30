@@ -70,7 +70,7 @@ namespace PFF {
 
 #if defined(__STDC__) || defined(__cplusplus)
   enum { DFRAME=-1, EOFFLG=-2, DFAULT=-3, FFRAME=-4, NULFLG=-5, FP_FULL=-6,
-         FP_REDU=-3, INTP_2=-3, INTP_4=-6 };
+         FP_ALLFULL=FP_FULL, FP_ORDFULL=-7, FP_REDU=-3, INTP_2=-3, INTP_4=-6 };
 #else
 # define DFRAME  (-1)
 # define EOFFLG  (-2)
@@ -78,6 +78,8 @@ namespace PFF {
 # define FFRAME  (-4)
 # define NULFLG  (-5)
 # define FP_FULL (-6)
+# define FP_ALLFULL (-6)
+# define FP_ORDFULL (-7)
 # define FP_REDU DFAULT
 # define INTP_2  DFAULT
 # define INTP_4  FP_FULL

@@ -132,9 +132,9 @@ int      *ierr;
   pf_u_sio (fid, WR, 3, PFF_work_buf, ierr);
   if( *ierr != 0 ) return;
 
-  /* check to see if dataset is being written w/ FP_FULL */
+  /* FP_FULL precision on <FARRAY>'s: value in two low bits of buf(1) */
   if ( head->nwords_rfu == 0 )   {
-    if ( fid->fp_precision == FP_FULL )   {
+    if ( fid->fp_precision != FP_REDU )   {
       if ( (head->rfu = (int *) malloc(sizeof(int))) == NULL )  {
         *ierr = 1;
         pf_wr_err ( module, *ierr, fid, "Error allocating RFU array");
@@ -146,8 +146,9 @@ int      *ierr;
     }
   }
   if ( head->nwords_rfu > 0 )   {
-    if ( fid->fp_precision == FP_FULL )  head->rfu[0] |=  1;
-    else                                 head->rfu[0] &= ~1;
+    head->rfu[0] &= ~3;
+    if ( fid->fp_precision == FP_ALLFULL )  head->rfu[0] |=  1;
+    else if ( fid->fp_precision == FP_ORDFULL )  head->rfu[0] |=  2;
   }
 
   /* Write out the Reserved words (max of PFF_MAXRFU); pad with DFAULT */

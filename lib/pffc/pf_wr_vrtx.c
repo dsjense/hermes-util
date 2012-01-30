@@ -120,6 +120,8 @@ int      *ierr;
   PFFds_vertex   *vertex;
   PFFds_dir      *dsdir;
   int             i, j, doff;
+  int             prec_x = FP_REDU;
+  int             prec_a = FP_REDU;
 
   /* Check to see if the error flag is set already */
   if( *ierr != 0 ) return;
@@ -138,6 +140,10 @@ int      *ierr;
   if( *ierr != 0 ) return;
 
 /* --------------------------------------------------------------------- */
+
+  /* Set precision of ordinate and data float arrays */
+  if ( fid->fp_precision != FP_REDU )    prec_x = FP_FULL;
+  if ( fid->fp_precision == FP_ALLFULL ) prec_a = FP_FULL;
 
   vertex = (PFFds_vertex *) ds;
 
@@ -177,7 +183,7 @@ int      *ierr;
 #ifdef VERTEX_VERSION_ORIGINAL
     /* original version */
     size = vertex->dims*vertex->nv;
-    pf_wr_fltarray ( fid, size, vertex->vert, vertex->voff10, ierr );
+    pf_wr_fltarray ( fid, prec_x, size, vertex->vert, vertex->voff10, ierr );
 #else    
     /* Version 1 */
     if ( vertex->nv > 0 &&
@@ -197,9 +203,9 @@ int      *ierr;
         for ( j=0,k=i; j<vertex->nv; j++,k+=vertex->dims )  {
           fwork[j] = vertex->vert[k];
         }
-        pf_wr_fltarray ( fid, vertex->nv, fwork, vertex->voff10, ierr );
+        pf_wr_fltarray ( fid, prec_x, vertex->nv, fwork, vertex->voff10, ierr );
       }
-      else pf_wr_fltarray ( fid, 0, &zero,  vertex->voff10, ierr );
+      else pf_wr_fltarray ( fid, prec_x, 0, &zero,  vertex->voff10, ierr );
     }
     free(fwork);
     fwork = NULL;
@@ -211,7 +217,7 @@ int      *ierr;
     else                           doff = 0;
     if ( vertex->data != 0 ) fwork = vertex->data[i];
 
-    pf_wr_fltarray ( fid, vertex->nv, fwork, doff, ierr );
+    pf_wr_fltarray ( fid, prec_a, vertex->nv, fwork, doff, ierr );
   }
 
   if ( PFFMP_procs > 1 && fid->mp_on ) fid->mp_mode = PFFMP_CURRENT;

@@ -99,6 +99,7 @@ int      *ierr;
   PFFds_ifl      *ifl;
   PFFds_dir      *dsdir;
   int             loc;
+  int             prec = FP_REDU;
   long            i, j, top;
 
   /* Check to see if the error flag is set already */
@@ -140,8 +141,10 @@ int      *ierr;
   }
 
   /* write the float array */
-  if ( ifl->nf > 0 ) 
-    pf_wr_fltarray ( fid, ifl->nf, ifl->farr, ifl->faoff10, ierr );
+  if ( ifl->nf > 0 ) {
+    if ( fid->fp_precision == FP_ALLFULL ) prec = FP_FULL;
+    pf_wr_fltarray ( fid, prec, ifl->nf, ifl->farr, ifl->faoff10, ierr );
+  }
 
 /* --------------------------------------------------------------------- */
 

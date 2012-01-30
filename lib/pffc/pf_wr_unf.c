@@ -113,6 +113,7 @@ int      *ierr;
   static char    *null_string = "";
   char           *p;
   long            nv, offset, lds;
+  int             prec = FP_REDU;
   PFFds_uniform   *uniform;
   PFFblock_uniform   *block;
   PFFds_dir      *dsdir;
@@ -213,8 +214,9 @@ int      *ierr;
     pf_u_string_io ( fid, WR, 0, &(block->blabel), ierr );
 
     /* Write out data arrays */
+    if ( fid->fp_precision == FP_ALLFULL ) prec = FP_FULL;
     for ( j=0; j < uniform->dimd; ++j) {
-      pf_wr_fltarray ( fid, nv, block->data[j], block->foff10, ierr );
+      pf_wr_fltarray ( fid, prec, nv, block->data[j], block->foff10, ierr );
     }
 
   }

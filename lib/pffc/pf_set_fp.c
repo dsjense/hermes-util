@@ -60,9 +60,11 @@ int     *ierr;
       fid     -  pointer to PFF file structure (if NULL, PFF's global precision 
                  state is changed).
       value   -  desired precision. Legal values are:
-                   FP_REDU - reduced precision. <FARRAY>'s are linearly mapped
-                             to a 2-byte integer array.
-                   FP_FULL - full IEEE 32-bit precision
+                   FP_REDU   - reduced precision. <FARRAY>'s are linearly mapped
+                               to a 2-byte integer array.
+                   FP_ALLFULL - all <FARRAY>s at full (4-byte, IEEE) precision
+                   FP_ORDFULL - ordinate <FARRAY>s at full (4-byte)
+                                precision, other data at reduced prec.
       ierr    -  If not zero, return with no operation
 
     Output:
@@ -89,7 +91,7 @@ int     *ierr;
   else       old_value = PFF_fp_precision;
 
   /* Is the requested precision a legal value ? */
-  if ( value != FP_REDU && value != FP_FULL )  {
+  if ( value != FP_REDU && value != FP_ALLFULL && value != FP_ORDFULL )  {
     *ierr = 3;
     pf_wr_err ( module, *ierr, fid, "Illegal precision value" );
     return old_value;
