@@ -134,7 +134,7 @@ c
 c ... File failed to open
 c
  9000 continue
-      if (luerr.ge.0) write(luerr,9810) fulnam(1:lenfnm)
+      if (luerr.ge.0) write(luerr,9810) fname(1:lenfnm)
       mdotxf = -1
       return
 c
