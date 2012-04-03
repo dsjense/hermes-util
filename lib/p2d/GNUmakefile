@@ -42,7 +42,8 @@ F_OPTS =
 BLD_SRC_EXTS = -sF -sf -sc
 BLD_INC_EXTS = -iinc -ih
 LGRPFLAGS = 
-LIBBASE = ..
+DBGLIBBASE = 
+SHRLIBBASE = 
 FFLAGS_OD = $(FFLAGS_OPT)
 CFLAGS_OD = $(CFLAGS_OPT)
 FFLAGS_SHR = 
@@ -62,12 +63,13 @@ endif
 ifneq ($(strip $(DEBUG)),)
   FFLAGS_OD = $(FFLAGS_DBG)
   CFLAGS_OD = $(CFLAGS_DBG)
-  LIBBASE = ../debug
+  DBGLIBBASE = /debug
 endif
 
 ifneq ($(strip $(SHARED)),)
   FFLAGS_SHR = $(SHR_FFLAGS)
   CFLAGS_SHR = $(SHR_CFLAGS)
+  SHRLIBBASE = /shared
   # check if this platform supports shared libraries
   ifeq ($(strip $(SHR_EXT)),)
     GOOD2GO = no
@@ -88,6 +90,7 @@ FFLAGS_FPP = $(FFLAGS_SYS) $(F_OPTS) $(HU_MACRO_DEF)USE_DP
 DEP_INCDIRS = $(C_INCDIRS) $(F_INCDIRS)
 
 LIBDIRNAME = $(PLATFORM)
+LIBBASE = ..$(SHRLIBBASE)$(DBGLIBBASE)
 LIBDIR  = $(LIBBASE)/$(LIBDIRNAME)
 LIBRARY = $(LIBDIR)/lib$(PRODNAME).a
 SHR_LIB = $(LIBDIR)/lib$(PRODNAME).$(SHR_EXT)

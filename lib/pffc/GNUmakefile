@@ -41,7 +41,8 @@ CPP_OPTS =
 BLD_SRC_EXTS = -sc -scc
 BLD_INC_EXTS = -ih -ihh
 LGRPFLAGS = 
-LIBBASE = ..
+DBGLIBBASE = 
+SHRLIBBASE = 
 CFLAGS_OD = $(CFLAGS_OPT)
 CXXFLAGS_OD = $(CXXFLAGS_OPT)
 CFLAGS_SHR = 
@@ -61,7 +62,7 @@ endif
 ifneq ($(strip $(DEBUG)),)
   CFLAGS_OD = $(CFLAGS_DBG)
   CXXFLAGS_OD = $(CXXFLAGS_DBG)
-  LIBBASE = ../debug
+  DBGLIBBASE = /debug
 endif
 
 LIST_NAME = $(PRODUCT)
@@ -79,6 +80,7 @@ endif
 
 ifneq ($(strip $(SHARED)),)
   CFLAGS_SHR = $(SHR_CFLAGS)
+  SHRLIBBASE = /shared
   # check if this platform supports shared libraries
   ifeq ($(strip $(SHR_EXT)),)
     GOOD2GO = no
@@ -97,6 +99,7 @@ CPPFLAGS = $(CFLAGS_SYS) $(CPP_OPTS)
 DEP_INCDIRS = $(C_INCDIRS)
 
 LIBDIRNAME = $(PLATFORM)
+LIBBASE = ..$(SHRLIBBASE)$(DBGLIBBASE)
 LIBDIR  = $(LIBBASE)/$(LIBDIRNAME)
 LIBRARY = $(LIBDIR)/lib$(PRODNAME).a
 SHR_LIB = $(LIBDIR)/lib$(PRODNAME).$(SHR_EXT)
