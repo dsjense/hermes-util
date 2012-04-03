@@ -58,6 +58,7 @@ SHR_EXT       = so
 SHR_FFLAGS    = -fPIC
 SHR_CFLAGS    = -fPIC
 SHR_LFLAGS    = -shared
+CC_SHR_LFLAGS = -shared
 ##STUB_SVDI     = 1
 MPI_SYS       = 1
 MPI_LIB       =

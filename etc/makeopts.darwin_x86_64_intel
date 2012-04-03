@@ -56,10 +56,10 @@ FBD_EXPLICIT_LINK = yes
 LINK          = ifort
 LDFLAGS_ALL   = -fpe0 -cxxlib
 SYSLIB        =
-SHR_EXT       = so
+SHR_EXT       = dylib
 SHR_FFLAGS    = -fPIC
 SHR_CFLAGS    = -fPIC
-SHR_LFLAGS    = -shared
+SHR_LFLAGS    = -single_module -dynamiclib
 MPI_SYS       = 1
 MPI_LIB       =
 
