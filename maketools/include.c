@@ -57,8 +57,12 @@ in this Software without prior written authorization from The Open Group.
 #include "ev_macros.h"
 
 #ifdef WIN32
+# define STAT_STRUCT _stat
+# define STAT_FUNCT _stat
   char path_delim = '\\';
 #else
+# define STAT_STRUCT stat
+# define STAT_FUNCT stat
   char path_delim = '/';
 #endif
 
@@ -90,14 +94,14 @@ static boolean
 issymbolic(char *dir, char *component)
 {
 #ifdef S_IFLNK
-	struct stat	st;
+	struct STAT_STRUCT	st;
 	char	buf[ BUFSIZ ], **pp;
 
 	sprintf(buf, "%s%s%s", dir, *dir ? "/" : "", component);
 	for (pp=notdotdot; *pp; pp++)
 		if (strcmp(*pp, buf) == 0)
 			return (TRUE);
-	if (lstat(buf, &st) == 0
+	if (lSTAT_FUNCT(buf, &st) == 0
 	    && (st.st_mode & S_IFMT) == S_IFLNK) {
 		*pp++ = copy(buf);
 		if (pp >= &notdotdot[ MAXDIRS ])
@@ -306,7 +310,7 @@ inc_path(char *file, char *include, int type)
 	static char		path[ BUFSIZ ];
 	register char		**pp, *p;
 	register struct inclist	*ip;
-	struct stat		st;
+	struct STAT_STRUCT	st;
 
 	/*
 	 * Check all previously found include files for a path that
@@ -336,7 +340,7 @@ inc_path(char *file, char *include, int type)
 		    || (*include == '\\')
 #endif
 			) {
-			if (stat(include, &st) == 0)
+			if (STAT_FUNCT(include, &st) == 0)
 				return newinclude(include, include);
 			if (show_where_not)
 				warning1("\tnot in %s\n", include);
@@ -363,7 +367,7 @@ inc_path(char *file, char *include, int type)
 				strcpy(path + (p-file) + 1, include);
 			}
 			remove_dotdot(path);
-			if (stat(path, &st) == 0)
+			if (STAT_FUNCT(path, &st) == 0)
 				return newinclude(path, include);
 			if (show_where_not)
 				warning1("\tnot in %s\n", path);
@@ -381,7 +385,7 @@ inc_path(char *file, char *include, int type)
 	for (; *pp; pp++) {
 		sprintf(path, "%s%c%s", *pp, path_delim, include);
 		remove_dotdot(path);
-		if (stat(path, &st) == 0) {
+		if (STAT_FUNCT(path, &st) == 0) {
 			includedirsnext = pp + 1;
 			return newinclude(path, include);
 		}

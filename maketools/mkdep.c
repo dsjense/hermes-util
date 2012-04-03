@@ -121,7 +121,13 @@ int myrename(char *from, char *to)
 #define sigvec sigvector
 #endif /* hpux */
 
-#ifndef WIN32sys
+#ifdef WIN32sys
+# define STAT_STRUCT _stat
+# define STAT_FUNCT _stat
+# define O_RDONLY _O_RDONLY
+#else
+# define STAT_STRUCT stat
+# define STAT_FUNCT stat
 # include <unistd.h>
 #endif
 
@@ -266,7 +272,7 @@ mkdep(int argc, char *argv[])
 	    psymp++;
 	}
 	if (argc == 2 && argv[1][0] == '@') {
-	    struct stat ast;
+	    struct STAT_STRUCT ast;
 	    int afd;
 	    char *args;
 	    char **nargv;
@@ -670,7 +676,7 @@ getfile(char *file)
 {
 	int	fd;
 	struct filepointer	*content;
-	struct stat	st;
+	struct STAT_STRUCT	st;
 
 	content = (struct filepointer *)malloc(sizeof(struct filepointer));
 	content->f_name = file;
@@ -898,7 +904,7 @@ int myrename (char *from, char *to)
 void
 redirect(char *line, char *makefile)
 {
-	struct stat	st;
+	struct STAT_STRUCT	st;
 	FILE	*fdin;
 	char	backup[ BUFSIZ ],
 		buf[ BUFSIZ ];
@@ -918,15 +924,15 @@ redirect(char *line, char *makefile)
 	 * use a default makefile is not specified.
 	 */
 	if (!makefile) {
-		if (stat("Makefile", &st) == 0)
+		if (STAT_FUNCT("Makefile", &st) == 0)
 			makefile = "Makefile";
-		else if (stat("makefile", &st) == 0)
+		else if (STAT_FUNCT("makefile", &st) == 0)
 			makefile = "makefile";
 		else
 			fatalerr("[mM]akefile is not present\n");
 	}
 	else
-	    stat(makefile, &st);
+	    STAT_FUNCT(makefile, &st);
 	if ((fdin = fopen(makefile, "r")) == NULL)
 		fatalerr("cannot open \"%s\"\n", makefile);
         if ( write_backup ) {
