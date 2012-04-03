@@ -40,8 +40,12 @@ c     EOFFLG  -  End-of-File flag
 c     DFRAME  -  Dataset framing word
 c     FFRAME  -  File Header framing word
 c     NULFLG  -  NULL Region indicator flag
-c     FP_FULL -  indicator for full precision on <FARRAY>
-c     FP_REDU -  indicator for reduced precision on <FARRAY>
+c     FP_FULL -  Array precision type: full precision on <FARRAY>
+c     FP_REDU -  Array precision type: reduced precision on <FARRAY>
+c     FP_ALLFULL - Dataset precision type: full precision on all
+c                  <FARRAY>s in a dataset, ordinates and other data
+c     FP_ORDFULL - Dataset precision type: full precision on ordinate
+c                  <FARRAY>s, but reduced precision on other <FARRAY>s
 c     INTP_4  -  indicator for 4-byte precision on <IARRAY>
 c     INTP_2  -  indicator for 2-byte precision on <IARRAY>
 c
@@ -52,11 +56,13 @@ c
       integer   RE, WR, RW, NOPEN
       integer   DFAULT, EOFFLG, DFRAME, FFRAME, NULFLG
       integer   FP_FULL, FP_REDU, INTP_4, INTP_2
+      integer   FP_ALLFULL, FP_ORDFULL
 c
       parameter ( RE = 0 , WR = 1 , RW = 2 , NOPEN = -1 )
       parameter ( DFRAME = -1 , EOFFLG = -2 , DFAULT = -3 )
       parameter ( FFRAME = -4 , NULFLG = -5 )
       parameter ( FP_FULL = -6 , FP_REDU = DFAULT )
+      parameter ( FP_ALLFULL = FP_FULL , FP_ORDFULL = -7 )
       parameter ( INTP_4 = -6 , INTP_2 = DFAULT )
 c
 c***********************************************************************

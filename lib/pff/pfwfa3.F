@@ -1,5 +1,5 @@
-      subroutine pfwfa3 (fid, low, imax, jmax, kmax, idlist, jdlist,
-     &                   kdlist, farray, foff10, ierr)
+      subroutine pfwfa3 (fid, prec, low, imax, jmax, kmax,
+     &                   idlist, jdlist, kdlist, farray, foff10, ierr)
 c
 c***********************************************************************
 c     $Id$
@@ -65,6 +65,7 @@ c ----------------------------------------------------------------------
 c
 c     Input:
 c       fid     -  File ID of PFF file
+c       prec    -  Floating-point precision type
 c       idlist  -  (*) array do-list in "x" dimension, i.e.,
 c                  do i=idlist(1),idlist(2),idlist(3), of "farray"
 c       imax    -  upper "x" dimension of "farray"
@@ -133,21 +134,18 @@ c       r:    LPRBUF
 c       w:    prmbuf(*)
 c ... pferrs
 c       r:    OFFLUN, ludbg
-c ... pffils
-c       r:    fpprec
 c
 #include "pfbsiz.inc"
 #include "pfstfg.inc"
 #include "pfbufp.inc"
 #include "pferrs.inc"
-#include "pffils.inc"
 c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, low, imax, jmax, kmax, foff10
+      integer   fid, ierr, low, imax, jmax, kmax, foff10, prec
       integer   idlist(3), jdlist(3), kdlist(3)
       real      farray(low:imax,low:jmax,low:kmax)
 c
@@ -203,7 +201,7 @@ c ... get FLOAT LIMITS
 c
       call pf_flt_limits(pf2max, pf2min, pfrmin)
 c
-      if ( fpprec(fid).eq.FP_FULL ) then
+      if ( prec.eq.FP_FULL ) then
 c
 c ..... write out "full-precision" flag
 c
@@ -272,7 +270,7 @@ c
           do j=jdlist(1),jdlist(2),jdlist(3)
             do i=idlist(1),idlist(2),idlist(3)
 c
-              if ( fpprec(fid).eq.FP_FULL ) then
+              if ( prec.eq.FP_FULL ) then
 c
                 call pfmf4 (WR, 1, prmbuf(ib+1),farray(i,j,k), ierr)
 c

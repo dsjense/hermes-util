@@ -83,6 +83,8 @@ c       buf     -  buffer space for encoding of <LONG>'s, etc.
 c       i       -  loop index
 c       lds     -  length of dataset written (in 16-bit words)
 c       lstadr  -  file position pointer for beginning of dataset
+c       prec_x  -  precision type of the ordinate float arrays
+c       prec_a  -  precision type of the attribute float arrays
 c
 c ----------------------------------------------------------------------
 c     Call common blocks and associated parameter modules
@@ -91,16 +93,19 @@ c
 c ... Included parameter decks:
 c     pfbsiz
 c     pfetyp  -  PFTVTX
-c     pfstfg  -  WR, DFAULT
+c     pfstfg  -  FP_REDU, FP_FULL, FP_ORDFULL, WR, DFAULT
 c
 c ... Included common decks:
 c ... pferrs
 c       r:    OFFLUN, ludbg
+c ... pffils
+c       r:    fpprec(*)
 c
 #include "pfbsiz.inc"
 #include "pfetyp.inc"
 #include "pfstfg.inc"
 #include "pferrs.inc"
+#include "pffils.inc"
 c
 c ----------------------------------------------------------------------
 c
@@ -120,7 +125,7 @@ c ... Parameters:
       parameter ( BUFLEN = 4 )
 c
 c     Internal
-      integer   i, lds, lstadr
+      integer   i, lds, lstadr, prec_x, prec_a
       integer   buf(0:BUFLEN), idlist(3), jdlist(3), kdlist(3)
 c
 c ----------------------------------------------------------------------
@@ -174,13 +179,23 @@ c
         call pfwchr (fid, alabel(i), ierr)
     2 continue
 c
+c ... Set precision of ordinate and attribute float arrays
+c
+      if ( fpprec(fid).ne.FP_ORDFULL ) then
+        prec_x = fpprec(fid)
+        prec_a = fpprec(fid)
+      else
+        prec_x = FP_FULL
+        prec_a = FP_REDU
+      endif
+c
 ccc START ORIGINAL VERSION 
 ccc
 ccc ... write out vertex list only if M is positive
 ccc
 cc      if (m.gt.0) then
 ccc
-cc        call pfwfa ( fid, m*nv, vert, 0, ierr)
+cc        call pfwfa ( fid, prec_x, m*nv, vert, 0, ierr)
 cc        if ( ierr.ne.0 ) goto 999
 ccc
 cc      endif
@@ -192,8 +207,8 @@ c
       jdlist(2) = nv
       do i=1,m
 c
-        call pfwfa3 ( fid, 1, m, nv, 1, idlist, jdlist, kdlist, vert(i), 
-     &                0, ierr)
+        call pfwfa3 ( fid, prec_x, 1, m, nv, 1,
+     &                idlist, jdlist, kdlist, vert(i), 0, ierr)
         if ( ierr.ne.0 ) goto 999
 c
       end do
@@ -204,7 +219,7 @@ c
 c
 c ..... write out each attribute array
 c
-        call pfwfa ( fid, nv, attr(1,i), 0, ierr)
+        call pfwfa ( fid, prec_a, nv, attr(1,i), 0, ierr)
         if ( ierr.ne.0 ) goto 999
 c
    10 continue

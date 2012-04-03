@@ -45,9 +45,12 @@ c     fidmap  -  (*)  array mapping file # to FID
 c     filcnt  -  # of currently open PFF files
 c     filcur  -  pointer to current PFF file (not FID)
 c     files   -  (*) filename of each open PFF file
-c     fpprec  -  (*) precision type for writing <FARRAY>'s. Legal values:
-c                    FP_REDU - reduced (2-byte) precision (default)
-c                    FP_FULL - full (4-byte) precision
+c     fpprec  -  (*) precision type for the <FARRAY>s in a dataset
+c                Legal values:
+c                  FP_REDU    - reduced (2-byte) precision (default)
+c                  FP_ALLFULL - all <FARRAY>s at full (4-byte) precision
+c                  FP_ORDFULL - ordinate <FARRAY>s at full (4-byte)
+c                               precision, other data at reduced prec.
 c                fpprec(0) is the default value for a newly opened file.
 c     stwrop  -  status value for Fortran open statements for files 
 c                opened in WRITE_ONLY mode ('new' or 'unknown')

@@ -118,6 +118,8 @@ c       lstadr  -  file position pointer for beginning of dataset
 c       nx      -  size of output array in "x" direction
 c       ny      -  size of output array in "y" direction
 c       nz      -  size of output array in "z" direction
+c       prec_x  -  precision type of the ordinate float arrays
+c       prec_f  -  precision type of the field    float array
 c
 c ----------------------------------------------------------------------
 c     Call common blocks and associated parameter modules
@@ -126,16 +128,19 @@ c
 c ... Included parameter decks:
 c     pfbsiz
 c     pfetyp  -  PFTNF3
-c     pfstfg  -  WR, DFAULT
+c     pfstfg  -  FP_REDU, FP_FULL, FP_ORDFULL, WR, DFAULT
 c
 c ... Included common decks:
 c ... pferrs
 c       r:    OFFLUN, ludbg
+c ... pffils
+c       r:    fpprec(*)
 c
 #include "pfbsiz.inc"
 #include "pfetyp.inc"
 #include "pfstfg.inc"
 #include "pferrs.inc"
+#include "pffils.inc"
 c
 c ----------------------------------------------------------------------
 c
@@ -161,6 +166,7 @@ c ... Parameters:
 c
 c     Internal
       integer   bl1, bloc, iblk, lbblk, lbmax, lds, lstadr, nx, ny, nz
+      integer   prec_x, prec_f
       integer   buf(0:BUFLEN)
 c
 c ----------------------------------------------------------------------
@@ -201,6 +207,16 @@ c
       else
         bl1 = 1
         lbmax = nblks
+      endif
+c
+c ... Set precision of ordinate and data float arrays
+c
+      if ( fpprec(fid).ne.FP_ORDFULL ) then
+        prec_x = fpprec(fid)
+        prec_f = fpprec(fid)
+      else
+        prec_x = FP_FULL
+        prec_f = FP_REDU
       endif
 c
 c ... Loop over all blocks
@@ -245,15 +261,15 @@ c
         buf(1) = low
         buf(2) = 1
 c
-        call pfwfa3 ( fid, low, imax(iblk), low, low,
+        call pfwfa3 ( fid, prec_x, low, imax(iblk), low, low,
      &                idlist(1,iblk),   buf,  buf,
      &                x(locx(iblk)), 0, ierr)
 c
-        call pfwfa3 ( fid, low, jmax(iblk), low, low,
+        call pfwfa3 ( fid, prec_x, low, jmax(iblk), low, low,
      &                jdlist(1,iblk),   buf,  buf,
      &                y(locy(iblk)), 0, ierr)
 c
-        call pfwfa3 ( fid, low, kmax(iblk), low, low,
+        call pfwfa3 ( fid, prec_x, low, kmax(iblk), low, low,
      &                kdlist(1,iblk),   buf,  buf,
      &                z(locz(iblk)), 0, ierr)
 c
@@ -270,7 +286,8 @@ c
 c
 c ..... Write out array
 c
-        call pfwfa3 ( fid, low, imax(iblk), jmax(iblk), kmax(iblk),
+        call pfwfa3 ( fid, prec_f, low,
+     &                imax(iblk), jmax(iblk), kmax(iblk),
      &                idlist(1,iblk), jdlist(1,iblk), kdlist(1,iblk),
      &                farray(locb(iblk)), 0, ierr)
         if ( ierr.ne.0 ) goto 999

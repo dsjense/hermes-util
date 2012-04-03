@@ -1,4 +1,4 @@
-      subroutine pfwfa (fid, lenfa, farray, foff10, ierr)
+      subroutine pfwfa (fid, prec, lenfa, farray, foff10, ierr)
 c
 c***********************************************************************
 c     $Id$
@@ -60,6 +60,7 @@ c ----------------------------------------------------------------------
 c
 c     Input:
 c       fid     -  File ID of PFF file
+c       prec    -  Floating-point precision type
 c       farray  -  floating array to be written to PFF file
 c       foff10  -  power-of-ten multiplier of farray
 c       lenfa   -  length of float array to be written to PFF file
@@ -116,21 +117,18 @@ c       r:    LPRBUF
 c       w:    prmbuf(*)
 c ... pferrs
 c       r:    OFFLUN, ludbg
-c ... pffils
-c       r:    fpprec
 c
 #include "pfbsiz.inc"
 #include "pfstfg.inc"
 #include "pfbufp.inc"
 #include "pferrs.inc"
-#include "pffils.inc"
 c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, lenfa, foff10
+      integer   fid, ierr, lenfa, foff10, prec
       real      farray(*)
 c
 c ... Parameters:
@@ -173,7 +171,7 @@ c ... get FLOAT LIMITS
 c
       call pf_flt_limits(pf2max, pf2min, pfrmin)
 c
-      if ( fpprec(fid).eq.FP_FULL ) then
+      if ( prec.eq.FP_FULL ) then
 c
 c ..... write out "full-precision" flag
 c
@@ -230,7 +228,7 @@ c
 c
         if ( scale.gt.pfrmin ) then
 c
-          if ( fpprec(fid).eq.FP_FULL ) then
+          if ( prec.eq.FP_FULL ) then
 c
             call pfmf4 (WR, ilast-ioff, prmbuf, farray(ib), ierr)
 c

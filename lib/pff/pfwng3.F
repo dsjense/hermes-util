@@ -116,6 +116,7 @@ c       lstadr  -  file position pointer for beginning of dataset
 c       nx      -  size of output array in "x" direction
 c       ny      -  size of output array in "y" direction
 c       nz      -  size of output array in "z" direction
+c       prec_x  -  precision type of the ordinate float arrays
 c
 c ----------------------------------------------------------------------
 c     Call common blocks and associated parameter modules
@@ -124,16 +125,19 @@ c
 c ... Included parameter decks:
 c     pfbsiz
 c     pfetyp  -  PFTNG3
-c     pfstfg  -  WR, DFAULT
+c     pfstfg  -  FP_REDU, FP_FULL, FP_ORDFULL, WR, DFAULT
 c
 c ... Included common decks:
 c ... pferrs
 c       r:    OFFLUN, ludbg
+c ... pffils
+c       r:    fpprec(*)
 c
 #include "pfbsiz.inc"
 #include "pfetyp.inc"
 #include "pfstfg.inc"
 #include "pferrs.inc"
+#include "pffils.inc"
 c
 c ----------------------------------------------------------------------
 c
@@ -158,6 +162,7 @@ c ... Parameters:
 c
 c     Internal
       integer   bl1, bloc, iblk, lbblk, lbmax, lds, lstadr, nx, ny, nz
+      integer   prec_x
       integer   buf(0:BUFLEN)
 c
 c ----------------------------------------------------------------------
@@ -198,6 +203,14 @@ c
       else
         bl1 = 1
         lbmax = nblks
+      endif
+
+c ... Set precision of ordinate arrays
+c
+      if ( fpprec(fid).ne.FP_ORDFULL ) then
+        prec_x = fpprec(fid)
+      else
+        prec_x = FP_FULL
       endif
 c
 c ... Loop over all blocks
@@ -241,15 +254,15 @@ c
         buf(1) = low
         buf(2) = 1
 c
-        call pfwfa3 ( fid, low, imax(iblk), low, low,
+        call pfwfa3 ( fid, prec_x, low, imax(iblk), low, low,
      &                idlist(1,iblk),   buf,  buf,
      &                x(locx(iblk)), 0, ierr)
 c
-        call pfwfa3 ( fid, low, jmax(iblk), low, low,
+        call pfwfa3 ( fid, prec_x, low, jmax(iblk), low, low,
      &                jdlist(1,iblk),   buf,  buf,
      &                y(locy(iblk)), 0, ierr)
 c
-        call pfwfa3 ( fid, low, kmax(iblk), low, low,
+        call pfwfa3 ( fid, prec_x, low, kmax(iblk), low, low,
      &                kdlist(1,iblk),   buf,  buf,
      &                z(locz(iblk)), 0, ierr)
 c

@@ -45,8 +45,8 @@ c       - If the RFU fields are not being used, the parameter DFAULT
 c         (defined in the INCLUDE File PFSTFG) can be passed in the
 c         place of the "rfuarr" array, since the array is accessed only
 c         up to its first element containing DFAULT, after which the
-c         field is padded with DFAULT. Currently, the 1 lowest-order bit
-c         of RFUARR(1) are reserved.
+c         field is padded with DFAULT. Currently, the 2 lowest-order
+c         bits of RFUARR(1) are reserved.
 c       - Dataset Header Format:
 c           <INT>          DFRAME       dataset framing word  (-1)
 c           <LONG>         Lds          dataset length (in 2-byte words)
@@ -57,8 +57,9 @@ c           10x<INT>       RFU          reserved for future use
 c           <STRING>       TYPE         application dataset type label
 c           <STRING>       TITLE        dataset title/comment
 c       - RFU array format:
-c           word 1,  bit 1   -- indicates FP_FULL precision on all 
-c                               <FARRAY>'s in this dataset
+c           word 1,  bits 1-2  -- indicates precision status of
+c                                 ordinate and data <FARRAY>'s in
+c                                 this dataset
 c
 c ----------------------------------------------------------------------
 c
@@ -205,13 +206,14 @@ c
 c
 c ... set RFU's controlled by PFWHED:
 c
-c ... FP_FULL precision on <FARRAY>'s
+c ... FP_FULL precision on <FARRAY>'s: value in two low bits of buf(1)
       if ( buf(1).ne.DFAULT ) then
         buf(1) = (buf(1)/4)*4
       else
         buf(1) = 0
       endif
-      if ( fpprec(fid).eq.FP_FULL ) buf(1) = buf(1) + 1
+      if ( fpprec(fid).eq.FP_ALLFULL ) buf(1) = buf(1) + 1
+      if ( fpprec(fid).eq.FP_ORDFULL ) buf(1) = buf(1) + 2
 c
       call pfusio (fid, WR, RFUMAX, buf, ierr)
       if ( ierr.ne.0 ) goto 999

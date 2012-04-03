@@ -37,9 +37,11 @@ c       - IF the file ID (fid) is zero, PFF's global precision state is
 c         queried. This global state controls the default state of a file 
 c         when it is opened. The default for this global state is FP_REDU.
 c       - Return value will be one of the following (see pfstfg.inc):
-c              FP_REDU - reduced precision. Floating point array is 
+c           FP_REDU    - reduced precision. Floating point array is 
 c                        linearly mapped to a 2-byte integer.
-c              FP_FULL - full 32-bit IEEE precision
+c           FP_ALLFULL - all <FARRAY>s at full (4-byte) precision
+c           FP_ORDFULL - ordinate <FARRAY>s at full (4-byte)
+c                         precision, other data at reduced prec.
 c
 c     Input:
 c       fid     -  File ID of PFF file, if zero global default state for
@@ -66,7 +68,7 @@ c ----------------------------------------------------------------------
 c
 c ... Included parameter decks:
 c     pfbsiz: MXFILS
-c     pfstfg: FP_REDU, FP_FULL, NOPEN
+c     pfstfg: NOPEN
 c
 c ... Included common decks:
 c ... pferrs
@@ -74,7 +76,7 @@ c       r:    OFFLUN, ludbg
 c ... pfbufm
 c       r:    wrflag(*)
 c ... pffils
-c       r/w:  fpprec(*)
+c       r:    fpprec(*)
 c
 #include "pfbsiz.inc"
 #include "pfstfg.inc"

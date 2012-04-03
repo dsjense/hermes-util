@@ -90,6 +90,8 @@ c       buf     -  buffer space for encoding of <LONG>'s
 c       i       -  loop index
 c       lds     -  length of dataset written (in 16-bit words)
 c       lstadr  -  file position pointer for beginning of dataset
+c       prec_x  -  precision type of the ordinate float arrays
+c       prec_f  -  precision type of the field    float arrays
 c
 c ----------------------------------------------------------------------
 c     Call common blocks and associated parameter modules
@@ -98,16 +100,19 @@ c
 c ... Included parameter decks:
 c     pfbsiz
 c     pfetyp  -  PFTNGD
-c     pfstfg  -  WR, DFAULT
+c     pfstfg  -  FP_REDU, FP_FULL, FP_ORDFULL, WR, DFAULT
 c
 c ... Included common decks:
 c ... pferrs
 c       r:    OFFLUN, ludbg
+c ... pffils
+c       r:    fpprec(*)
 c
 #include "pfbsiz.inc"
 #include "pfetyp.inc"
 #include "pfstfg.inc"
 #include "pferrs.inc"
+#include "pffils.inc"
 c
 c ----------------------------------------------------------------------
 c
@@ -127,6 +132,7 @@ c ... Parameters:
 c
 c     Internal
       integer   i, j, lds, lstadr, ng
+      integer   prec_x, prec_f
       integer   buf(3)
 c
 c ----------------------------------------------------------------------
@@ -200,11 +206,21 @@ c
         call pfwchr (fid, vlabel(i), ierr)
     2 continue
 c
+c ... Set precision of ordinate and data float arrays
+c
+      if ( fpprec(fid).ne.FP_ORDFULL ) then
+        prec_x = fpprec(fid)
+        prec_f = fpprec(fid)
+      else
+        prec_x = FP_FULL
+        prec_f = FP_REDU
+      endif
+c
 c ... write out grid data
 c
       j = 1
       do 200 i=1,m
-        call pfwfa ( fid, nx(i), x(j), 0, ierr)
+        call pfwfa ( fid, prec_x, nx(i), x(j), 0, ierr)
         if ( ierr.ne.0 ) goto 999
 c
         j = j + nx(i)
@@ -216,7 +232,7 @@ c
 c
 c ..... write out each component
 c
-        call pfwfa ( fid, ng, v(1,i), 0, ierr)
+        call pfwfa ( fid, prec_f, ng, v(1,i), 0, ierr)
         if ( ierr.ne.0 ) goto 999
 c
   300 continue

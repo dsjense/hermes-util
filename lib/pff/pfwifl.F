@@ -92,16 +92,19 @@ c
 c ... Included parameter decks:
 c     pfbsiz
 c     pfetyp  -  PFTIFL
-c     pfstfg  -  WR, DFAULT
+c     pfstfg  -  FP_FULL, FP_REDU, WR, DFAULT
 c
 c ... Included common decks:
 c ... pferrs
 c       r:    OFFLUN, ludbg
+c ... pffils
+c       r:    fpprec(*)
 c
 #include "pfbsiz.inc"
 #include "pfetyp.inc"
 #include "pfstfg.inc"
 #include "pferrs.inc"
+#include "pffils.inc"
 c
 c ----------------------------------------------------------------------
 c
@@ -176,7 +179,11 @@ c ... if it is there, Write out float array
 c
       if (nfa.ne.0) then
 c
-        call pfwfa ( fid, nfa, farray, 0, ierr)
+        if ( fpprec(fid).ne.FP_ALLFULL ) then
+          call pfwfa ( fid, FP_REDU, nfa, farray, 0, ierr)
+        else
+          call pfwfa ( fid, FP_FULL, nfa, farray, 0, ierr)
+        endif
 c
       endif
 c

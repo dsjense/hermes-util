@@ -110,16 +110,19 @@ c
 c ... Included parameter decks:
 c     pfbsiz
 c     pfetyp  -  PFTUF1
-c     pfstfg  -  WR, DFAULT
+c     pfstfg  -  FP_REDU, FP_FULL, WR, DFAULT
 c
 c ... Included common decks:
 c ... pferrs
 c       r:    OFFLUN, ludbg
+c ... pffils
+c       r:    fpprec(*)
 c
 #include "pfbsiz.inc"
 #include "pfetyp.inc"
 #include "pfstfg.inc"
 #include "pferrs.inc"
+#include "pffils.inc"
 c
 c ----------------------------------------------------------------------
 c
@@ -236,9 +239,15 @@ c
         buf(1) = low
         buf(2) = 1
 c
-        call pfwfa3 ( fid, low, imax(iblk), low, low,
-     &                idlist(1,iblk), buf, buf,
-     &                farray(locb(iblk)), 0, ierr)
+        if ( fpprec(fid).ne.FP_ALLFULL ) then
+          call pfwfa3 ( fid, FP_REDU, low, imax(iblk), low, low,
+     &                  idlist(1,iblk), buf, buf,
+     &                  farray(locb(iblk)), 0, ierr)
+        else
+          call pfwfa3 ( fid, FP_FULL, low, imax(iblk), low, low,
+     &                  idlist(1,iblk), buf, buf,
+     &                  farray(locb(iblk)), 0, ierr)
+        endif
         if ( ierr.ne.0 ) goto 999
 c
     1 continue

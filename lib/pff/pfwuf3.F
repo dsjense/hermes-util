@@ -137,16 +137,19 @@ c
 c ... Included parameter decks:
 c     pfbsiz
 c     pfetyp  -  PFTUF3
-c     pfstfg  -  WR, DFAULT
+c     pfstfg  -  FP_REDU, FP_FULL, WR, DFAULT
 c
 c ... Included common decks:
 c ... pferrs
 c       r:    OFFLUN, ludbg
+c ... pffils
+c       r:    fpprec(*)
 c
 #include "pfbsiz.inc"
 #include "pfetyp.inc"
 #include "pfstfg.inc"
 #include "pferrs.inc"
+#include "pffils.inc"
 c
 c ----------------------------------------------------------------------
 c
@@ -285,9 +288,17 @@ c
 c
 c ..... Write out array
 c
-        call pfwfa3 ( fid, low, imax(iblk), jmax(iblk), kmax(iblk),
-     &                idlist(1,iblk), jdlist(1,iblk), kdlist(1,iblk),
-     &                farray(locb(iblk)), 0, ierr)
+        if ( fpprec(fid).ne.FP_ALLFULL ) then
+          call pfwfa3 ( fid, FP_REDU, low,
+     &                  imax(iblk), jmax(iblk), kmax(iblk),
+     &                  idlist(1,iblk), jdlist(1,iblk), kdlist(1,iblk),
+     &                  farray(locb(iblk)), 0, ierr)
+        else
+          call pfwfa3 ( fid, FP_FULL, low,
+     &                  imax(iblk), jmax(iblk), kmax(iblk),
+     &                  idlist(1,iblk), jdlist(1,iblk), kdlist(1,iblk),
+     &                  farray(locb(iblk)), 0, ierr)
+        endif
         if ( ierr.ne.0 ) goto 999
 c
     1 continue
