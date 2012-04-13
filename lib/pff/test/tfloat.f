@@ -95,7 +95,11 @@ c
         if ( ipval.gt.0 ) then
           prec = 1.0/fvalb
           print *,'1.0/MAX value     = ',prec
-          print *,'1/(1/MAX) value   = ',1.0/prec
+          if (prec.ne.0) then
+            print *,'1/(1/MAX) value   = ',1.0/prec
+          else
+            print *,'1/(1/MAX) value   = INF'
+          endif
         endif
 c
       goto 10
