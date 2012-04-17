@@ -101,7 +101,7 @@ issymbolic(char *dir, char *component)
 	for (pp=notdotdot; *pp; pp++)
 		if (strcmp(*pp, buf) == 0)
 			return (TRUE);
-	if (lSTAT_FUNCT(buf, &st) == 0
+	if (lstat(buf, &st) == 0
 	    && (st.st_mode & S_IFMT) == S_IFLNK) {
 		*pp++ = copy(buf);
 		if (pp >= &notdotdot[ MAXDIRS ])
