@@ -52,7 +52,7 @@ c
 c ----------------------------------------------------------------------
 c
 c     Return Value:  Current position (address) on file "fid" in units
-c                    of 16-bit words
+c                    of 16-bit words, or -1 on error
 c
 c ----------------------------------------------------------------------
 c
@@ -101,6 +101,10 @@ c
       if (ludbg.ne.OFFLUN)then
         write (ludbg,1000) PFMODU, 'Entry', ierr
       endif
+c
+c ... preset return value to indicate an error, reset later if no error
+c
+      pfutel = -1
 c
 c ... return if error flag is not zero on entry
 c
