@@ -215,7 +215,7 @@ int      *ierr;
                 /* NGD Dataset Version 1 Processing */
                 pf_u_sio( fid, RE, 3, PFF_work_buf, ierr );
                 pf_u_i2l( PFF_work_buf, &ltmp, ierr);
-                block->nx[i] = (int) ltmp;
+                block->nx[i] = ltmp;
               }
               else {
                 /* NGD Dataset Original Version Processing */
