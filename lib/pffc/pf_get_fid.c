@@ -74,7 +74,7 @@ int     *ierr;
     return NULL;
   }
 
-  while ( fid->count > entry  && fid != NULL )
+  while ( fid != NULL && fid->count != entry )
     fid = fid->down;
 
   return fid;
