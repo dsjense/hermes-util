@@ -1,0 +1,25 @@
+/*! \mainpage Hermes Name Server library (nserver)
+ *
+ * \section desc_sec Description
+ *
+ * NSERVER is a library that provides storage of Fortran character strings
+ * by associating them with an integer handle. This is an effective method
+ * for allowing dynamic allocation of arrays of Fortran character variables
+ * using "Cray" pointers. While Cray pointers cannot be used to allocate
+ * character arrays, they \a can be used to allocate an integer array
+ * containing NSERVER handles to character strings.
+ *
+ * Additionally, the library provides support for the dynamic
+ * allocation and use of integer arrays of arbitrary length. Each such
+ * array is accessed by a unique integer handle.
+ *
+ * \section examples_sec Examples
+ *
+ * The NSERVER library is used by both the PFF and TIO Hermes
+ * libraries to provide the functionality of dynamically allocated
+ * arrays of Fortran character variables. The TIO library also uses
+ * the NSERVER library to provide dynamic allocation of multiple
+ * integer arrays. Finally, the test directory for NSERVER contains
+ * code that exercises the capabilities for the functions in the
+ * NSERVER library.
+ */

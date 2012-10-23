@@ -2,18 +2,6 @@
 #define MD_F77_MANGLE__H
 
 /*
-   ----------------------------------------------------------------------------
-   FORTRAN is case insensitive
-
-   These definitions will select
-   (L) lower case or (U) upper case mangling
-   with (mn) m-leading underscores and n-trailing underscores.
-   For example, L01 is lower case with one trailing underscore.
-  
-   HU_F77_FUNC is designed for names without underscores;
-   HU_F77_FUNC_WITH_UNDERSCORES is for those with them.
-   HU_F77_FUNC_ is shorthand for HU_F77_FUNC_WITH_UNDERSCORES.
-
    $Id$
    
    Copyright (2008) Sandia Corporation. Under the terms of
@@ -38,21 +26,44 @@ C_Groups @(#)
    ----------------------------------------------------------------------------
 */
 
+/*! \file mdf77mangle.h
+ *  \brief File containing macros to properly decorate C functions to be
+ *         callable from Fortran.
+ *
+ *   These definitions will select:
+ *   \li (L) lower case or (U) upper case mangling,
+ *   \li with (mn) m-leading underscores and n-trailing underscores.
+ *
+ *   For example, L01 is lower case with one trailing underscore.
+ *
+ *  \li HU_F77_FUNC is used for function names NOT containing underscores
+ *  \li HU_F77_FUNC_WITH_UNDERSCORES is used for function names containing
+ *      underscores
+ *  \li HU_F77_FUNC_ is shorthand for HU_F77_FUNC_WITH_UNDERSCORES
+
+ *  \note FORTRAN is case insensitive
+ */
+
+/*! \brief More informatively-named alias for HU_F77_FUNC_ macro */
 #define HU_F77_FUNC_WITH_UNDERSCORES HU_F77_FUNC_
 
 /*
-	all combinations seem to have the same upper or lower case
-	and no leading underscores (first digit 0).
-	so here are the short cut mapping: Xij  -->  X0i_X0j
+  all combinations seem to have the same upper or lower case
+  and no leading underscores (first digit 0).
+  so here are the short cut mapping: Xij  -->  X0i_X0j
 */
-
 
 /*
  * More combinations can be added if
  * they are required by any compiler 
  */
+
 #if defined( HU_F77_MANGLING_L00_L00 ) || defined( HU_F77_MANGLING_L00  )
+/*! \brief Macro for function names that DO NOT contain underscores
+ *         (value for no-decoration case is shown) */
 #  define HU_F77_FUNC(name,NAME) name
+/*! \brief Macro for function names that DO contain underscores
+ *         (value for no-decoration case is shown) */
 #  define HU_F77_FUNC_(name,NAME) name
 #elif defined( HU_F77_MANGLING_L00_L01 ) || defined( HU_F77_MANGLING_L01  )
 #  define HU_F77_FUNC(name,NAME) name
@@ -73,11 +84,13 @@ C_Groups @(#)
 #  define HU_F77_FUNC(name,NAME) NAME
 #  define HU_F77_FUNC_(name,NAME) NAME
 #else
+/*! \cond NEVER */
    error "*** F77 name mangling ***"
    error "  mangling has not been specified, eg, HU_F77_MANGLING_L11"
    error "  or a new case must be added here."
 #  define HU_F77_FUNC(name,NAME) name
 #  define HU_F77_FUNC_(name,NAME) name
+/*! \endcond */
 #endif
 
 #endif /* MD_F77_MANGLE__H */

@@ -24,6 +24,11 @@
     
    ******************************************************************* */
 
+/*! \file aserver.c
+ *  \brief File containing the underlying C implementation of the Name Server's
+ *         integer array allocation tools.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,54 +36,73 @@
 /* function name mangling for F77 linkage */
 #include "mdf77mangle.h"
 #if !defined(HU_F77_MANGLING_L00)
+/* \cond NEVER */
 #define  ns_defarray     HU_F77_FUNC_( ns_defarray    , NS_DEFARRAY     )
 #define  ns_freearray    HU_F77_FUNC_( ns_freearray   , NS_FREEARRAY    )
 #define  ns_putarrval    HU_F77_FUNC_( ns_putarrval   , NS_PUTARRVAL    )
 #define  ns_getarrval    HU_F77_FUNC_( ns_getarrval   , NS_GETARRVAL    )
 #define  ns_getarrlims   HU_F77_FUNC_( ns_getarrlims  , NS_GETARRLIMS   )
 #define  nsu_debug_array HU_F77_FUNC_( nsu_debug_array, NSU_DEBUG_ARRAY )
+/* \endcond */
 #endif
 
 #ifndef DEBUG
+/*! \brief Increment size for allocating handles for the free list */
 # define INCR_SIZE  200
 #endif
 
-/* Container for storing integer array */
+/*! \brief Container for storing integer array */
 struct s_Array
 {
-  int lo, hi;
+  /*! \brief lower index of integer array */
+  int lo;
+  /*! \brief upper index of integer array */
+  int hi;
+  /*! \brief storage for integer array */
   int *array;
 };
 
+/*! \brief typedef to avoid use of "struct" keyword in ANSI-C */
 typedef struct s_Array Array;
 
 /* file scope variables */
+/*! \brief Number of allocated array handles */
 static int     NSA_count    = 0;
+/*! \brief Number of free allocated array handles */
 static int     NSA_nfree    = 0;
+/*! \brief Array of free array handles */
 static int    *NSA_freelist = NULL;
+/*! \brief Array of arrays associated with each handle */
 static Array  *NSA_arrays  = NULL;
 
 /* prototypes */
-int ns_defarray  ( int *lo, int *hi, int *init_val );
+int ns_defarray  ( const int *lo, const int *hi, const int *init_val );
 int ns_freearray ( int *handle );
-int ns_putarrval ( int *handle, int *index, int *val );
-int ns_getarrval ( int *handle, int *index, int *val );
-int ns_getarrlims ( int *handle, int *lo, int *hi );
+int ns_putarrval ( const int *handle, const int *index, const int *val );
+int ns_getarrval ( const int *handle, const int *index, int *val );
+int ns_getarrlims ( const int *handle, int *lo, int *hi );
 void nsu_debug_array (int *cnt, int *free);
 
-/*  ns_defarray allocates storage of an integer array w/ min & max indices
-    of "lo" and "hi", respectively. Note that all elements in the array are 
-      initialized to the supplied value "init_val".
+/*! \addtogroup PublicInterface
+ *  \{
+ */
 
-      lo       --  minimum index of array (read only)
-      hi       --  maximum index of array (read only)
-      init_val --  initial value for all array elements
-
-      Return value:   > 0 -- array's handle for later retrieval
-                      0   -- memory allocation error
-                     -1   -- illegal values for lo and hi
-*/
-int ns_defarray  ( int *lo, int *hi, int *init_val )
+/*! \brief ns_defarray allocates storage of an integer array w/ min & max
+ *         indices of "lo" and "hi", respectively.
+ *
+ *  Note that all elements in the array are initialized to the supplied
+ *  value "init_val".
+ *
+ *  \param[in] lo        minimum index of array
+ *  \param[in] hi        maximum index of array
+ *  \param[in] init_val  initial value for all array elements
+ *
+ *  \return \li > 0, array's handle for later retrieval
+ *          \li   0, memory allocation error
+ *          \li  -1, illegal values for lo and/or hi
+ *  \note ns_defarray is a member of NSERVER's application (public) interface
+ */
+int ns_defarray ( const int *lo, const int *hi, const int *init_val )
 {
   int  *p;
   int   i, j, loc, len;
@@ -115,18 +139,20 @@ int ns_defarray  ( int *lo, int *hi, int *init_val )
   return loc+1;
 }
 
-/*  ns_freearray frees the array referenced by handle and returns a status
-      code. Note that upon successful completion, the handle is set to zero.
-      Also note that if the supplied value of handle is zero, nothing is done
-      and zero is returned.
-
-      handle --  supplied string handle (read/write)
-
-
-      Return value:    0   -- successful completion
-                      -1   -- illegal handle value
-                      -2   -- handle is not active
-*/
+/*! \brief ns_freearray frees the array referenced by handle and returns a
+ *         status code.
+ *
+ *  Note that upon successful completion, the handle is set to zero.
+ *  Also note that if the supplied value of handle is zero, nothing is done
+ *  and zero is returned.
+ *
+ *  \param[in,out] handle  pointer to supplied string handle
+ *
+ *  \return \li   0, successful completion
+ *          \li  -1, illegal handle value
+ *          \li  -2, handle is not active
+ *  \note ns_freearray is a member of NSERVER's application (public) interface
+ */
 int ns_freearray ( int *handle )
 {
   int loc;
@@ -143,18 +169,19 @@ int ns_freearray ( int *handle )
   return 0;
 }
 
-/*  ns_putarrval stores an integer value in the array referenced by the
-    supplied handle at index.
-
-      handle --  supplied string handle (read only)
-      index  --  array index (read only)
-      val    --  value to be stored (write only)
-
-      Return value:    0   -- normal completion
-                      -1   -- an invalid handle supplied
-                      -2   -- illegal index
-*/
-int ns_putarrval ( int *handle, int *index, int *val )
+/*! \brief ns_putarrval stores an integer value in the array referenced by the
+ *         supplied handle at index.
+ *
+ *  \param[in] handle  supplied string handle
+ *  \param[in] index   array index
+ *  \param[in] val     value to be stored
+ *
+ *  \return \li   0, normal completion
+ *          \li  -1, an invalid handle supplied
+ *          \li  -2, illegal index
+ *  \note ns_putarrval is a member of NSERVER's application (public) interface
+ */
+int ns_putarrval ( const int *handle, const int *index, const int *val )
 {
   int aloc, iloc;
   Array *a;
@@ -170,18 +197,19 @@ int ns_putarrval ( int *handle, int *index, int *val )
   return 0;
 }
 
-/*  ns_getarrval retrieves an integer value from the array referenced by the
-    supplied handle at index.
-
-      handle --  supplied string handle (read only)
-      index  --  array index (read only)
-      val    --  returned value (write only)
-
-      Return value:    0   -- normal completion
-                      -1   -- an invalid handle supplied
-                      -2   -- illegal index
-*/
-int ns_getarrval ( int *handle, int *index, int *val )
+/*! \brief ns_getarrval retrieves an integer value from the array referenced
+ *         by the supplied handle at index.
+ *
+ *  \param[in]  handle  supplied string handle
+ *  \param[in]  index   array index
+ *  \param[out] val     returned value
+ *
+ *  \return \li   0, normal completion
+ *          \li  -1, an invalid handle supplied
+ *          \li  -2, illegal index
+ *  \note ns_getarrval is a member of NSERVER's application (public) interface
+ */
+int ns_getarrval ( const int *handle, const int *index, int *val )
 {
   int aloc, iloc;
   Array *a;
@@ -197,17 +225,18 @@ int ns_getarrval ( int *handle, int *index, int *val )
   return 0;
 }
 
-/*  ns_getarrlims retrieves the minimum index and maximum index of the integer
-    array referenced by the supplied handle at index.
-
-      handle --  supplied string handle (read only)
-      lo     --  lower array index (write only)
-      hi     --  upper array index (write only)
-
-      Return value:    0   -- normal completion
-                      -1   -- an invalid or inactive handle supplied
-*/
-int ns_getarrlims ( int *handle, int *lo, int *hi )
+/*! \brief ns_getarrlims retrieves the minimum index and maximum index of the
+ *         integer array referenced by the supplied handle at index.
+ *
+ *  \param[in]  handle  supplied string handle
+ *  \param[out] lo      lower array index
+ *  \param[out] hi      upper array index
+ *
+ *  \return \li   0, normal completion
+ *          \li  -1, an invalid or inactive handle supplied
+ *  \note ns_getarrlims is a member of NSERVER's application (public) interface
+ */
+int ns_getarrlims ( const int *handle, int *lo, int *hi )
 {
   int aloc;
 
@@ -221,15 +250,25 @@ int ns_getarrlims ( int *handle, int *lo, int *hi )
   return 0;
 }
 
-/*  nsu_debug_array is a utility function used by NS_debug to obtain
-    statistics regarding the server's allocated arrays.
+/*!  \} */ /* END of PublicInterface group */
 
-      cnt  --  number of allocated arrays (write only)
-      free --  number of allocated arrays that are currently unused
-               (write only)
-*/
+/*! \addtogroup PrivateInterface
+ *  \{
+ */
+
+/*! \brief nsu_debug_array is a utility function that provides statistics
+ *         regarding the server's allocated arrays.
+ *
+ *  \warning  This is a utility function used by NS_debug_array and is not
+ *            intended to be a public interface!
+ *
+ *  \param[out] cnt   number of allocated arrays
+ *  \param[out] free  number of allocated arrays that are currently unused
+ */
 void nsu_debug_array (int *cnt, int *free)
 {
   *cnt = NSA_count;
   *free = NSA_nfree;
 }
+
+/*!  \} */ /* END of PrivateInterface group */

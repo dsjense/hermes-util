@@ -24,20 +24,27 @@ c   <http://www.gnu.org/licenses/>.
 c   
 c **********************************************************************
 c
-      integer function NS_putname ( name )
-c
-c ----------------------------------------------------------------------
+c> \file nserver_f.F
+c> \brief File containing Fortran wrapper routines used by the Name Server.
+c>
 
-c      NS_putname stores the supplied string and returns a handle to that 
-c      string
+c> \addtogroup PublicInterface
+c>   \{
+c>
+
+c ----------------------------------------------------------------------
 c
-c      Input:
-c        name  -  supplied string (read only)
+c> \brief ns_putname stores the supplied string and returns a handle to that
+c>        string.
+c>
+c> \param[in]  name  supplied string
+c>
+c> \return  \li > 0, string's handle for later retrieval
+c>          \li   0, memory allocation error
+c>          \li  -1, string is too long for internal storage
+c> \note ns_putname is a member of NSERVER's application (public) interface
 c
-c      Return value:
-c               >  0    - string's handle for later retrieval
-c                  0    - memory allocation error
-c                 -1    - string is too long for internal storage
+      integer function ns_putname ( name )
 c
 c ----------------------------------------------------------------------
 c
@@ -45,66 +52,62 @@ c
 c
       integer last
 c
-      integer NSU_lastchr
-      integer NSU_putname
+      integer ns_lastchr
+      integer nsu_putname
 c
-      last = NSU_lastchr(name)
-      NS_putname = NSU_putname ( last, name )
+      last = ns_lastchr(name)
+      ns_putname = nsu_putname ( last, name )
 c
       return
       end
 
-      integer function NS_getname ( handle, name )
-c
 c ----------------------------------------------------------------------
 c
-c      NS_getname accesses the string referenced by handle and returns the 
-c      length of the string or a status code on error
+c> \brief ns_getname accesses the string referenced by handle and returns the 
+c>        length of the string or a status code on error.
+c>
+c> \param[in]    handle  supplied string handle
+c> \param[out]   name    returned string
+c>
+c> \return  \li >= 0, length of string returned
+c>          \li   -1, illegal handle value
+c>          \li   -2, handle is not active
+c> \note ns_getname is a member of NSERVER's application (public) interface
 c
-c      Input:
-c        handle  -  supplied string handle (read only)
-c        maxlen  -  maximum length of returned string (read only)
-c
-c      Output:
-c        name    -  returned string (write only)
-c
-c      Return value:
-c             >= 0      - length of string returned
-c               -1      - illegal handle value
-c               -2      - handle is not active
+      integer function ns_getname ( handle, name )
 c
 c ----------------------------------------------------------------------
 c
       integer   handle
       character name*(*)
 c
-      integer NSU_getname
+      integer nsu_getname
 c
-      NS_getname = NSU_getname ( handle, len(name), name )
+      ns_getname = nsu_getname ( handle, len(name), name )
 c
       return
       end
 
-      integer function NS_find ( name, hlist, nlist )
-c
 c ----------------------------------------------------------------------
 c
-c      NS_find attempts to find a supplied string among the strings referenced 
-c      by handles in the supplied handle list.  If a matching string is 
-c      found, the index of the associated handle in the list is returned.
-c      (Note that this index starts at 1).  If the string is not found, zero
-c      is returned.
+c> \brief ns_find attempts to find a supplied string among the strings
+c>        referenced by handles in the supplied handle list.
+c>
+c>   If a matching string is found, the index of the associated handle
+c>   in the list is returned. (Note that this index starts at 1).
+c>   If the string is not found, zero is returned.
+c>
+c> \param[in]   name   supplied string
+c> \param[in]   hlist  supplied list of string handles
+c> \param[in]   nlist  length of handle list
+c>
+c> \return  \li > 0, list index of handle matching string
+c>          \li   0,   no match found
+c>          \li  -1,  an invalid handle supplied
+c>          \li  -2,  supplied string exceeds maximum string length
+c> \note ns_find is a member of NSERVER's application (public) interface
 c
-c      Input:
-c        name    -  supplied string (read only)
-c        hlist   -  supplied list of string handle (read only)
-c        nlist   -  length of handle list (read only)
-c
-c      Return value:
-c             > 0         - list index of handle matching string
-c             0           - no match found
-c             -1          - an invalid handle supplied
-c             -2          - supplied string exceeds maximum string length
+      integer function ns_find ( name, hlist, nlist )
 c
 c ----------------------------------------------------------------------
 c
@@ -113,36 +116,37 @@ c
 c
       integer last
 c
-      integer NSU_lastchr
-      integer NSU_find
+      integer ns_lastchr
+      integer nsu_find
 c
-      last = NSU_lastchr(name)
-      NS_find = NSU_find ( last, name, hlist, nlist )
+      last = ns_lastchr(name)
+      ns_find = nsu_find ( last, name, hlist, nlist )
 
       return
       end
 
-      integer function NS_findorput ( name, hlist, nlist )
-c
 c ----------------------------------------------------------------------
 c
-c      NS_findorput attempts to find a supplied string among the strings
-c      referenced by handles in the supplied handle list.  If a matching string
-c      is found, the index of the associated handle in the list is returned.
-c      (Note that this index starts at 1).  If the string is not found, the
-c      string is stored and the negative of the assigned handle is returned.
+c> \brief ns_findorput attempts to find a supplied string among the strings
+c>        referenced by handles in the supplied handle list.
+c>
+c>  If a matching string is found, the index of the associated handle in the
+c>  list is returned. (Note that this index starts at 1). If the string is
+c>  not found, the string is stored and the negative of the assigned handle
+c>  is returned.
+c>
+c> \param[in]  name    supplied string
+c> \param[in]  hlist   supplied list of string handle
+c> \param[in]  nlist   length of handle list
+c>
+c> \return  \li > nlist, no match found and error encountered while attempting
+c>                       to add the string to the list
+c>          \li > 0,     list index of handle matching string
+c>          \li < 0,     negative of handle assigned to the string if
+c>                       no match is found
+c> \note ns_findorput is a member of NSERVER's application (public) interface
 c
-c      Input:
-c        name    -  supplied string (read only)
-c        hlist   -  supplied list of string handle (read only)
-c        nlist   -  length of handle list (read only)
-c
-c      Return value:
-c             > nlist     - no match found and error encountered while
-c                           attempting to add the string to the list
-c             > 0         - list index of handle matching string
-c             < 0         - negative of handle assigned to the string if
-c                           no match is found
+      integer function ns_findorput ( name, hlist, nlist )
 c
 c ----------------------------------------------------------------------
 c
@@ -151,38 +155,40 @@ c
 c
       integer last
 c
-      integer NSU_lastchr
-      integer NSU_findorput
+      integer ns_lastchr
+      integer nsu_findorput
 c
-      last = NSU_lastchr(name)
-      NS_findorput = NSU_findorput ( last, name, hlist, nlist )
+      last = ns_lastchr(name)
+      ns_findorput = nsu_findorput ( last, name, hlist, nlist )
 c
       return
       end
 
-      integer function NS_find_match ( name, hlist, nlist )
-c
 c ----------------------------------------------------------------------
 c
-c     NS_find_match attempts to uniquely match a supplied string to the
-c     leading characters of the strings referenced by handles in the
-c     supplied handle list. If a unique match is not found, but one
-c     of the strings in the list exactly matches the string, it is
-c     considered the unique match. If a unique match is found, the index
-c     of the associated handle in the list is returned. (Note that this
-c     index starts at 1). If the string is not matched, zero is returned.
-c     If the match is not unique, -1 is returned. If one of the supplied
-c     handles is not valid, -2 is returned.
+c> \brief ns_find_match attempts to uniquely match a supplied string to the
+c>        leading characters of the strings referenced by handles in the
+c>        supplied handle list.
+c>
+c>   If a unique match is not found, but one of the strings in the list
+c>   exactly matches the string, it is considered the unique match. If a
+c>   unique match is found, the index of the associated handle in the list
+c>   is returned. (Note that this index starts at 1). If the string is not
+c>   matched, zero is returned. If the match is not unique, -1 is returned.
+c>   If one of the supplied handles is not valid, -2 is returned.
+c>
+c> \param[in] name   supplied string
+c> \param[in] hlist  supplied list of string handle
+c> \param[in] nlist  length of handle list
+c>
+c> \return \li    0, no match found
+c>         \li  > 0, list index of handle matching string
+c>         \li   -1, the match is not unique (multiple matches)
+c>         \li   -2, one of the supplied handles is invalid
+c>         \li   -3, supplied string exceeds maximum string length
+c> \note ns_find_match is a member of NSERVER's application (public) interface
 c
-c     name   --  supplied string (read only)
-c     hlist  --  supplied list of string handle (read only)
-c     nlist  --  length of handle list (read only)
-c
-c     Return value:  0     -- no match found
-c                    > 0   -- list index of handle matching string
-c                    -1    -- the match is not unique (multiple matches)
-c                    -2    -- one of the supplied handles is invalid
-c                    -3    -- supplied string exceeds maximum string length
+      integer function ns_find_match ( name, hlist, nlist )
 c
 c ----------------------------------------------------------------------
 c
@@ -191,21 +197,21 @@ c
 c
       integer last
 c
-      integer NSU_lastchr
-      integer NSU_find_match
+      integer ns_lastchr
+      integer nsu_find_match
 c
-      last = NSU_lastchr(name)
-      NS_find_match = NSU_find_match ( last, name, hlist, nlist )
+      last = ns_lastchr(name)
+      ns_find_match = nsu_find_match ( last, name, hlist, nlist )
 
       return
       end
 
-      subroutine NS_debug ()
-c
 c ----------------------------------------------------------------------
 c
-c     NS_debug dumps a list of currently allocated strings to standard
-c     output.
+c> ns_debug dumps a list of currently allocated strings to standard output.
+c> \note ns_debug is a member of NSERVER's application (public) interface
+
+      subroutine ns_debug ()
 c
 c ----------------------------------------------------------------------
 c
@@ -213,7 +219,7 @@ c
 
       character name*1024, frmt*16
 
-      integer NSU_getname, NSU_lastchr
+      integer nsu_getname
 
       call nsu_debug (cnt, free, hmax)
       d1 = int(log10(max(1.0,float(cnt)))) + 1
@@ -224,7 +230,7 @@ c
       d1 = int(log10(max(1.0,float(hmax)))) + 1
       write(frmt,100) d1
       do i=1,cnt
-        err = NSU_getname( i, len(name), name )
+        err = nsu_getname( i, len(name), name )
         if (err.ge.0) then
           err = max(err,1)
           print frmt, '  ', i, '  "', name(1:err), '"'
@@ -237,12 +243,13 @@ c
       return
       end
 
-      subroutine NS_debug_array ()
-c
 c ----------------------------------------------------------------------
 c
-c     NS_debug_array dumps a list of currently allocated integer arrays,
-c     and their contents, to standard output.
+c> \brief  ns_debug_array dumps a list of currently allocated integer arrays,
+c>         and their contents, to standard output.
+c> \note ns_debug_array is a member of NSERVER's application (public) interface
+c
+      subroutine ns_debug_array ()
 c
 c ----------------------------------------------------------------------
 c
@@ -250,7 +257,7 @@ c
 
       character name*1024, frmt*24
 
-      integer NS_getarrlims, NS_getarrval
+      integer ns_getarrlims, ns_getarrval
 
       call nsu_debug_array (cnt, free)
       d1 = int(log10(max(1.0,float(cnt)))) + 1
@@ -259,7 +266,7 @@ c
       print frmt,'Arrays allocated: ',cnt,'   free: ',free
 
       do i=1,cnt
-        err = NS_getarrlims( i, low, hi)
+        err = ns_getarrlims( i, low, hi)
         if (err.eq.0) then
           d0 = int(log10(max(1.0,float(i)))) + 1
           d1 = int(log10(max(1.0,float(abs(low))))) + 1
@@ -273,7 +280,7 @@ c
           j2 = low - 1
           j1 = j2
           do j=low,hi
-            err = NS_getarrval( i, j, val )
+            err = ns_getarrval( i, j, val )
             if (err.eq.0) then
               d0 = int(log10(max(1.0,float(abs(val))))) + 1
               if ( val .lt. 0 ) d0 = d0 + 1
@@ -284,7 +291,7 @@ c
           end do
           write(frmt,200) d1, d2
           do j=j1,j2
-            err = NS_getarrval( i, j, val )
+            err = ns_getarrval( i, j, val )
             if (err.eq.0) print frmt, '    ',j, '   ', val
           end do
         endif
@@ -296,17 +303,20 @@ c
       return
       end
 
-      integer function NSU_lastchr( string )
-c
 c ----------------------------------------------------------------------
 c
-c      NSU_lastchr is a utility routine that returns the non-blank 
-c      length of a Fortran character string.
+c> \brief ns_lastchr is a utility routine that returns the non-blank 
+c>        length of a Fortran character string.
+c>
+c> \param[in] string  supplied string
+c>
+c> \return  non-blank length of string
+c> \note ns_lastchr is a member of NSERVER's application (public) interface
 c
-c      Input:
-c        name    -  supplied string (read only)
+      integer function ns_lastchr( string )
 c
-c      Return value:  non-blank length of string
+      entry nsu_lastchr( string )
+      integer nsu_lastchr
 c
 c ----------------------------------------------------------------------
 c
@@ -314,13 +324,16 @@ c
 c
       integer i
 c
-      NSU_lastchr = 0
+      ns_lastchr = 0
       do i=len(string),1,-1
         if ( string(i:i).ne.' ' ) then
-          NSU_lastchr = i
+          ns_lastchr = i
           return
         endif
       end do
 c
       return
       end
+
+c>  \} END of PublicInterface group
+

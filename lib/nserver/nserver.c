@@ -24,6 +24,10 @@
     
    ******************************************************************* */
 
+/*! \file nserver.c
+ *  \brief File containing the underlying C implementation of the Name Server.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,6 +35,7 @@
 /* function name mangling for F77 linkage */
 #include "mdf77mangle.h"
 #if !defined(HU_F77_MANGLING_L00)
+/* \cond NEVER */
 # define nsu_putname     HU_F77_FUNC_( nsu_putname    ,  NSU_PUTNAME     )
 # define ns_freename     HU_F77_FUNC_( ns_freename    ,  NS_FREENAME     )
 # define nsu_getname     HU_F77_FUNC_( nsu_getname    ,  NSU_GETNAME     )
@@ -40,16 +45,22 @@
 # define ns_locate       HU_F77_FUNC_( ns_locate      ,  NS_LOCATE       )
 # define ns_locate_match HU_F77_FUNC_( ns_locate_match,  NS_LOCATE_MATCH )
 # define nsu_debug       HU_F77_FUNC_( nsu_debug      ,  NSU_DEBUG       )
+/* \endcond */
 #endif
 
 #ifndef DEBUG
+/*! \brief Increment size for allocating handles for the free list */
 # define INCR_SIZE  200
 #endif
 
 /* file scope variables */
+/*! \brief Number of allocated string handles */
 static int    NSU_count    = 0;
+/*! \brief Number of free allocated string handles */
 static int    NSU_nfree    = 0;
+/*! \brief Array of free string handles */
 static int   *NSU_freelist = NULL;
+/*! \brief Array of strings associated with each handle */
 static char **NSU_strings  = NULL;
 
 /* prototypes */
@@ -66,15 +77,172 @@ int nsu_find_match ( const int *nblen, const char *name, const int *hlist,
 int ns_locate_match ( const int *handle, const int *hlist, const int *nlist );
 void nsu_debug (int *cnt, int *free, int *hmax);
 
-/*  nsu_putname stores the supplied string and returns a handle to that string
+/*! \addtogroup PublicInterface Fortran-callable Application (Public) Interface
+ *
+ * \brief Although not absolutely guaranteed, it is the intent that
+ *        the functions in the NSERVER library's application layer
+ *        will not change in terms of their functionality or interface
+ *        specification. Any changes in future versions can be
+ *        expected be upward compatible with earlier versions.
+ *
+ *  The application interface is implemented primarily in
+ *  Fortran-callable C. However, those functions which pass Fortran
+ *  character variables, or which perform I/O, are implemented with an
+ *  intermediate Fortran wrapper function or subroutine.
+ *
+ *  These wrapper functions fall into two categories:
+ *   \li <b>Conversion of Fortran character variables to C \a char * strings</b>
+ *       \n For handling Fortran character variables, the wrapper
+ *          determines then length of the character variable, and
+ *          passes that length and a pointer to the character string
+ *          to the underlying C function. For an output character
+ *          variable, the length passed is its full length (including
+ *          trailing blanks), and for an input character variable,
+ *          the length passed is its non-blank length.
+ *   \li <b>Proper handling of I/O</b>
+ *       \n Since some Fortran compilers (e.g., gfortran) do not use the same
+ *          buffer for stdout as C, synchronization of output from a Fortran
+ *          application calling a NSERVER function writing to stdout can 
+ *          produce unexpected results if NSERVER's output is performed from
+ *          C rather than from Fortran. Consequently, such functions must
+ *          contain a layer of Fortran to avoid this problem.
 
-      nblen  --  points to integer non-blank length of supplied string "name"
-                 (read only)
-      name   --  supplied string (read only)
+ *  All of the application-level functions which are implemented in C
+ *  return the C type \a int, and further, all arguments of these
+ *  functions are pointers to \a int (\a int *). A Fortran application
+ *  calling these functions should pass Fortran \a INTEGER variables
+ *  as arguments. These functions return, and should be declared as,
+ *  type \a INTEGER.
+ *
+ *  \{
+ */
 
-      Return value:   > 0 -- string's handle for later retrieval
-                      0   -- memory allocation error
-*/
+/*! \brief ns_freename frees the string referenced by handle and returns a
+ *         status code.
+ *
+ *  \param[in,out] handle  supplied string handle
+ *
+ *  \return \li  0, successful completion
+ *          \li  -1, illegal handle value
+ *          \li  -2, handle is not active
+ *
+ *  \note Upon successful completion, the handle is set to zero.
+ *  \note If the supplied value of handle is zero, nothing is done
+ *        and zero is returned.
+ *  \note ns_freename is a member of NSERVER's application (public) interface
+ */
+int ns_freename ( int *handle )
+{
+  int loc;
+
+  if ( *handle == 0 ) return 0;
+  loc = (*handle) - 1;
+  if ( loc < 0  ||  loc >= NSU_count )  return -1;
+  if ( NSU_strings[loc] == NULL ) return -2;
+
+  free(NSU_strings[loc]);
+  NSU_strings[loc] = NULL;
+  NSU_freelist[NSU_nfree++] = loc;
+  *handle = 0;
+  return 0;
+}
+
+/*! \brief ns_locate attempts to find a string (referenced by a handle) among 
+ *         the strings referenced by handles in the supplied handle list.
+ *
+ *  If a matching string is found, the index of the associated handle in the
+ *  list is returned. (Note that this index starts at 1).  If the string is
+ *  not found, zero is returned. If one of the supplied handles is not valid,
+ *  a negative integer is returned.
+ *
+ *  \param[in] handle  supplied string handle
+ *  \param[in] hlist   supplied list of string handle
+ *  \param[in] nlist   length of handle list
+ *
+ *  \return \li  0,   no match found
+ *          \li  > 0, list index of handle matching string
+ *          \li  < 0, one of the supplied handles is invalid
+ *  \note ns_locate is a member of NSERVER's application (public) interface
+ */
+int ns_locate ( const int *handle, const int *hlist, const int *nlist )
+{
+  int i, loc, locl, n;
+
+  loc = (*handle) - 1;
+  n = *nlist;
+
+  if ( loc < 0 || loc >= NSU_count || 
+       NSU_strings[loc] == NULL ) return -(n + 1);
+  for ( i=0; i<n; i++ )   {
+    locl = hlist[i] - 1;
+    if ( loc == locl )  break;
+    if ( locl < 0 || locl >= NSU_count || 
+         NSU_strings[locl] == NULL ) return -(i + 1);
+    if ( strcmp(NSU_strings[loc],NSU_strings[locl]) == 0 )  break;
+  }
+  if ( i < n )  return i+1;
+
+  return 0;  /* not found */
+}
+
+/*! \brief ns_locate_match attempts to uniquely match a string (referenced by
+ *         a handle) to the leading characters of the strings referenced by
+ *         handles in the supplied handle list.
+ *
+ *  If a unique match is not found, but one of the strings in the list exactly
+ *  matches the string, it is considered the unique match. If a unique match
+ *  is found, the index of the associated handle in the list is returned.
+ *  (Note that this index starts at 1). If the string is not matched, zero is
+ *  returned. If the match is not unique, -1 is returned. If one of the
+ *  supplied handles is not valid, -2 is returned.
+ *
+ *  \param[in] handle  supplied string handle
+ *  \param[in] hlist   supplied list of string handle
+ *  \param[in] nlist   length of handle list
+ *
+ *  \return \li    0, no match found
+ *          \li  > 0, list index of handle matching string
+ *          \li   -1, the match is not unique (multiple matches)
+ *          \li   -2, one of the supplied handles is invalid
+ *  \note ns_locate_match is a member of NSERVER's application (public)
+ *        interface
+ */
+int ns_locate_match ( const int *handle, const int *hlist, const int *nlist )
+{
+  int loc, tlen;
+
+  loc = (*handle) - 1;
+  tlen = strlen(NSU_strings[loc]);
+
+  if ( loc < 0 || loc >= NSU_count || 
+       NSU_strings[loc] == NULL ) return -2;
+
+  return nsu_find_match(&tlen, NSU_strings[loc], hlist, nlist);
+}
+
+/*!  \} */ /* END of PublicInterface group */
+
+/*! \addtogroup PrivateInterface Documentation of Non-Public, Utility Functions
+ * \brief The utility functions used in the NSERVER's Non-Public layer
+ *        are used by the Fortran wrapper functions and their use by
+ *        application code should be avoided, since neither their
+ *        functionality, calling interface, or even their continued
+ *        existence in future versions of the library are guaranteed.
+ *  \{
+ */
+
+/*! \brief nsu_putname stores the supplied string and returns a handle to
+ *         that string
+ *
+ *  \warning  This is a utility function used by NS_putname and is not intended
+ *            to be a public interface!
+ *
+ *  \param[in] nblen  pointer to non-blank length of supplied string "name"
+ *  \param[in] name   supplied string
+ *
+ *  \return \li   > 0, string's handle for later retrieval
+ *          \li     0, memory allocation error
+ */
 int nsu_putname ( const int *nblen, const char *name )
 {
   char *p;
@@ -109,45 +277,20 @@ int nsu_putname ( const int *nblen, const char *name )
   return loc+1;
 }
 
-/*  ns_freename frees the string referenced by handle and returns a status code
-      Note that upon successful completion, the handle is set to zero.
-      Also note that if the supplied value of handle is zero, nothing is done
-      and zero is returned.
-
-      handle --  supplied string handle (read/write)
-
-
-      Return value:    0   -- successful completion
-                      -1   -- illegal handle value
-                      -2   -- handle is not active
-*/
-int ns_freename ( int *handle )
-{
-  int loc;
-
-  if ( *handle == 0 ) return 0;
-  loc = (*handle) - 1;
-  if ( loc < 0  ||  loc >= NSU_count )  return -1;
-  if ( NSU_strings[loc] == NULL ) return -2;
-
-  free(NSU_strings[loc]);
-  NSU_strings[loc] = NULL;
-  NSU_freelist[NSU_nfree++] = loc;
-  *handle = 0;
-  return 0;
-}
-
-/*  nsu_getname accesses the string referenced by handle and returns the length
-      of the string or a status code on error
-
-      handle --  supplied string handle (read only)
-      maxlen --  maximum length of returned string (read only)
-      name   --  returned string (write only)
-
-      Return value:  >=  0  -- length of string returned
-                        -1  -- illegal handle value
-                        -2  -- handle is not active
-*/
+/*! \brief nsu_getname accesses the string referenced by handle and returns
+ *         the length of the string or a status code on error
+ *
+ *  \warning  This is a utility function used by NS_getname and is not intended
+ *            to be a public interface!
+ *
+ *  \param[in]  handle   supplied string handle
+ *  \param[in]  maxlen   maximum length of returned string
+ *  \param[out] name     returned string
+ *
+ *  \return \li  >= 0, length of string returned
+ *          \li    -1, illegal handle value
+ *          \li    -2, handle is not active
+ */
 int nsu_getname ( const int *handle, const int *maxlen, char *name )
 {
   int i, loc, ml, slen, clen;
@@ -166,22 +309,25 @@ int nsu_getname ( const int *handle, const int *maxlen, char *name )
   return slen;
 }
 
-/*  nsu_find attempts to find a supplied string among the strings referenced 
-      by handles in the supplied handle list.  If a matching string is 
-      found, the index of the associated handle in the list is returned.
-      (Note that this index starts at 1).  If the string is not found, zero  
-      is returned.
-
-      nblen  --  points to integer non-blank length of supplied string "name"
-                 (read only)
-      name   --  supplied string (read only)
-      hlist  --  supplied list of string handle (read only)
-      nlist  --  length of handle list (read only)
-
-      Return value:  > 0 -- list index of handle matching string
-                     0   -- no match found
-                     -1  -- an invalid handle supplied
-*/
+/*! \brief nsu_find attempts to find a supplied string among the strings
+ *         referenced by handles in the supplied handle list.
+ *
+ *  If a matching string is found, the index of the associated handle in
+ *  the list is returned. (Note that this index starts at 1).  If the
+ *  string is not found, zero is returned.
+ *
+ *  \warning  This is a utility function used by NS_find and is not intended
+ *            to be a public interface!
+ *
+ *  \param[in] nblen  pointer to non-blank length of supplied string "name"
+ *  \param[in] name   supplied string
+ *  \param[in] hlist  supplied list of string handles
+ *  \param[in] nlist  length of handle list
+ *
+ *  \return \li  > 0, list index of handle matching string
+ *          \li    0, no match found
+ *          \li   -1, an invalid handle supplied
+ */
 int nsu_find ( const int *nblen, const char *name, const int *hlist,
                const int *nlist )
 {
@@ -201,25 +347,29 @@ int nsu_find ( const int *nblen, const char *name, const int *hlist,
   return 0;
 }
 
-/*  nsu_findorput attempts to find a supplied string among the strings 
-      referenced by handles in the supplied handle list.  If a matching string
-      is found, the index of the associated handle in the list is returned.
-      (Note that this index starts at 1).  If the string is not found, the 
-      string is stored and the negative of the assigned handle is returned.
-
-      nblen  --  points to integer non-blank length of supplied string "name"
-                 (read only)
-      name   --  supplied string (read only)
-      hlist  --  supplied list of string handle (read only)
-      nlist  --  length of handle list (read only)
-
-      Return value:  > nlist -- no match found and error encountered while 
-                                attempting to add the string to the list or
-                                an invalid handle was supplied
-                     > 0     -- list index of handle matching string
-                     < 0     -- negative of handle assigned to the string if
-                                no match is found
-*/
+/*! \brief nsu_findorput attempts to find a supplied string among the strings 
+ *         referenced by handles in the supplied handle list.
+ *
+ *  If a matching string is found, the index of the associated handle in the
+ *  list is returned. (Note that this index starts at 1). If the string is
+ *  not found, the string is stored and the negative of the assigned handle
+ *  is returned.
+ *
+ *  \warning  This is a utility function used by NS_findorput and is not
+ *            intended to be a public interface!
+ *
+ *  \param[in] nblen  pointer to non-blank length of supplied string "name"
+ *  \param[in] name   supplied string
+ *  \param[in] hlist  supplied list of string handle
+ *  \param[in] nlist  length of handle list
+ *
+ *  \return \li  > nlist, no match found and error encountered while 
+ *                        attempting to add the string to the list or
+ *                        an invalid handle was supplied
+ *          \li      > 0, list index of handle matching string
+ *          \li      < 0, negative of handle assigned to the string if
+ *                        no match is found
+ */
 int nsu_findorput ( const int *nblen, const char *name, const int *hlist,
                     const int *nlist )
 {
@@ -242,63 +392,30 @@ int nsu_findorput ( const int *nblen, const char *name, const int *hlist,
   return -i;
 }
 
-/*  ns_locate attempts to find a string (referenced by a handle) among 
-      the strings referenced by handles in the supplied handle list.  If a 
-      matching string is found, the index of the associated handle in the list
-      is returned. (Note that this index starts at 1).  If the string is not 
-      found, zero is returned. If one of the supplied handles is not valid,a
-      negative integer is returned.
-
-      handle --  supplied string handle (read only)
-      hlist  --  supplied list of string handle (read only)
-      nlist  --  length of handle list (read only)
-
-      Return value:  0     -- no match found
-                     > 0   -- list index of handle matching string
-                     < 0   -- one of the supplied handles is invalid
-*/
-int ns_locate ( const int *handle, const int *hlist, const int *nlist )
-{
-  int i, loc, locl, n;
-
-  loc = (*handle) - 1;
-  n = *nlist;
-
-  if ( loc < 0 || loc >= NSU_count || 
-       NSU_strings[loc] == NULL ) return -(n + 1);
-  for ( i=0; i<n; i++ )   {
-    locl = hlist[i] - 1;
-    if ( loc == locl )  break;
-    if ( locl < 0 || locl >= NSU_count || 
-         NSU_strings[locl] == NULL ) return -(i + 1);
-    if ( strcmp(NSU_strings[loc],NSU_strings[locl]) == 0 )  break;
-  }
-  if ( i < n )  return i+1;
-
-  return 0;  /* not found */
-}
-
-/*  nsu_find_match attempts to uniquely match a supplied string to the
-      leading characters of the strings referenced by handles in the
-      supplied handle list. If a unique match is not found, but one
-      of the strings in the list exactly matches the string, it is
-      considered the unique match. If a unique match is found, the index
-      of the associated handle in the list is returned. (Note that this
-      index starts at 1). If the string is not matched, zero is returned.
-      If the match is not unique, -1 is returned. If one of the supplied
-      handles is not valid, -2 is returned.
-
-      nblen  --  points to integer non-blank length of supplied string "name"
-                 (read only)
-      name   --  supplied string (read only)
-      hlist  --  supplied list of string handle (read only)
-      nlist  --  length of handle list (read only)
-
-      Return value:  0     -- no match found
-                     > 0   -- list index of handle matching string
-                     -1    -- the match is not unique (multiple matches)
-                     -2    -- one of the supplied handles is invalid
-*/
+/*! \brief nsu_find_match attempts to uniquely match a supplied string to the
+ *         leading characters of the strings referenced by handles in the
+ *         supplied handle list.
+ *
+ *  If a unique match is not found, but one of the strings in the list exactly
+ *  matches the string, it is considered the unique match. If a unique match
+ *  is found, the index of the associated handle in the list is returned.
+ *  (Note that this index starts at 1). If the string is not matched, zero
+ *  is returned. If the match is not unique, -1 is returned. If one of the
+ *  supplied handles is not valid, -2 is returned.
+ *
+ *  \warning  This is a utility function used by NS_find_match and is not
+ *            intended to be a public interface!
+ *
+ *  \param[in] nblen  pointer to non-blank length of supplied string "name"
+ *  \param[in] name   supplied string
+ *  \param[in] hlist  supplied list of string handle
+ *  \param[in] nlist  length of handle list
+ *
+ *  \return \li    0, no match found
+ *          \li  > 0, list index of handle matching string
+ *          \li   -1, the match is not unique (multiple matches)
+ *          \li   -2, one of the supplied handles is invalid
+ */
 int nsu_find_match ( const int *nblen, const char *name, const int *hlist,
                      const int *nlist )
 {
@@ -330,47 +447,16 @@ int nsu_find_match ( const int *nblen, const char *name, const int *hlist,
   return -1;  /* multiple non-exact matches found */
 }
 
-/*  ns_locate_match attempts to uniquely match a string (referenced by a  
-      handle) to the leading characters of the strings referenced by
-      handles in the supplied handle list. If a unique match is not
-      found, but one of the strings in the list exactly matches
-      the string, it is considered the unique match. If a unique match
-      is found, the index of the associated handle in the list is
-      returned. (Note that this index starts at 1). If the string is
-      not matched, zero is returned. If the match is not unique, -1 is
-      returned. If one of the supplied handles is not valid, -2 is
-      returned.
-
-      handle --  supplied string handle (read only)
-      hlist  --  supplied list of string handle (read only)
-      nlist  --  length of handle list (read only)
-
-      Return value:  0     -- no match found
-                     > 0   -- list index of handle matching string
-                     -1    -- the match is not unique (multiple matches)
-                     -2    -- one of the supplied handles is invalid
-*/
-int ns_locate_match ( const int *handle, const int *hlist, const int *nlist )
-{
-  int loc, tlen;
-
-  loc = (*handle) - 1;
-  tlen = strlen(NSU_strings[loc]);
-
-  if ( loc < 0 || loc >= NSU_count || 
-       NSU_strings[loc] == NULL ) return -2;
-
-  return nsu_find_match(&tlen, NSU_strings[loc], hlist, nlist);
-}
-
-/*  nsu_debug is a utility function used by NS_debug to obtain statistics
-    regarding the server's allocated strings.
-
-      cnt  --  number of allocated strings (write only)
-      free --  number of allocated strings that are currently unused
-               (write only)
-      hmax --  largest handle index currently in use (write only)
-*/
+/*! \brief nsu_debug obtains statistics regarding the server's allocated
+ *          strings.
+ *
+ *  \warning  This is a utility function used by NS_debug and is not intended
+ *            to be a public interface!
+ *
+ *  \param[out] cnt   number of allocated strings
+ *  \param[out] free  number of allocated strings that are currently unused
+ *  \param[out] hmax  largest handle index currently in use
+ */
 void nsu_debug (int *cnt, int *free, int *hmax)
 {
   int i;
@@ -382,3 +468,5 @@ void nsu_debug (int *cnt, int *free, int *hmax)
   for(i=0;i<NSU_count;i++)  if (NSU_strings[i]) *hmax = i;
   ++(*hmax);
 }
+
+/*!  \} */ /* END of PrivateInterface group */
