@@ -83,9 +83,10 @@ int  *nds, *ierr;
   static char    *module    = "PF_U_OPEN";
   register int    i;
   FILE           *tmpfile = NULL;
-  PFFfid         *tmpfid = NULL;
+  PFFfid         *tmpfid = NULL, *loopfid = NULL;
   PFFhead        *head;
   PFFds_dir      *dsdir;
+  PFFfreeID      *tmpid;
   char           *p = NULL;
   char            tmode[4];
   long            dir_loc, dloc, dlen = 0;
@@ -213,7 +214,7 @@ int  *nds, *ierr;
             pf_wr_err ( module, *ierr, tmpfid, 
                         "File directory cannot be loaded" );
           }
-          else  {
+          else if ( *ierr == 0 ) {
             dsdir->type     = PFTDIR;
             dsdir->ref_type = head->rawtype;
             dlen            = head->length;
@@ -274,14 +275,30 @@ int  *nds, *ierr;
     return NULL;
   }
 
-  if(PFF.top==NULL) 
-    tmpfid->count = 1;
-  else  {
-    tmpfid->count = PFF.top->count + 1;
-    PFF.top->up   = tmpfid;
+  ++PFF.open_cnt;
+  if (PFF.free_stk==NULL) {
+    tmpfid->count = PFF.open_cnt;
   }
-
-  PFF.top       = tmpfid;
+  else {
+    tmpid = PFF.free_stk;
+    tmpfid->count = tmpid->index;
+    PFF.free_stk = tmpid->next;
+    CHKFREE(tmpid);
+  }
+  if ( PFF.top == NULL || PFF.top->count < tmpfid->count ) {
+    if (PFF.top!=NULL) PFF.top->up = tmpfid;
+    PFF.top = tmpfid;
+  }
+  else {
+    loopfid = PFF.top;
+    while ( loopfid->down != NULL && loopfid->down->count > tmpfid->count ) {
+      loopfid = loopfid->down;
+    }
+    tmpfid->down = loopfid->down;
+    tmpfid->up = loopfid;
+    if ( loopfid->down != NULL ) loopfid->down->up = tmpfid;
+    loopfid->down = tmpfid;
+  }
   PFF.current   = tmpfid;
 
   return tmpfid;

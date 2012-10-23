@@ -65,6 +65,7 @@ int *ierr;
       ierr    -  error flag:
                    = 0,  Normal return
                    = 1,  Illegal File ID (FID)
+                   = 2,  Unable To Allocate Needed Memory
 */
 {
   static char    *module    = "PF_U_CLOSE";
@@ -72,6 +73,7 @@ int *ierr;
   PFFfid         *tmpfid,*up,*down;
   PFFdir         *dir;
   PFFds_dir      *dsdir;
+  PFFfreeID      *tmpid = NULL, *loopid = NULL;
   int             l;
   long            ldptr;
 
@@ -148,8 +150,25 @@ int *ierr;
         PFF.current = up;
     }
 
-    for( i=tmpfid->count; up!=NULL; up=up->up)
-      up->count = i++;
+    if ( (tmpid = (PFFfreeID *) malloc(sizeof(PFFfreeID))) == NULL ) {
+      *ierr = 3;
+      pf_wr_err ( module, *ierr, NULL, "Unable To Allocate PFF File ID" );
+      break;
+    }
+    --PFF.open_cnt;
+    tmpid->index = tmpfid->count;
+    if ( PFF.free_stk == NULL || PFF.free_stk->index > tmpid->index ) {
+      tmpid->next = PFF.free_stk;
+      PFF.free_stk = tmpid;
+    }
+    else {
+      loopid = PFF.free_stk;
+      while ( loopid->next != NULL && loopid->next->index <  tmpid->index ) {
+        loopid = loopid->next;
+      }
+      tmpid->next = loopid->next;
+      loopid->next = tmpid;
+    }
 
     CHKFREE (tmpfid->name);
     free(tmpfid);

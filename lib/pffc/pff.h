@@ -86,8 +86,8 @@ namespace PFF {
 #endif
 
 #if defined(__STDC__) || defined(__cplusplus)
-  enum PFF_data_types { PFTDIR, PFTUF3, PFTUF1, PFTNF3, PFTNV3, PFTVTX, PFTIFL,
-                        PFTNGD, PFTNG3, PFTNI3 };
+enum PFF_data_types { PFTDIR, PFTUF3, PFTUF1, PFTNF3, PFTNV3, PFTVTX, PFTIFL,
+                      PFTNGD, PFTNG3, PFTNI3 };
 #else
 # define PFTDIR (0)
 # define PFTUF3 (1)
@@ -102,8 +102,8 @@ namespace PFF {
 #endif
 
 #if defined(__STDC__) || defined(__cplusplus)
-  enum { PFF_RECLEN=2048, PFF_HEADERLEN=16, PFF_MAXRFU=10, MAXPFFINTS=2048, 
-         PFFDIRLISTSIZE=20, PFFFILELISTSIZE=7 };
+enum { PFF_RECLEN=2048, PFF_HEADERLEN=16, PFF_MAXRFU=10, MAXPFFINTS=2048, 
+       PFFDIRLISTSIZE=20, PFFFILELISTSIZE=7 };
 #else
 # define PFF_RECLEN      2048
 # define PFF_HEADERLEN   16
@@ -127,14 +127,22 @@ namespace PFF {
 
 #define CHKFREE(A)  if ( (A) != NULL ) free (A)
 
-typedef struct s_PFFfid   PFFfid;
-typedef struct s_PFFdir   PFFdir;
-typedef struct s_PFFhead  PFFhead;
+typedef struct s_PFFfid    PFFfid;
+typedef struct s_PFFdir    PFFdir;
+typedef struct s_PFFhead   PFFhead;
+typedef struct s_PFFfreeID PFFfreeID;
+
+struct s_PFFfreeID {
+  int index;
+  PFFfreeID *next;
+};
 
 struct s_PFF         {       /* Master pointers to PFF file linked list */
  
   PFFfid     *top;          /* Pointer to top of PFF file stack */
   PFFfid     *current;      /* Pointer to current PFF file */
+  PFFfreeID  *free_stk;     /* Stack of reusable file counts */
+  int        open_cnt;      /* Number of currently open files */
 };
 
 struct s_PFFfid     {       /* Element for PFF file linked list */

@@ -79,7 +79,7 @@ int     *ierr;
   /* static char        *module    = "PF_LIST_FILES"; */
   register int        i;
   int                 actwid, nblh, nblb, menmax, menoff;
-  int                 cnt, curcnt, maxcnt;
+  int                 cnt, curcnt, maxcnt, nds;
   char                dash[MAX_FILELEN+1];
   char                blank[MAX_FILELEN+1];
   char               *prefix;
@@ -125,7 +125,7 @@ int     *ierr;
   printf("%s|     # | File Name%s| St | Entries |\n",prefix,blank+menoff+8);
   printf("%s+-------+-%s-+----+---------+\n",prefix,dash+menoff);
 
-  fid = pf_get_fid ( low, ierr);
+  while ( (fid = pf_get_fid ( low, ierr)) == 0 && low <= high ) ++low;
 
   while (  ( fid != NULL )  &&  ( (cnt = fid->count) <= high ) )  {
 
@@ -142,10 +142,14 @@ int     *ierr;
           break;
         }
       }
+    tptr[2] = '\0';
+    if ( fid->dirtop == NULL ) nds = 0;
+    else nds = (fid->dirtop)->count;
+                                 
 
     printf("%s| %2.2s%3d | %-*.*s | %2.2s |  %5d  |\n",
                 prefix, tptr, cnt, menmax, menmax, fid->name, 
-                mode_label[fid->mode], (fid->dirtop)->count );
+                mode_label[fid->mode], nds );
 
     fid = fid->up;
   }
