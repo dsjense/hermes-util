@@ -56,8 +56,11 @@ int *pf_u_scan(PFFfid *fid, const int *dlist, const int *range,
     return 0;
   }
   int kb = std::max(1,dlist[0]);
-  int ke = std::min((fid->dirtop)->count,dlist[1]);
-  if ( ke < 1 ) ke = (fid->dirtop)->count;
+  int ke = 0;
+  if ( fid->dirtop ) {
+    ke = std::min((fid->dirtop)->count,dlist[1]);
+    if ( ke < 1 ) ke = (fid->dirtop)->count;
+  }
   int ksk = std::max(1,dlist[2]);
 
   int sb = std::max(1,range[0]) - 1;
