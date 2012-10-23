@@ -127,7 +127,7 @@ int     *ierr;
   else low = phigh[0];
 
   if (fid->directory == NULL )
-    curcnt = 0;
+    curcnt = maxcnt + 1;
   else
     curcnt = (fid->directory)->count;
 
