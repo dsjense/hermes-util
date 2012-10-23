@@ -39,7 +39,7 @@
 #include "free_defs.h"
 #include "workspace.h"
 
-struct s_PFF  PFF              = { NULL , NULL };
+struct s_PFF  PFF              = { NULL , NULL , NULL , 0 };
 int           PFF_fp_precision = FP_REDU;
 
 int      PFFMP_procs =  0;
