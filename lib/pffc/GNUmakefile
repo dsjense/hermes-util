@@ -42,7 +42,6 @@ BLD_SRC_EXTS = -sc -scc
 BLD_INC_EXTS = -ih -ihh
 LGRPFLAGS = 
 DBGLIBBASE = 
-SHRLIBBASE = 
 CFLAGS_OD = $(CFLAGS_OPT)
 CXXFLAGS_OD = $(CXXFLAGS_OPT)
 CFLAGS_SHR = 
@@ -78,9 +77,15 @@ ifneq ($(strip $(MPI)),)
   endif
 endif
 
+PIC_EXT = 
+ifneq ($(strip $(PIC)),)
+  CFLAGS_SHR = $(SHR_CFLAGS)
+  PIC_EXT = _pic
+endif
+
 ifneq ($(strip $(SHARED)),)
   CFLAGS_SHR = $(SHR_CFLAGS)
-  SHRLIBBASE = /shared
+  PIC_EXT = _pic
   # check if this platform supports shared libraries
   ifeq ($(strip $(SHR_EXT)),)
     GOOD2GO = no
@@ -99,14 +104,14 @@ CPPFLAGS = $(CFLAGS_SYS) $(CPP_OPTS)
 DEP_INCDIRS = $(C_INCDIRS)
 
 LIBDIRNAME = $(PLATFORM)
-LIBBASE = ..$(SHRLIBBASE)$(DBGLIBBASE)
+LIBBASE = ..$(DBGLIBBASE)
 LIBDIR  = $(LIBBASE)/$(LIBDIRNAME)
-LIBRARY = $(LIBDIR)/lib$(PRODNAME).a
-SHR_LIB = $(LIBDIR)/lib$(PRODNAME).$(SHR_EXT)
+LIBRARY = $(LIBDIR)/lib$(PRODNAME)$(PIC_EXT).a
+SHR_LIBDIR = ../shared$(DBGLIBBASE)/$(LIBDIRNAME)
+SHR_LIB = $(SHR_LIBDIR)/lib$(PRODNAME).$(SHR_EXT)
 
 TARGET = $(LIBRARY)
 ifneq ($(strip $(SHARED)),)
-  LIBRARY = $(LIBDIR)/lib$(PRODNAME)_shr.a
   TARGET = $(SHR_LIB)
 endif
 
@@ -124,38 +129,43 @@ ifneq ($(strip $(wildcard $(MACRO_LIST_FILE))),)
   include $(MACRO_LIST_FILE)
 endif
 
-.PHONY : first target DEBUG dbg SHARED shared MPI mpi $(HERMES_ARCH_LIST)
-.PHONY : help bld_macro_list depend nmakedepend
+.PHONY : first target DEBUG dbg SHARED shared PIC pic MPI mpi
+.PHONY : $(HERMES_ARCH_LIST) help bld_macro_list depend nmakedepend
 #
 #--------------------------- Target Section -----------------------------
 #
 
 ifeq ($(strip $(GOOD2GO)),no)
-DEBUG first target dbg SHARED shared MPI mpi $(HERMES_ARCH_LIST) :
+first target DEBUG dbg SHARED shared PIC pic MPI mpi $(HERMES_ARCH_LIST) :
 	@echo $(ERR_MSG)
 else
 first :
 	@$(MAKE) PLATFORM=$(PLATFORM) DEBUG=$(DEBUG) SHARED=$(SHARED) \
-	         MPI=$(MPI) depend $(LIBDIR)
+	         PIC=$(PIC) MPI=$(MPI) depend $(LIBDIR)
 	@$(MAKE) PLATFORM=$(PLATFORM) DEBUG=$(DEBUG) SHARED=$(SHARED) \
-	         MPI=$(MPI) target
+	         PIC=$(PIC) MPI=$(MPI) target
 
 target :
 	@$(MAKE) -f $(MAKEFILE) DEBUG=$(DEBUG) MPI=$(MPI) SHARED=$(SHARED) \
-	         $(TARGET)
+	         PIC=$(PIC) $(TARGET)
 
 DEBUG dbg :
-	@$(MAKE) -f $(MAKEFILE) DEBUG=1  SHARED=$(SHARED) MPI=$(MPI) first
+	@$(MAKE) -f $(MAKEFILE) DEBUG=1 PIC=$(PIC) SHARED=$(SHARED) MPI=$(MPI) \
+		  first
 
 MPI mpi :
-	@$(MAKE) -f $(MAKEFILE) MPI=1 DEBUG=$(DEBUG) SHARED=$(SHARED) first
+	@$(MAKE) -f $(MAKEFILE) MPI=1 DEBUG=$(DEBUG) SHARED=$(SHARED) \
+		 PIC=$(PIC)  first
+
+PIC pic :
+	@$(MAKE) -f $(MAKEFILE) MPI=$(MPI) DEBUG=$(DEBUG) SHARED= PIC=1  first
 
 SHARED shared :
-	@$(MAKE) -f $(MAKEFILE) SHARED=1 DEBUG=$(DEBUG) MPI=$(MPI) first
+	@$(MAKE) -f $(MAKEFILE) SHARED=1 DEBUG=$(DEBUG) MPI=$(MPI) PIC=  first
 
 $(HERMES_ARCH_LIST) :
 	@$(MAKE) -f $(MAKEFILE) PLATFORM=$@ DEBUG=$(DEBUG) MPI=$(MPI) \
-	        SHARED=$(SHARED) first
+	         PIC=$(PIC) SHARED=$(SHARED) first
 endif
 
 $(LIBDIR) :
@@ -167,6 +177,7 @@ help :
 	@echo "  make               Builds optimized version"
 	@echo "  make debug         Builds debug version"
 	@echo "  make mpi           Builds optimized, mpi version"
+	@echo "  make pic           Builds library with position-independent code"
 	@echo "  make shared        Builds optimized, shared library"
 	@echo "  \"arch\"             Cross-compiles and cross-links for the architecture"
 	@echo "                     \"arch\", where \"arch\" is one of the following:"
@@ -176,8 +187,9 @@ help :
 	@echo "  make nmake            Build tarball for a WIN32 installation"
 	@echo "  make nmakedepend      Updates NMAKE-compatable dependency files (WIN32)"
 	@echo ""
-	@echo "By adding the macro definitions \"DEBUG=1\", \"MPI=1\", and/or \"SHARED=1\" to the"
-	@echo "first five options above, the corresponding library permutation will be built."
+	@echo "By adding the macro definitions \"DEBUG=1\", \"MPI=1\", \"PIC=1\", and/or \"SHARED=1\""
+	@echo "to the first six options above, the corresponding library permutation will be"
+	@echo "built."
 	@echo ""
 
 ##.SILENT : depend bld_macro_list $(MACRO_LIST_FILE) $(DEP_LIST_FILE)
@@ -204,6 +216,7 @@ $(LIBRARY) : $(OBJS)
 	@echo $(LIBRARY) is now up-to-date
 
 $(SHR_LIB):	$(LIBRARY)
+		@if [ ! -d $(SHR_LIBDIR) ]; then mkdir -p $(SHR_LIBDIR); fi
 		$(AR) x $(LIBRARY)
 		$(CC) $(CC_SHR_LFLAGS) -o $(SHR_LIB) *.o $(LIBS)
 		rm -f *.o

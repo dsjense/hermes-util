@@ -74,8 +74,8 @@ else
   endif
 endif
 
-.PHONY : dbg $(HERMES_ARCH_LIST) test tools DEBUG dbg SHARED shared MPI mpi
-.PHONY : help depend
+.PHONY : dbg $(HERMES_ARCH_LIST) test tools DEBUG dbg SHARED shared PIC pic
+.PHONY : MPI mpi help depend
 .PHONY : targets $(DIR_LIST)
 
 #
@@ -83,7 +83,7 @@ endif
 #
 
 ifeq ($(strip $(GOOD2GO)),no)
-targets test tools DEBUG dbg SHARED shared $(HERMES_ARCH_LIST) :
+targets test tools DEBUG dbg SHARED shared PIC pic $(HERMES_ARCH_LIST) :
 	@echo $(ERR_MSG)
 else
 targets : $(DIR_LIST)
@@ -91,23 +91,27 @@ targets : $(DIR_LIST)
 $(DIR_LIST) :
 	@if [ -d $@ ]; then \
 	  $(MAKE) -C $@ PLATFORM=$(PLATFORM) DEBUG=$(DEBUG) SHARED=$(SHARED) \
-	          $(SUB_TARGET); \
+	          PIC=$(PIC) $(SUB_TARGET); \
 	fi; \
 
 test tools :
-	@$(MAKE) DEBUG=$(DEBUG) SHARED=$(SHARED) TYPE=$@ targets
+	@$(MAKE) DEBUG=$(DEBUG) SHARED=$(SHARED) PIC=$(PIC) TYPE=$@ targets
 
 DEBUG dbg :
-	@$(MAKE) DEBUG=1  SHARED=$(SHARED) MPI=$(MPI) targets
+	@$(MAKE) DEBUG=1  SHARED=$(SHARED) PIC=$(PIC) MPI=$(MPI) targets
+
+PIC pic :
+	@$(MAKE) SHARED= PIC=1 DEBUG=$(DEBUG) MPI=$(MPI) targets
 
 SHARED shared :
-	@$(MAKE) SHARED=1 DEBUG=$(DEBUG) MPI=$(MPI) targets
+	@$(MAKE) SHARED=1 PIC= DEBUG=$(DEBUG) MPI=$(MPI) targets
 
 MPI mpi :
-	@$(MAKE) DEBUG=$(DEBUG) SHARED=$(SHARED) MPI=1 targets
+	@$(MAKE) DEBUG=$(DEBUG) SHARED=$(SHARED) PIC=$(PIC) MPI=1 targets
 
 $(HERMES_ARCH_LIST) :
-	@$(MAKE) PLATFORM=$@ DEBUG=$(DEBUG) SHARED=$(SHARED) MPI=$(MPI) targets
+	@$(MAKE) PLATFORM=$@ DEBUG=$(DEBUG) SHARED=$(SHARED) PIC=$(PIC) \
+		 MPI=$(MPI) targets
 
 endif
 help :
@@ -117,17 +121,18 @@ help :
 	@echo "  make test    Builds library test programs (optimized)"
 	@echo "  make tools   Builds library-associated tools (optimized)"
 	@echo "  make debug   Builds debug libraries"
+	@echo "  make pic     Builds library with position-independent code"
 	@echo "  make shared  Builds optimized, shared libraries, if supported"
 	@echo "  make mpi     Builds optimized MPI versions of libraries with MPI support"
 	@echo "  \"arch\"             Cross-compiles and cross-links for the architecture"
 	@echo "                     \"arch\", where \"arch\" is one of the following:"
 	@echo "                       $(HERMES_ARCH_LIST)"
 	@echo ""
-	@echo "By adding the macro definitions \"DEBUG=1\", \"MPI=1\", and/or \"SHARED=1\" to the"
-	@echo "first seven options above, the corresponding library permutation will be built."
-	@echo "By adding the macro definition \"PLATFORM=arch\" to any of the first six options,"
-	@echo "where \"arch\" is on the list of architectures above, cross-compilation/linking"
-	@echo "will be performed."
+	@echo "By adding the macro definitions \"DEBUG=1\", \"MPI=1\", \"PIC=1\", and/or \"SHARED=1\""
+	@echo "to the first eight options above, the corresponding library permutation will be"
+	@echo "built. By adding the macro definition \"PLATFORM=arch\" to any of the first seven"
+	@echo "options, where \"arch\" is on the list of architectures above,"
+	@echo "cross-compilation/linking will be performed."
 	@echo ""
 
 depend :

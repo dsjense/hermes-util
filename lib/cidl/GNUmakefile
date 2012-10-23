@@ -42,10 +42,11 @@ F_OPTS =
 BLD_SRC_EXTS = -sF -sf -sc
 BLD_INC_EXTS = -iinc -ih
 LGRPFLAGS = 
-LIBBASE = ..
+DBGLIBBASE = 
 FFLAGS_OD = $(FFLAGS_OPT)
 CFLAGS_OD = $(CFLAGS_OPT)
 FFLAGS_SHR = 
+CFLAGS_SHR = 
 GOOD2GO = yes
 C_INCDIRS_ALL = -I../../cinclude
 C_INCDIRS = $(C_INCDIRS_ALL) -I$(IDL_EXTRNL)
@@ -70,12 +71,20 @@ endif
 ifneq ($(strip $(DEBUG)),)
   FFLAGS_OD = $(FFLAGS_DBG)
   CFLAGS_OD = $(CFLAGS_DBG)
-  LIBBASE = ../debug
+  DBGLIBBASE = /debug
+endif
+
+PIC_EXT = 
+ifneq ($(strip $(PIC)),)
+  FFLAGS_SHR = $(SHR_FFLAGS)
+  CFLAGS_SHR = $(SHR_CFLAGS)
+  PIC_EXT = _pic
 endif
 
 ifneq ($(strip $(SHARED)),)
   FFLAGS_SHR = $(SHR_FFLAGS)
   CFLAGS_SHR = $(SHR_CFLAGS)
+  PIC_EXT = _pic
   # check if this platform supports shared libraries
   ifeq ($(strip $(SHR_EXT)),)
     GOOD2GO = no
@@ -108,13 +117,14 @@ FFLAGS_FPP = $(FFLAGS_SYS) $(F_OPTS)
 DEP_INCDIRS = $(C_INCDIRS_ALL) $(F_INCDIRS)
 
 LIBDIRNAME = $(IDL_SYS_TYPE)
+LIBBASE = ..$(DBGLIBBASE)
 LIBDIR  = $(LIBBASE)/$(LIBDIRNAME)
-LIBRARY = $(LIBDIR)/lib$(PRODNAME).a
-SHR_LIB = $(LIBDIR)/lib$(PRODNAME).$(SHR_EXT)
+LIBRARY = $(LIBDIR)/lib$(PRODNAME)$(PIC_EXT).a
+SHR_LIBDIR = ../shared$(DBGLIBBASE)/$(LIBDIRNAME)
+SHR_LIB = $(SHR_LIBDIR)/lib$(PRODNAME).$(SHR_EXT)
 
 TARGET = $(LIBRARY)
 ifneq ($(strip $(SHARED)),)
-  LIBRARY = $(LIBDIR)/lib$(PRODNAME)_shr.a
   TARGET = $(SHR_LIB)
 endif
 
@@ -137,34 +147,38 @@ ifneq ($(strip $(wildcard $(MACRO_LIST_FILE))),)
   include $(MACRO_LIST_FILE)
 endif
 
-.PHONY : first target DEBUG dbg SHARED shared $(HERMES_ARCH_LIST)
+.PHONY : first target DEBUG dbg SHARED shared PIC pic $(HERMES_ARCH_LIST)
 .PHONY : help bld_macro_list depend nmakedepend
 #
 #--------------------------- Target Section -----------------------------
 #
 
 ifeq ($(strip $(GOOD2GO)),no)
-first target DEBUG dbg SHARED shared $(HERMES_ARCH_LIST) :
+first target DEBUG dbg SHARED shared PIC pic $(HERMES_ARCH_LIST) :
 	@echo $(ERR_MSG)
 else
 first :
 	@$(MAKE) PLATFORM=$(IDL_SYS_TYPE) DEBUG=$(DEBUG) SHARED=$(SHARED) \
-	         depend $(LIBDIR)
+	         PIC=$(PIC) depend $(LIBDIR)
 	@$(MAKE) PLATFORM=$(IDL_SYS_TYPE) DEBUG=$(DEBUG) SHARED=$(SHARED) \
-	         target
+	         PIC=$(PIC) target
 
 target :
-	@$(MAKE) -f $(MAKEFILE) DEBUG=$(DEBUG) SHARED=$(SHARED) $(TARGET)
+	@$(MAKE) -f $(MAKEFILE) DEBUG=$(DEBUG) SHARED=$(SHARED) PIC=$(PIC) \
+	         $(TARGET)
 
 DEBUG dbg :
-	@$(MAKE) -f $(MAKEFILE) DEBUG=1  SHARED=$(SHARED) first
+	@$(MAKE) -f $(MAKEFILE) DEBUG=1  SHARED=$(SHARED) PIC=$(PIC) first
+
+PIC pic :
+	@$(MAKE) -f $(MAKEFILE) DEBUG=$(DEBUG) SHARED= PIC=1  first
 
 SHARED shared :
-	@$(MAKE) -f $(MAKEFILE) SHARED=1 DEBUG=$(DEBUG) first
+	@$(MAKE) -f $(MAKEFILE) SHARED=1 DEBUG=$(DEBUG) PIC= first
 
 $(HERMES_ARCH_LIST) :
 	@$(MAKE) -f $(MAKEFILE) PLATFORM=$@ DEBUG=$(DEBUG) SHARED=$(SHARED) \
-	        first
+	        PIC=$(PIC) first
 endif
 
 $(LIBDIR) :
@@ -175,6 +189,7 @@ help :
 	@echo "The following options are available:"
 	@echo "  make               Builds optimized version"
 	@echo "  make debug         Builds debug version"
+	@echo "  make pic           Builds library with position-independent code"
 	@echo "  make shared        Builds optimized shared library"
 	@echo "  \"arch\"             Cross-compiles and cross-links for the architecture"
 	@echo "                     \"arch\", where \"arch\" is one of the following:"
@@ -182,8 +197,8 @@ help :
 	@echo "  make depend        Updates dependency files"
 	@echo "  make nmakedepend   Updates NMAKE-compatable dependency files (WIN32)"
 	@echo ""
-	@echo "By adding the macro definitions \"DEBUG=1\" and/or \"SHARED=1\" to the first four"
-	@echo "options above, the corresponding library permutation will be built."
+	@echo "By adding the macro definitions \"DEBUG=1\", \"PIC=1\", and/or \"SHARED=1\" to the"
+	@echo "first five options above, the corresponding library permutation will be built."
 	@echo ""
 
 ##.SILENT : depend bld_macro_list $(MACRO_LIST_FILE) $(DEP_LIST_FILE)
@@ -210,6 +225,7 @@ $(LIBRARY) : $(OBJS)
 	@echo $(LIBRARY) is now up-to-date
 
 $(SHR_LIB):	$(LIBRARY)
+		@if [ ! -d $(SHR_LIBDIR) ]; then mkdir -p $(SHR_LIBDIR); fi
 		$(AR) x $(LIBRARY)
 		$(FC) $(SHR_LFLAGS) -o $(SHR_LIB) *.o $(LIBS)
 		rm -f *.o

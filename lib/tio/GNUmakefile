@@ -43,7 +43,7 @@ F_OPTS =
 BLD_SRC_EXTS = -sF -sf -sc
 BLD_INC_EXTS = -iinc
 LGRPFLAGS = -nmpi
-LIBBASE = ..
+DBGLIBBASE = 
 FFLAGS_OD = $(FFLAGS_OPT)
 CFLAGS_OD = $(CFLAGS_OPT)
 FFLAGS_SHR = 
@@ -63,7 +63,7 @@ endif
 ifneq ($(strip $(DEBUG)),)
   FFLAGS_OD = $(FFLAGS_DBG)
   CFLAGS_OD = $(CFLAGS_DBG)
-  LIBBASE = ../debug
+  DBGLIBBASE = /debug
 endif
 
 ACTUAL_PLATFORM = $(PLATFORM)
@@ -102,9 +102,17 @@ ifneq ($(strip $(MPI)),)
   endif
 endif
 
+PIC_EXT = 
+ifneq ($(strip $(PIC)),)
+  FFLAGS_SHR = $(SHR_FFLAGS)
+  CFLAGS_SHR = $(SHR_CFLAGS)
+  PIC_EXT = _pic
+endif
+
 ifneq ($(strip $(SHARED)),)
   FFLAGS_SHR = $(SHR_FFLAGS)
   CFLAGS_SHR = $(SHR_CFLAGS)
+  PIC_EXT = _pic
   # check if this platform supports shared libraries
   ifeq ($(strip $(SHR_EXT)),)
     GOOD2GO = no
@@ -126,13 +134,14 @@ FFLAGS_FPP = $(FFLAGS_SYS) $(F_OPTS)
 DEP_INCDIRS = $(C_INCDIRS) $(F_INCDIRS)
 
 LIBDIRNAME = $(ACTUAL_PLATFORM)
+LIBBASE = ..$(DBGLIBBASE)
 LIBDIR  = $(LIBBASE)/$(LIBDIRNAME)
-LIBRARY = $(LIBDIR)/lib$(PRODNAME).a
-SHR_LIB = $(LIBDIR)/lib$(PRODNAME).$(SHR_EXT)
+LIBRARY = $(LIBDIR)/lib$(PRODNAME)$(PIC_EXT).a
+SHR_LIBDIR = ../shared$(DBGLIBBASE)/$(LIBDIRNAME)
+SHR_LIB = $(SHR_LIBDIR)/lib$(PRODNAME).$(SHR_EXT)
 
 TARGET = $(LIBRARY)
 ifneq ($(strip $(SHARED)),)
-  LIBRARY = $(LIBDIR)/lib$(PRODNAME)_shr.a
   TARGET = $(SHR_LIB)
 endif
 
@@ -155,45 +164,50 @@ ifneq ($(strip $(wildcard $(MACRO_LIST_FILE))),)
   include $(MACRO_LIST_FILE)
 endif
 
-.PHONY : first target DEBUG dbg SHARED shared MPI mpi IDL idl
+.PHONY : first target DEBUG dbg SHARED shared PIC pic MPI mpi IDL idl
 .PHONY : $(HERMES_ARCH_LIST) help bld_macro_list depend nmakedepend
 #
 #--------------------------- Target Section -----------------------------
 #
 
 ifeq ($(strip $(GOOD2GO)),no)
-first target DEBUG dbg SHARED shared MPI mpi IDL idl $(HERMES_ARCH_LIST) :
+first target DEBUG dbg SHARED shared PIC pic MPI mpi IDL idl \
+       $(HERMES_ARCH_LIST) :
 	@echo $(ERR_MSG)
 else
 first :
 	@$(MAKE) PLATFORM=$(ACTUAL_PLATFORM) DEBUG=$(DEBUG) SHARED=$(SHARED) \
-	         MPI=$(MPI) IDL=$(IDL) depend $(LIBDIR)
+	         PIC=$(PIC) MPI=$(MPI) IDL=$(IDL) depend $(LIBDIR)
 	@$(MAKE) PLATFORM=$(ACTUAL_PLATFORM) DEBUG=$(DEBUG) SHARED=$(SHARED) \
-	         MPI=$(MPI) IDL=$(IDL) target
+	         PIC=$(PIC) MPI=$(MPI) IDL=$(IDL) target
 
 target :
 	@$(MAKE) -f $(MAKEFILE) DEBUG=$(DEBUG) MPI=$(MPI) SHARED=$(SHARED) \
-	           IDL=$(IDL) $(TARGET)
+	           PIC=$(PIC) IDL=$(IDL) $(TARGET)
 
 DEBUG dbg :
 	@$(MAKE) -f $(MAKEFILE) DEBUG=1  SHARED=$(SHARED) MPI=$(MPI) \
-	          IDL=$(IDL) first
+	          PIC=$(PIC) IDL=$(IDL) first
 
 IDL idl :
 	@$(MAKE) -f $(MAKEFILE) IDL=1 DEBUG=$(DEBUG) MPI=$(MPI) \
-	          SHARED=$(SHARED) first
+	          PIC=$(PIC) SHARED=$(SHARED) first
 
 MPI mpi :
 	@$(MAKE) -f $(MAKEFILE) MPI=1 DEBUG=$(DEBUG) IDL=$(IDL) \
-	          SHARED=$(SHARED) first
+	          PIC=$(PIC) SHARED=$(SHARED) first
+
+PIC pic :
+	@$(MAKE) -f $(MAKEFILE) MPI=$(MPI) DEBUG=$(DEBUG) SHARED= PIC=1 \
+	          IDL=$(IDL) first
 
 SHARED shared :
-	@$(MAKE) -f $(MAKEFILE) SHARED=1 DEBUG=$(DEBUG) MPI=$(MPI) \
+	@$(MAKE) -f $(MAKEFILE) SHARED=1 PIC= DEBUG=$(DEBUG) MPI=$(MPI) \
 	          IDL=$(IDL) first
 
 $(HERMES_ARCH_LIST) :
 	@$(MAKE) -f $(MAKEFILE) PLATFORM=$@ DEBUG=$(DEBUG) IDL=$(IDL) \
-	        MPI=$(MPI) SHARED=$(SHARED) first
+	         MPI=$(MPI) SHARED=$(SHARED) PIC=$(PIC) first
 endif
 
 $(LIBDIR) :
@@ -206,6 +220,7 @@ help :
 	@echo "  make debug         Builds debug version"
 	@echo "  make idl           Builds optimized IDL I/O version"
 	@echo "  make mpi           Builds optimized MPI I/O version"
+	@echo "  make pic           Builds library with position-independent code"
 	@echo "  make shared        Builds optimized shared library"
 	@echo "  \"arch\"             Cross-compiles and cross-links for the architecture"
 	@echo "                     \"arch\", where \"arch\" is one of the following:"
@@ -214,8 +229,9 @@ help :
 	@echo "  make IDL=1 depend  Updates dependency files for idl-memory version"
 	@echo "  make nmakedepend   Updates NMAKE-compatable dependency files (WIN32)"
 	@echo ""
-	@echo "By adding the macro definitions \"DEBUG=1\", \"IDL=1\", and/or \"SHARED=1\" to the"
-	@echo "first six options above, the corresponding library permutation will be built."
+	@echo "By adding the macro definitions \"DEBUG=1\", \"IDL=1\", \"MPI=1\", \"PIC=1\", and/or"
+	@echo "\"SHARED=1\" to the first seven options above, the corresponding library"
+	@echo "permutation will be built."
 	@echo ""
 
 ##.SILENT : depend bld_macro_list $(MACRO_LIST_FILE) $(DEP_LIST_FILE)
@@ -242,6 +258,7 @@ $(LIBRARY) : $(OBJS)
 	@echo $(LIBRARY) is now up-to-date
 
 $(SHR_LIB):	$(LIBRARY)
+		@if [ ! -d $(SHR_LIBDIR) ]; then mkdir -p $(SHR_LIBDIR); fi
 		$(AR) x $(LIBRARY)
 		$(FC) $(SHR_LFLAGS) -o $(SHR_LIB) *.o $(LIBS)
 		rm -f *.o
