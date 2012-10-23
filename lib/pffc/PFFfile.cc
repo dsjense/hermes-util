@@ -205,7 +205,8 @@ PFF::PFFds_any *PFF_File::Read_Dataset(int &type, int dataset, bool keep)
 
   PFF::PFFdir *dir = PFF::pf_get_direntry(fid, dataset, &last_error);
 
-  if ( last_error ) return 0;
+  // if dir = 0, we are positioned at EOF
+  if ( dir == 0 || last_error ) return 0;
 
   type = dir->rawtype;
 

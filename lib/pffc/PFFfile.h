@@ -194,6 +194,7 @@ class PFF_File
    *  \param dataset Dataset to read (use 0 for the current dataset).
    *  \param keep Indicates whether or not to keep non-zero floating
    *              point values if underflow occurs.
+   *  \return Pointer to dataset, of zero if an error occurred.
    */  
   PFF::PFFds_any *Read_Dataset(int &type, int dataset = 0, bool keep = false);
 
