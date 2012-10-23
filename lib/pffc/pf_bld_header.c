@@ -104,29 +104,25 @@ int *ierr;
     head->nwords_rfu = 0;
     head->rfu        = NULL;
 
+    char blank[] = "";
     if ( new_strs )   {
-      if ( title == NULL || title[0] == '\0' )  head->title = NULL;
-      else   {
-        if ( ( p = (char *) malloc ( strlen(title) + 1 ) )  
-                    ==  NULL )  {
-          *ierr = 3;
-          pf_wr_err ( module, *ierr, NULL, "Error allocating header strings");
-          return NULL;
-        }
-        strcpy ( p, title );
-        head->title = p;
+      if ( title == NULL )  title = blank;
+      if ( ( p = (char *) malloc ( strlen(title) + 1 ) )  ==  NULL )  {
+        *ierr = 3;
+        pf_wr_err ( module, *ierr, NULL, "Error allocating header strings");
+        return NULL;
       }
+      strcpy ( p, title );
+      head->title = p;
 
-      if ( type == NULL || type[0] == '\0' )  head->type_name = NULL;
-      else   {
-        if ( ( p = (char *) malloc ( strlen(type)+ 1 ) )  ==  NULL )  {
-          *ierr = 3;
-          pf_wr_err ( module, *ierr, NULL, "Error allocating header strings");
-          return NULL;
-        }
-        strcpy ( p, type );
-        head->type_name = p;
+      if ( type == NULL )  type = blank;
+      if ( ( p = (char *) malloc ( strlen(type)+ 1 ) )  ==  NULL )  {
+        *ierr = 3;
+        pf_wr_err ( module, *ierr, NULL, "Error allocating header strings");
+        return NULL;
       }
+      strcpy ( p, type );
+      head->type_name = p;
     }
     else    {
       head->title     = title;
