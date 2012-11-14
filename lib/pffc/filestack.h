@@ -28,8 +28,14 @@
 #ifndef FILESTACK_H
 #define FILESTACK_H
 
-extern struct s_PFF PFF;
+#ifdef __cplusplus
+#define EXTERN extern "C"
+#else
+#define EXTERN extern
+#endif
 
-extern int          PFF_fp_precision;
+EXTERN struct s_PFF PFF;
+
+EXTERN int          PFF_fp_precision;
 
 #endif
