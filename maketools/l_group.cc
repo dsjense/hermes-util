@@ -83,12 +83,12 @@ bool L_Group::get_grp_string(const string &filename, string &str) const
       if ( mat[0] == '\n' ) break;      
       int l = strlen(mat);
       if ( l > 0 )mat[l-1] = ' ';
-      char *tok = strtok(mat," \t");
+      char *tok = strtok(mat," \t\r");
       if ( ! tok ) break;
       if ( tok == mat ) continue;
       do {
         if ( ! strchr("@%",tok[0]) ) str += string(tok) + blank;
-        tok = strtok(NULL," \t");
+        tok = strtok(NULL," \t\r");
       }
       while ( tok );
       break;
