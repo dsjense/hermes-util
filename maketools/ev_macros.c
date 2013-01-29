@@ -136,6 +136,12 @@ int main(int argc, char *argv[])
     val = EV_Subst_Macro(buf);
     printf("buf: %s\nval: %s\n",buf,val);
   }
+  printf("Enter file path: ");
+  while ( gets(buf) ) {
+    val = EV_Subst_Macro(buf);
+    printf("*** %s\nEnter file path: ",val);
+  }
+  printf("\n");
 
   return 0;
 }
