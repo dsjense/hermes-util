@@ -71,7 +71,8 @@ int  *ierr;
     return;
   }
   
-  *lval = ( (ival[0] % imsk[0])*imsk[1] + ival[1] )*imsk[2] + ival[2];
+  *lval = (ival[0] % imsk[0])*imsk[1];
+  *lval = ( *lval + ival[1] )*imsk[2] + ival[2];
 
   if ( ival[0] >= imsk[0] )
     *lval = -(*lval);
