@@ -31,6 +31,7 @@
 #   HU_LRSHIFT      - Indicates where or not Fortran has the lshift and
 #                     rshift intrinsic functions, legal values are:
 #                     HU_HAVE_LRSHIFT, HU_NEED_LRSHIFT
+#   HU_FPOS_BYTES   - Length of file offsets, in bytes (integer)
 #   HU_PTR_BYTES    - Length of pointers, in bytes (integer)
 #   HU_PTR_TYPE     - Fortran type to be used for pointer values
 #   HU_POSIX        - POSIX or POSIX-like file naming.
@@ -51,21 +52,45 @@
 # these lines should be system independent using macros defined in the
 # system-specific makeopts files.
 
-CFLAGS_SYS = -D$(HU_ENDIAN) -DHU_PTR_BYTES=$(HU_PTR_BYTES) \
-             -D$(HU_POSIX) -D$(HU_MANGLING) -D$(HU_SYSTEM)sys
+# C compiler macros that are switches (have no value)
+CMACS = HU_ENDIAN HU_POSIX HU_MANGLING
+# C compiler macros that have values
+CMACS_EQ = HU_PTR_BYTES
 
-FPPFLAGS_SYS = -D$(HU_ENDIAN) -D$(HU_LRSHIFT) -DHU_PTR_BYTES=$(HU_PTR_BYTES) \
-               -DHU_PTR_TYPE=$(HU_PTR_TYPE) -D$(HU_POSIX) \
-               -D$(HU_RSEED_TYPE) -DHU_RSEED_SIZE=$(HU_RSEED_SIZE) \
-               -DHU_EOF_STAT=$(HU_EOF_STAT) -DHU_RECLU_SIZE=$(HU_RECLU_SIZE) \
-               -D$(HU_SYSTEM)sys 
+# Fortran compiler macros that are switches (have no value)
+FMACS = HU_ENDIAN HU_LRSHIFT HU_POSIX HU_RSEED_TYPE
+# Fortran compiler macros that have values
+FMACS_EQ = HU_FPOS_BYTES HU_FPOS_TYPE HU_PTR_BYTES HU_PTR_TYPE HU_RSEED_SIZE \
+           HU_EOF_STAT HU_RECLU_SIZE
 
-FFLAGS_SYS = $(HU_MACRO_DEF)$(HU_ENDIAN) $(HU_MACRO_DEF)$(HU_LRSHIFT) \
-             $(HU_MACRO_DEF)HU_PTR_BYTES=$(HU_PTR_BYTES) \
-             $(HU_MACRO_DEF)HU_PTR_TYPE=$(HU_PTR_TYPE) \
-             $(HU_MACRO_DEF)$(HU_POSIX) \
-             $(HU_MACRO_DEF)$(HU_RSEED_TYPE) \
-             $(HU_MACRO_DEF)HU_RSEED_SIZE=$(HU_RSEED_SIZE) \
-             $(HU_MACRO_DEF)HU_EOF_STAT=$(HU_EOF_STAT) \
-             $(HU_MACRO_DEF)HU_RECLU_SIZE=$(HU_RECLU_SIZE) \
-             $(HU_MACRO_DEF)$(HU_SYSTEM)sys
+# Conditional function for switch macros
+use = $(if $($(mac)),$(def)$($(mac)))
+# Conditional function for value macros
+useeq = $(if $($(mac)),$(def)$(mac)=$($(mac)))
+
+# build CFLAGS_SYS w/ macros that have been defined (use -D)
+def = -D
+macs = $(CMACS)
+CFLAGS_SYS := $(foreach mac,$(macs),$(use))
+macs = $(CMACS_EQ)
+CFLAGS_SYS += $(foreach mac,$(macs),$(useeq))
+
+# build FPPFLAGS_SYS w/ macros that have been defined (use -D)
+macs = $(FMACS)
+FPPFLAGS_SYS := $(foreach mac,$(macs),$(use))
+macs = $(FMACS_EQ)
+FPPFLAGS_SYS += $(foreach mac,$(macs),$(useeq))
+
+# build FFLAGS_SYS w/ macros that have been defined (use HU_MACRO_DEF)
+defs = $(HU_MACRO_DEF)
+macs = $(FMACS)
+FFLAGS_SYS := $(foreach mac,$(macs),$(use))
+macs = $(FMACS_EQ)
+FFLAGS_SYS += $(foreach mac,$(macs),$(useeq))
+
+# now append (HU_MACRO_DEF + sys) to all three macros
+ifneq ($(strip $(HU_SYSTEM)),)
+  CFLAGS_SYS += -D$(HU_SYSTEM)sys
+  FPPFLAGS_SYS += -D$(HU_SYSTEM)sys
+  FFLAGS_SYS += $(HU_MACRO_DEF)$(HU_SYSTEM)sys
+endif
