@@ -111,7 +111,7 @@ c
       if ( fid.eq.0 ) then
 c
         if ( filcur.ge.1 .AND. filcur.le.filcnt ) then
-          pfgfen = fidmap(filcur)
+          pfgfen = filcur
         endif
 c
       else
