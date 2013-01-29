@@ -1,0 +1,68 @@
+# $Id$
+# 
+# Copyright (2008) Sandia Corporation. Under the terms of
+# Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
+# Government retains certain rights in this software.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+
+# Linux on X86_64 processors w/ Intel Fortran, C and C++ compilers.
+
+HU_SYS_LOCAL = :linux_x86_intel_gnu:linux_x86_64_intel_gnu:
+HU_SYSTEM = LINUX_X86
+FC            = ifort
+MPI_FC        = mpif77
+MPI_CC        = mpicc
+MPI_CXX       = mpicxx
+HU_MACRO_DEF  = -D
+HU_ENDIAN     = HU_ENDIAN_IS_LSB_FIRST
+HU_MANGLING   = HU_F77_MANGLING_L11
+HU_FPOS_BYTES = 8
+HU_PTR_BYTES  = 8
+HU_PTR_TYPE   = integer*8
+HU_POSIX      = HU_POSIX
+HU_LRSHIFT    = HU_HAVE_LRSHIFT
+HU_RSEED_TYPE = HU_RSEED_RAN
+HU_RSEED_SIZE = 1
+HU_EOF_STAT   = 36
+HU_RECLU_SIZE = 4
+CFLAGS_ALL    = -ffloat-store -m64
+CFLAGS_OPT    = -O
+CFLAGS_DBG    = -g
+CFLAGS_ANSI   = -ansi
+CFLAGS_KR     = 
+CXXFLAGS_ALL  = -ffloat-store -m64
+CXXFLAGS_OPT  = -O
+CXXFLAGS_DBG  = -g
+FFLAGS_ALL    = -u -fp-model precise -fpe0 -ftz
+FFLAGS_BSLSH  = -nbs
+FFLAGS_OPT    = -O2
+FFLAGS_DBG    = -g
+FFLAGS_REAL8  = -r8
+FBD_EXPLICIT_LINK = yes
+LINK          = ifort
+LDFLAGS_ALL   = -fpe0 -ftz
+SYSLIB        = -lstdc++
+SHR_EXT       = so
+SHR_FFLAGS    = -fPIC
+SHR_CFLAGS    = -fPIC
+SHR_LFLAGS    = -shared
+CC_SHR_LFLAGS = -shared
+MPI_SYS       = 1
+MPI_LIB       =
+
+# now build the system independent macros using pieces defined above
+include $(HERMES_GLOBAL)makeopts.
