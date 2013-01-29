@@ -87,7 +87,10 @@ LIBRARY_LINK = -L$(LIBDEST) -l$(PRODNAME)$(DBG_EXT)
 
 F_INCDIRS = -I$(HERMES_LIB)/pff -I$(HERMES_LIB)/tio -I$(HERMES_ROOT)/finclude
 DEP_INCDIRS =  $(F_INCDIRS)
-LIBS = -L$(LIBDIR) -lpff -lstak -ltio -lmdutil -lnserver
+OTHER_LIBS = pff tio stak mdutil nserver
+LIBS = -L$(LIBDIR)
+LIBS += $(foreach mac,$(OTHER_LIBS),-l$(mac))
+LIB_FILES = $(foreach mac,$(OTHER_LIBS),$(LIBDIR)/lib$(mac).a)
 
 PFFLIB = $(LIBDIR)/libpff$(STATIC_EXT).a
 
@@ -109,7 +112,8 @@ FFLAGS_FPP = $(FFLAGS_SYS) $(F_OPTS)
 	rm -f $*.o
 
 $(DEST)/% : %.F
-	$(FC) -o $@ $(FFLAGS) $(F_INCDIRS) $(FFLAGS_FPP) $< $(BD_OBJS) $(LIBS)
+	$(FC) -o $@ $(FFLAGS) $(F_INCDIRS) $(FFLAGS_FPP) $< $(BD_OBJS) \
+	      $(EXT_OBJS) $(LIBRARY_LINK) $(LIBS)
 	rm -f $(@F).o
 
 (%.o) : $(TIOAUXDIR)/%.f
@@ -118,7 +122,7 @@ $(DEST)/% : %.F
 	rm -f $*.o
 
 $(DEST)/% : %.f
-	$(FC) -o $@ $(FFLAGS) $< $(BD_OBJS) $(LIBS)
+	$(FC) -o $@ $(FFLAGS) $< $(BD_OBJS) $(EXT_OBJS) $(LIBRARY_LINK) $(LIBS)
 
 ifneq ($(strip $(wildcard $(MACRO_LIST_FILE))),)
   include $(MACRO_LIST_FILE)
@@ -151,17 +155,16 @@ first :
 targets : $(STANDALONE_TARGETS) $(TARGETS)
 
 ifneq ($(strip $(TARGETS)),)
-$(TARGETS) : $(LIBRARY) $(BD_OBJS)
-	@$(MAKE) DEBUG=$(DEBUG) EXE=$(DEST)/$@ LIBS="$(LIBS) $(LIBRARY_LINK)" \
-	        PLATFORM=$(PLATFORM) $(DEST)/$@
-	rm -f $(BD_OBJS)
+$(TARGETS) : $(LIBRARY) $(BD_OBJS) $(EXT_OBJS) $(LIB_FILES)
+	@$(MAKE) DEBUG=$(DEBUG) EXE=$(DEST)/$@ PLATFORM=$(PLATFORM) $(DEST)/$@
+	rm -f $(BD_OBJS) $(EXT_OBJS)
 endif
 
 ifneq ($(strip $(STANDALONE_TARGETS)),)
-$(STANDALONE_TARGETS) : $(BD_OBJS)
+$(STANDALONE_TARGETS) : $(BD_OBJS) $(EXT_OBJS)
 	@$(MAKE) depend $(DEST)
 	@$(MAKE) PLATFORM=$(PLATFORM) DEBUG=$(DEBUG) SEXE=$(DEST)/$@ $(DEST)/$@
-	rm -f $(BD_OBJS)
+	rm -f $(BD_OBJS) $(EXT_OBJS)
 endif
 
 dbg:
@@ -247,6 +250,9 @@ dump_copyright.f : $(HERMES_ROOT)/etc/Hermes_copyright.txt
 ifneq ($(strip $(wildcard $(DEP_LIST_FILE))),)
   include $(DEP_LIST_FILE)
 endif
+
+nulaux.o:
+	$(AR) xv $(LIBRARY) $@
 
 ifeq ($(strip $(FBD_EXPLICIT_LINK)),yes)
 pffbd.o:
