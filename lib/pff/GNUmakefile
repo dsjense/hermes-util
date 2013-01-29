@@ -50,7 +50,7 @@ CFLAGS_OD = $(CFLAGS_OPT)
 FFLAGS_SHR = 
 GOOD2GO = yes
 C_INCDIRS = -I../../cinclude
-F_INCDIRS = 
+F_INCDIRS = -I../../finclude
 BLDDEPLST_ARGS =
 
 include $(HERMES_GLOBAL)makeopts.$(PLATFORM)
