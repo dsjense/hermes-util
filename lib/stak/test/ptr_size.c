@@ -29,6 +29,10 @@
 
 int main ()
 {
+  printf("Size of int type is %d bytes\n",(int)sizeof(int));
+  printf("Size of long type is %d bytes\n",(int)sizeof(long));
+  printf("Size of float type is %d bytes\n",(int)sizeof(float));
+  printf("Size of double type is %d bytes\n",(int)sizeof(double));
   printf("Size of pointer type is %d bytes\n",(int)sizeof(char*));
   printf("Size of size_t type is %d bytes\n",(int)sizeof(size_t));
   return 0;
