@@ -1,6 +1,6 @@
-      subroutine dssort (ifid, ofid, ib, ie, isk, subb, sube, exact,
-     &                   conflg, logflg, ttyin, ttyout, mwork, iwork,
-     &                   ierr )
+      subroutine dssort (ifid, ofid, nchfsuf, max_bytes,
+     &                   ib, ie, isk, subb, sube, exact, conflg, logflg,
+     &                   ttyin, ttyout, mwork, iwork, ierr )
 c
 c **********************************************************************
 c     $Id$
@@ -46,7 +46,9 @@ c                  if ie = 0, use last dataset
 c       isk     -  skip factor for input file's dataset do-list
 c       logflg  -  flag for logging mode
 c       mwork   -  length of work array provided by calling routine
+c       max_bytes - Max. length of an output file
 c       ofid    -  File ID of output PFF file
+c       nchfsuf -  # characters to use for multi-file suffixes
 c       subb    -  initial index for title substring range (if 0, use 1)
 c       sube    -  final index for title substring range (if 0, use
 c                  MCHTTL)
@@ -106,6 +108,8 @@ c ... Included common decks:
 c
 #include "pfbsiz.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -113,14 +117,17 @@ c
 c     Passed:
       integer   ib, ie, ierr, ifid, isk, mwork
       integer   ofid, subb, sube, ttyin, ttyout
+      integer   nchfsuf
+      HU_FPOS_TYPE max_bytes
       integer   iwork(0:mwork)
       logical   conflg, exact, logflg
 c
 c     Internal
       integer   count, dspntr, i, ids, kb, ke, kf, ksk
-      integer   lendir, locdir, mmap, moff
+      integer   lendir, mmap, moff
       integer   n, nds, nf, nflag, nmap, ns, rwmode
       integer   sb, se, slen, strl, tapp, traw
+      HU_FPOS_TYPE locdir
       logical   logans
       character str80*80
       character sc*(MCHTTL)
@@ -255,6 +262,7 @@ c
 c ........... if copy is okay, do it
 c
               if(logans)then
+                call chk_outfile(nchfsuf,max_bytes,ttyout,ofid,ierr)
                 call pfucpy(ifid,ofid,ids,ids,1,ierr)
                 if (logflg)then
                   write(ttyout,'(1x,a)') str80(1:slen)
