@@ -71,7 +71,8 @@ c
 #include "settings.inc"
 #include "iopar.inc"
 c
- 
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -83,7 +84,7 @@ c
       integer   IN, OUT
       parameter ( IN = 1, OUT = 2 )
       integer      NCMD
-      parameter    (NCMD=21)
+      parameter    (NCMD=22)
 c
       integer MAXSYMB
       parameter(MAXSYMB = 20)
@@ -98,6 +99,8 @@ c ... Internal
       integer   istat, iw, lcmd, loceq, nsymb, n
       integer   nargs, iarg, nlarg, errcnt, inout, pomode
       integer   fname_req, nch, imatch, ptype
+      integer   nchfsuf
+      HU_FPOS_TYPE max_bytes, byte_lim, sav_mxb
       integer   dpnt(IN:OUT), poifid(IN:OUT)
       logical   logans
       logical   conflg, logflg, quit, cmdflg, arcflg
@@ -134,6 +137,7 @@ c ... Functions:
       character chrpar*132
       logical   strmch, yesno
       integer   iogtlu
+      HU_FPOS_TYPE pfgmxsek
 c
 c ----------------------------------------------------------------------
 c
@@ -152,6 +156,7 @@ c
       data logflg / .FALSE. /
       data exact  / .TRUE.  /
       data batch_mode / .FALSE. /
+      data nchfsuf / 1 /
 c
       data subbdf,subb / 2*1  /
       data subedf,sube / 2*32 /
@@ -160,7 +165,8 @@ c
      &    'append'           , 'build'            , 'close'            ,
      &    'confirm'          , 'cp'               , 'exact'            ,
      &    'file'             , 'idir'             , 'input'            ,
-     &    'log'              , 'odir'             , 'open'             ,
+     &    'log'              , 'multi_output'     , 'odir'             ,
+     &    'open'             ,
      &    'output'           , 'pack'             , 'pidir'            ,
      &    'podir'            , 'repair'           , 'rewind'           ,
      &    'scp'              , 'sort'             , 'substring'   /
@@ -195,6 +201,13 @@ c
 c
       luin     = stdin
       infile   = ' '
+c
+      byte_lim = pfgmxsek()
+c
+c ... start with 75% of maximum
+      max_bytes = (byte_lim/2) * 3
+c ... convert byte_lim from 2-byte words to single bytes
+      byte_lim = 2*byte_lim
 c
       nargs = mdargc()
 c
@@ -526,14 +539,32 @@ c ..... CL*OSE option
 c
         else if ( strmch(cmd,'close') )then
 c
-          fpnt = intpar(RQD,'File #',0,' ',istat)
-c
+          str80 = chrpar(RQD,'File ID',' ',' ',istat,nch)
           if ( istat.ne.0 ) then
-            write(stderr,*) 'Usage:  cl[ose] file_number'
+            write(stderr,*) 'Usage:  cl[ose] file_num/I[NPUT]/O[UTPUT]'
             goto 99
           endif
 c
-          fid = pfgfid(fpnt,ierr)
+          if (partyp(str80) .EQ. INT) then
+            fpnt = chrtoi(str80,istat)
+            fid  = pfgfid(fpnt,ierr)
+          elseif (strmch(str80,'input')) then
+            fid = poifid(IN)
+            if (fid .EQ. 0) then
+              write(stderr,*) 'close INPUT error: no INPUT file open'
+              ierr = 1
+            endif
+          elseif (strmch(str80,'output')) then
+            fid = poifid(OUT)
+            if (fid .EQ. 0) then
+              write(stderr,*) 'close OUTPUT error: no OUTPUT file open'
+              ierr = 1
+            endif
+          else
+            write(stderr,*) 'Illegal CLOSE file ID'
+            ierr = 1
+          endif
+c
           call pfucls(fid,ierr)
 c
           if(ierr.ne.0)goto 99
@@ -632,6 +663,7 @@ c
               endif
 c
               if(logans)then
+                call chk_outfile(nchfsuf,max_bytes,stdout,ofid,ierr)
                 call pfucpy(ifid,ofid,i,i,1,ierr)
                 if ( ierr.ne.0 ) goto 99
                 if (logflg)then
@@ -644,6 +676,7 @@ c
 c
           else
 c
+            call chk_outfile(nchfsuf,max_bytes,stdout,ofid,ierr)
             call pfucpy(ifid,ofid,ib,ie,isk,ierr)
 c
           endif
@@ -771,6 +804,54 @@ c
             else
               write(stdout,*) 'LOG mode is OFF'
             endif
+          endif
+c
+c ..... MULTI_OUTPUT option
+c
+        else if ( strmch(cmd,'multi_output') )then
+c
+          sav_mxb   = max_bytes
+          max_bytes = intpar(RQD,'max. # bytes', max_bytes, ' ',istat)
+c
+          str80 = chrpar(OPT,'MB|GB',' ',' ',istat,nch)
+          if (partyp(str80) .EQ. INT) then
+            nchfsuf = chrtoi(str80,istat)
+          else
+            if ( strmch(str80,'GB') ) then
+              i = byte_lim / 1073741824
+              if ( max_bytes.le.i ) then
+                max_bytes = max_bytes * 1073741824
+              else
+                istat = 2
+              endif
+            else if ( strmch(str80,'MB') ) then
+              i = byte_lim / 1048576
+              if ( max_bytes.le.i ) then
+                max_bytes = max_bytes * 1048576
+              else
+                istat = 2
+              endif
+            else if (str80.ne.' ') then
+              istat = 1
+            endif
+            if (istat.eq.0) then
+              nchfsuf   = intpar(OPT,'# chars. for multi-file suffixes',
+     &                           nchfsuf,' ',istat)
+            endif
+          endif
+c
+          if ( istat.ne.0 ) then
+            write(stderr,*)
+     &        'Usage:  m[ulti_output] max_bytes [MB|GB] [ nchfsuf ]'
+            if ( istat.eq.2 )  write(stderr,*)
+     &        '        MAX_BYTES must be <= ',i,' ',str80(1:2)
+            max_bytes = sav_mxb
+            goto 99
+          endif
+c
+          if (nchfsuf.LT.1 .OR. nchfsuf.GT.9) then
+            write(stderr,*) 'nchfsuf must be in the range 1 - 9'
+            nchfsuf = 1
           endif
 c
 c ..... OD*IR option  (Output Directory)
@@ -973,7 +1054,7 @@ c
           endif
 c
           lupr = pfg1lu(1,99,ierr)
-          ierr = mdotxf(.FALSE., lupr, fulnam, 'new', 'list', '.lis',
+          ierr = mdotxf(.FALSE., lupr, fulnam, 'new', 'list','.lis',
      &                  stderr)
           if ( ierr.ne.0 ) goto 99
 c
@@ -1112,6 +1193,7 @@ c
               endif
 c
               if(logans)then
+                call chk_outfile(nchfsuf,max_bytes,stdout,ofid,ierr)
                 call pfucpy(ifid,ofid,ids,ids,1,ierr)
                 if (logflg)then
                   write(stdout,'(1x,a,$)') str80(1:slen)
@@ -1197,7 +1279,8 @@ c
             mwork = tsize
           endif
 #endif
-          call dssort ( ifid,ofid,ib,ie,isk,subb,sube,exact,contmp,
+          call dssort ( ifid,ofid,nchfsuf,max_bytes,
+     &                  ib,ie,isk, subb,sube,exact,contmp,
      &                  logtmp,stdin,stdout,MWORK,iwork,ierr)
 c
           if(ierr.ne.0)then
