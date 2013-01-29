@@ -114,7 +114,7 @@ c
 c
 c ... Is supplied # on open file list ??
 c
-      if ( tfen.ge.1 .OR. tfen.le.filcnt ) then
+      if ( tfen.ge.1 .AND. tfen.le.filcnt ) then
 c
 c ..... if on list, return mapped FID
 c
