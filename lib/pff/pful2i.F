@@ -52,15 +52,12 @@ c     Output:
 c       ival    -  (*)  array of 3 encoded integers
 c       ierr    -  error status flag;
 c                      0,   No error
-c                      1,   Long Integer Out of Range
+c                      1,   Long Integer Out of Range (from pful2i64)
 c
 c ----------------------------------------------------------------------
 c
 c     Internals:
-c       i       -  do loop index encoded words
-c       imsk    -  (*)  array of masks
-c       tval    -  temporary for shifted long integer
-c       tvaln   -  temporary for shifted long integer
+c       lval64  -  64-bit long word
 c
 c ----------------------------------------------------------------------
 c     Call common blocks and associated parameter modules
@@ -76,6 +73,8 @@ c
 #include "pfbsiz.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -84,7 +83,7 @@ c     Passed:
       integer   lval, ival(3), ierr
 c
 c     Internal
-      integer   i, imsk(3), tval, tvaln
+      HU_FPOS_TYPE lval64
 c
 c ... Parameters:
       character PFMODU*6
@@ -92,12 +91,6 @@ c ... Parameters:
 c
 c ... External Block Data
       external  pffbd
-c
-c ----------------------------------------------------------------------
-c
-c     Internal Data Statements:
-c
-      data imsk  / 16384, 32768, 32768 /
 c
 c ----------------------------------------------------------------------
 c
@@ -117,46 +110,10 @@ c
 c
 c ----------------------------------------------------------------------
 c
-c ... store absolute value of integer to be encoded in temporary
+c ... call 64-bit version
 c
-      tval = abs(lval)
-c
-c ... loop over words in reverse so that most-significant word is first
-c
-      do 1 i=3,1,-1
-c
-c ..... if tval > mask, divide to extract next word; then get value for
-c ..... this word
-c
-        if ( tval.ge.imsk(i) ) then
-          tvaln   = tval/imsk(i)
-          ival(i) = tval - imsk(i)*tvaln
-          tval    = tvaln
-c
-c ..... otherwise, this word = value, and value for next word is zero
-c
-        else
-          ival(i) = tval
-          tval    = 0
-        endif
-c
-    1 continue
-c
-c ... if value remains, we have overflow error
-c
-      if (tval.ne.0) then
-c
-        ierr = 1
-        call pfserr ( PFMODU, ierr, 0, 'Long Integer Out of Range' )
-        goto 999
-c
-c ... if no overflow, check to see if we need to store the sign bit
-c
-      else if (lval.lt.0) then
-c
-        ival(1) = ival(1) + imsk(1)
-c
-      endif
+      lval64 = lval
+      call pful2i64 ( lval64, ival, ierr )
 c
   999 continue
 c

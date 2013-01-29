@@ -97,11 +97,13 @@ c                     -1,   EOF marker encountered (Not really an error)
 c                      0,   No error
 c                      1,   Incorrect dataset type
 c                      2,   Insufficient array dimensions
+c                      3,   File offset (locfa) overflow
 c
 c ----------------------------------------------------------------------
 c
 c     Internals:
 c       buf     -  work buffer for decoding <FLOAT>s, etc.
+c       floc    -  temporary file offet value
 c       iblk    -  loop index over data blocks
 c       iloc    -  pointer to FWA of "farray" in each block
 c       io1-2   -  power-of-10 offsets for floats
@@ -139,6 +141,8 @@ c
 #include "pfstfg.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -160,11 +164,12 @@ c ... Parameters:
       parameter ( BUFLEN = 8 )
 c
 c     Internal
-      integer   io1, io2, iloc, iblk, lbblk, lbmax, lds, lstadr, tlen
+      integer   io1, io2, iloc, iblk, lbblk, lbmax, lds, tlen
       integer   vds, traw, nrfu
       integer   slen, nblen, nchrst, nchrsc, trunst, trunsc
+      HU_FPOS_TYPE lstadr, floc
       integer   buf(0:BUFLEN)
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
 c
 c ----------------------------------------------------------------------
 c
@@ -277,10 +282,18 @@ c ....... find out where we are in file; skip over scale and offset;
 c .......    read in the array length; then reposition file pointer
 c .......    to end of array
 c
-          locfa(iblk) = pfutel (fid, ierr )
+          floc = pfutel (fid, ierr )
+          locfa(iblk) = floc
+          if( floc.ne.locfa(iblk) ) then
+            ierr = 3
+            call pfserr ( PFMODU, ierr, fid,
+     &                          'File offset (locfa) overflow' )
+            goto 999
+          endif
+c
           call pfusio (fid, RE, 9, buf, ierr)
           call pfui2l ( buf(6), tlen, ierr)
-          call pfusek (fid, locfa(iblk)+tlen+9, ierr )
+          call pfusek (fid, floc+tlen+9, ierr )
 c
         endif
 c

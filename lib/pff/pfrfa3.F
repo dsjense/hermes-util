@@ -154,6 +154,8 @@ c
 #include "pfbufp.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -175,12 +177,13 @@ c ... External Block Data
       external  pffbd
 c
 c     Internal
-      integer   fp_mode, i, j, k, iloc, io1, io2, ib, ib_incr
+      integer   fp_mode, i, j, k, io1, io2, ib, ib_incr
       integer   lenia, lenfa, mxlbuf, nleft, nread, off10
       integer   pf2max, pf2min
+      HU_FPOS_TYPE iloc
       real      offset, pfrmin, scale
       real      lgsca, lgoff, lgrang, lgmax, biglog, roff10
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
 c
 c ----------------------------------------------------------------------
 c

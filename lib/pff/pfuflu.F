@@ -51,6 +51,7 @@ c
 c ----------------------------------------------------------------------
 c
 c     Internals:
+c       floc    -  file address of final overwrite location
 c       i       -  loop index over padded portion of output buffer
 c       locp    -  buffer pointer to 1st word of EOF padding
 c       lrec    -  file record # associated with last word in file
@@ -77,6 +78,8 @@ c
 #include "pfbufm.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -86,6 +89,7 @@ c     Passed:
 c
 c     Internal
       integer   i, locp, lrec, rec
+      HU_FPOS_TYPE floc
       logical   pad
 c
 c ... Parameters:
@@ -166,7 +170,8 @@ c
         lrec = lstwrd(fid)/LBUF + 1
         if ( lrec.eq.rec .AND. ubuf(locbuf(fid)+1,fid).ne.EOFFLG ) then
           pad  = .TRUE.
-          locp = lstwrd(fid) - (rec - 1)*LBUF + 1
+          floc = rec - 1
+          locp = lstwrd(fid) - floc*LBUF + 1
         else
           pad  = .FALSE.
         endif

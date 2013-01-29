@@ -87,6 +87,8 @@ c
 #include "pfbufm.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -95,7 +97,8 @@ c     Passed:
       integer   den, fid, ierr
 c
 c     Internal
-      integer   iblk, iloc, locwrd, mapblk, tden
+      integer   iblk, iloc, mapblk, tden
+      HU_FPOS_TYPE locwrd
 c
 c ... Parameters:
       character PFMODU*6
@@ -183,7 +186,8 @@ c ..... set pointer to FWA of dataset
 c
         mapblk = dblkpr(iblk,fid)
 c
-        locwrd = dirinfo( PDLOC, iloc, mapblk )
+        locwrd = dirinfo(PDRLOC,iloc,mapblk)
+        locwrd = LBUF*locwrd + dirinfo(PDOLOC,iloc,mapblk)
 c
 c ..... Is request for End-Of-Data (EOD); if so, position to EOD
 c

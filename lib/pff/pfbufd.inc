@@ -43,7 +43,8 @@ c   Explanation of the common-block parameters:
 c
 c     PDAPP   -  application dataset type attribute
 c     PDLEN   -  length of dataset attribute
-c     PDLOC   -  file offset of dataset attribute
+c     PDRLOC  -  file record # for dataset attribute
+c     PDOLOC  -  offset within a record for dataset attribute
 c     PDRAW   -  raw dataset type attribute
 c     PDTTL   -  title string attribute
 c     PDTYP  -  type string attribute
@@ -66,9 +67,9 @@ c ----------------------------------------------------------------------
 c
 c   Declare variables and define the common block:
 c
-      integer PDLEN, PDLOC, PDRAW, PDAPP, PDTYP, PDTTL, NDINFO
-      parameter ( PDLEN=1, PDLOC=2, PDRAW=3, PDAPP=4, PDTYP=5,
-     &            PDTTL=6, NDINFO=PDTTL )
+      integer PDLEN, PDRLOC, PDOLOC, PDRAW, PDAPP, PDTYP, PDTTL, NDINFO
+      parameter ( PDLEN=1, PDRLOC=2, PDOLOC=3, PDRAW=4, PDAPP=5,
+     &            PDTYP=6, PDTTL=7, NDINFO=PDTTL )
 c
       integer   dirinfo
 c

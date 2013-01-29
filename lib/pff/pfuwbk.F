@@ -83,6 +83,7 @@ c       ireci   -  initial record # of overwrite
 c       irecf   -  final record # of overwrite
 c       lloc    -  current file offset address on FID
 c       locoff  -  record/buffer offset of first overwrite location
+c       locrec  -  offset of FW of record containing initial file position
 c       wbkbuf  -  (*)  temporary work buffer
 c
 c ----------------------------------------------------------------------
@@ -105,15 +106,19 @@ c
 #include "pfbufm.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid,offset,nw,iarr(nw),ierr
+      integer   fid,nw,iarr(nw),ierr
+      HU_FPOS_TYPE offset
 c
 c     Internal
-      integer   crec,floc,i1,i2,ie,i,ireci,irecf,ipu,ir,lloc,locoff
+      integer   crec,i1,i2,ie,i,ireci,irecf,ipu,ir,locoff
+      HU_FPOS_TYPE floc, lloc, locrec
       integer   wbkbuf(LBUF)
 c
 c ... Parameters:
@@ -176,7 +181,8 @@ c ... Remember that CURREC is the # of records already WRITTEN to file
 c
       if (wrflag(fid).eq.WR) then
         crec = currec(fid) + 1
-        lloc = currec(fid)*LBUF + locbuf(fid)
+        lloc = currec(fid)
+        lloc = lloc*LBUF + locbuf(fid)
       else
         crec = currec(fid)
         lloc = lstwrd(fid)
@@ -197,12 +203,13 @@ c
 c
 c ... find record limits for initial and final points
 c
-      ireci = offset/LBUF + 1
+      locrec = offset/LBUF
+      ireci = locrec + 1
       irecf = (floc - 1)/LBUF + 1
 c
 c ... find offset of first position in initial record
 c
-      locoff = offset - (ireci - 1)*LBUF
+      locoff = offset - locrec*LBUF
 c
 c ... get first and last address in virtual buffer and truncate last
 c ... address to actual buffer

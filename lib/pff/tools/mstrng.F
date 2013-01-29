@@ -84,6 +84,8 @@ c
 #include "pfbsiz.inc"
 #include "pfstfg.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -93,8 +95,9 @@ c     Passed:
       character str*(*)
 c
 c     Internal
-      integer   dspntr, count, lendir, locdir, mode, rwmode, slen
+      integer   dspntr, count, lendir, mode, rwmode, slen
       integer   tapp, tilen, tilenx, traw, tylen
+      HU_FPOS_TYPE locdir
       character str1, sc*(MCHTTL), st*(MCHTYP)
 c
 c     External:

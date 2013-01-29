@@ -65,6 +65,7 @@ c ----------------------------------------------------------------------
 c
 c     Internals:
 c       dftarr  -  (*) array of three default integers
+c       floc    -  temporary file offet value
 c       i       -  do loop index over integer array
 c       i1      -  initial pointer in buffer
 c       i2      -  final pointer of array in extended buffer
@@ -96,6 +97,8 @@ c
 #include "pfbufm.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -104,7 +107,8 @@ c     Passed:
       integer   fid,iop,nw,iarr(*),ierr
 c
 c     Internal
-      integer   i1,i2,l,i,irecs,ipu,ir, nowwrd
+      integer   i1,i2,l,i,irecs,ipu,ir
+      HU_FPOS_TYPE floc, nowwrd
       integer   dftarr(3)
 c
 c ... Parameters:
@@ -361,12 +365,14 @@ c
 c
 c ....... have we extended the file ?
 c
-          nowwrd = (currec(fid) - 1)*LBUF + locbuf(fid)
+          nowwrd = currec(fid) - 1
+          nowwrd = nowwrd*LBUF + locbuf(fid)
           if (nowwrd.gt.lstwrd(fid)) then
 c
             if ( .NOT. extflg(fid) ) then
               extflg(fid) = .TRUE.
-              call pfuwbk(fid, 1, 3, dftarr, ierr)
+              floc = 1
+              call pfuwbk(fid, floc, 3, dftarr, ierr)
             endif
 c
             lstwrd(fid) = nowwrd

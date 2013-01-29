@@ -116,11 +116,13 @@ c                     -1,   EOF marker encountered (Not really an error)
 c                      0,   No error
 c                      1,   Incorrect dataset type
 c                      2,   Insufficient array dimensions
+c                      3,   File offset (locfa) overflow
 c
 c ----------------------------------------------------------------------
 c
 c     Internals:
 c       buf     -  (*) work buffer for decoding <FLOAT>s, etc.
+c       floc    -  temporary file offet value
 c       i       -  misc. loop index
 c       iblk    -  loop index over data blocks
 c       iloc    -  pointer to FWA of "iarray" in each block
@@ -164,6 +166,8 @@ c
 #include "pfstfg.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -184,16 +188,17 @@ c     Passed:
 c
 c ... Parameters:
       character PFMODU*6
-      parameter ( PFMODU = 'PFRNF3' )
+      parameter ( PFMODU = 'PFRNI3' )
       integer   BUFLEN
       parameter ( BUFLEN = 8 )
 c
 c     Internal
       integer   i, io1, io2, io3, iloc, ilocx, ilocy, ilocz, iblk
-      integer   lbblk, lbmax, lds, lstadr, vds, traw, nrfu, off, tnx
+      integer   lbblk, lbmax, lds, vds, traw, nrfu, off, tnx
       integer   tny, tnz, slen, nblen, nchrst, nchrsc, trunst, trunsc
+      HU_FPOS_TYPE lstadr, floc
       integer   buf(0:BUFLEN)
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
 c
 c
 c ... write status message if DEBUG is on
@@ -218,7 +223,7 @@ c
      &              ierr )
       if ( ierr.ne.0 ) goto 999
 c
-c ... return if this is not the right dataset type  (PFTNF3)
+c ... return if this is not the right dataset type  (PFTNI3)
 c
       if( traw.ne.PFTNI3 ) then
         ierr = 1
@@ -334,10 +339,18 @@ c ....... find out where we are in file; skip over scale and offset;
 c .......    read in the array length; then reposition file pointer
 c .......    to end of array
 c
-          locfa(iblk) = pfutel (fid, ierr )
+          floc = pfutel (fid, ierr )
+          locfa(iblk) = floc
+          if( floc.ne.locfa(iblk) ) then
+            ierr = 3
+            call pfserr ( PFMODU, ierr, fid,
+     &                          'File offset (locfa) overflow' )
+            goto 999
+          endif
+c
           call pfusio (fid, RE, 3, buf, ierr)
           call pfui2l ( buf, lenfa(iblk), ierr)
-          call pfusek (fid, locfa(iblk)+lenfa(iblk)+3, ierr )
+          call pfusek (fid, floc+lenfa(iblk)+3, ierr )
 c
         endif
 c

@@ -62,6 +62,7 @@ c
 c     Internals:
 c       iblk    -  the file's block #
 c       iloc    -  the block offset for the current directory pointer
+c       locrec  -  offset of FW of record containing directory dataset FW
 c       mapblk  -  the block # for this entry in the directory structure
 c       type    -  pointer to raw dataset type name
 c
@@ -94,12 +95,15 @@ c
 #include "pfbufm.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, traw, tapp, lendir, locdir
+      integer   fid, ierr, traw, tapp, lendir
+      HU_FPOS_TYPE locdir
       character st*(*), sc*(*)
 c
 c ... Parameters:
@@ -108,6 +112,7 @@ c ... Parameters:
 c
 c     Internal
       integer   iblk, iloc, mapblk, type
+      HU_FPOS_TYPE locrec
 c
 c     External functions
       integer   NS_putname
@@ -173,7 +178,10 @@ c
       dirinfo(PDRAW,iloc,mapblk) = traw
       dirinfo(PDAPP,iloc,mapblk) = tapp
       dirinfo(PDLEN,iloc,mapblk) = lendir
-      dirinfo(PDLOC,iloc,mapblk) = locdir
+      locrec = locdir/LBUF
+      dirinfo(PDRLOC,iloc,mapblk) = locrec
+      locrec = locrec*LBUF
+      dirinfo(PDOLOC,iloc,mapblk) = locdir - locrec
       dirinfo(PDTTL,iloc,mapblk) = NS_putname(sc)
       if (dirinfo(PDTTL,iloc,mapblk).le.0 ) then
         ierr = 3

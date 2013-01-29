@@ -53,13 +53,12 @@ c       lval    -  integer that has been decoded
 c       ierr    -  error status flag;
 c                      0,   No error
 c                      1,   Encoded Integers Larger Than 15-bit
+c                      2,   Long word (lval) overflow
 c
 c ----------------------------------------------------------------------
 c
 c     Internals:
-c       i1      -  most significant integer w/o sign bit
-c       imsk    -  (*)  array of masks
-c       isign   -  sign of decoded integer
+c       lval64  -  64-bit long word
 c       tmin    -  minimum of encoded integers
 c       tmax    -  maximum of encoded integers
 c
@@ -77,6 +76,8 @@ c
 #include "pfbsiz.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -85,7 +86,8 @@ c     Passed:
       integer   ival(3), lval, ierr
 c
 c     Internal
-      integer   i1, imsk(3), isign, tmin, tmax
+      integer   imsk, tmin, tmax
+      HU_FPOS_TYPE lval64
 c
 c ... Parameters:
       character PFMODU*6
@@ -98,7 +100,7 @@ c ----------------------------------------------------------------------
 c
 c     Internal Data Statements:
 c
-      data imsk  / 16384, 32768, 32768 /
+      data imsk  / 32768 /
 c
 c ----------------------------------------------------------------------
 c
@@ -123,29 +125,23 @@ c
       tmin = min ( ival(1), ival(2), ival(3) )
       tmax = max ( ival(1), ival(2), ival(3) )
 c
-      if ( tmin.lt.0 .OR. tmax.ge.imsk(3) ) then
+      if ( tmin.lt.0 .OR. tmax.ge.imsk ) then
 c
         ierr = 1
         call pfserr ( PFMODU, ierr, 0,
      &             'Encoded Integers Signed or Larger Than 15-bits' )
         goto 999
 c
+      endif 
+c
+c ... call 64-bit version -- then check for 32-bit overflow
+c
+      call pfui2l64 ( ival, lval64, ierr )
+      lval = lval64
+      if ( lval.ne.lval64 ) then
+        ierr = 2
+        call pfserr ( PFMODU, ierr, 0, 'Long word (lval) overflow' )
       endif
- 
-c
-c ... save sign bit and remove from 1st integer if necessary
-c
-      if ( ival(1).ge.imsk(1) ) then
-        i1    = ival(1) - imsk(1)
-        isign = -1
-      else
-        i1    = ival(1)
-        isign = 1
-      endif
-c
-c ... decode from 3 integers
-c
-      lval = isign*( ( i1*imsk(2) + ival(2) )*imsk(3) + ival(3) )
 c
   999 continue
 c

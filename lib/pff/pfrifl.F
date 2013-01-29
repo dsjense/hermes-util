@@ -134,6 +134,8 @@ c
 #include "pfstfg.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -152,8 +154,9 @@ c ... Parameters:
 c
 c     Internal
       integer   terr
-      integer   i, ioff, lds, lstadr, nrfu, traw, vds
+      integer   i, ioff, lds, nrfu, traw, vds
       integer   nchrst, nchrsc, trunst, trunsc
+      HU_FPOS_TYPE lstadr
       integer   ival(3)
 c
 c ----------------------------------------------------------------------

@@ -110,6 +110,8 @@ c
 #include "pferrs.inc"
 #include "pffils.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -119,13 +121,14 @@ c     Passed:
       character fname*(*)
 c
 c     Internal
-      integer   dlen, dloc, fid, i, ldptr, lun, tapp, traw, ilong(3)
-      integer   mc, mt, nc, nt, nrfu, vds, lusave, ierrx, locsav
+      integer   dlen, fid, i, lun, tapp, traw, ilong(3)
+      integer   mc, mt, nc, nt, nrfu, vds, lusave, ierrx
+      HU_FPOS_TYPE ldptr, locsav, dloc
       character st*(MCHTYP), sc*(MCHTTL)
       logical   repmod, did_rep
       integer   pfg1lu
 c
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
 c
 c ... Parameters:
       character PFMODU*6
@@ -229,7 +232,7 @@ c
         if ( ubuf(2,fid).eq.DFAULT ) then
           repmod = .TRUE.
         else
-          call pfui2l (ubuf(2,fid), ldptr, ierr)
+          call pfui2l64 (ubuf(2,fid), ldptr, ierr)
           if ( ierr.ne.0 ) then
             ierr = 0
             repmod = .TRUE.
@@ -373,7 +376,8 @@ c
 c ... position file at FWA of 1st dataset; return # of dir. entries
 c
       ierrx = 0
-      call pfusek ( fid, LFHDR, ierrx )
+      dloc = LFHDR
+      call pfusek ( fid, dloc, ierrx )
       dircur(fid) = 1
 c
       dirflg = dircnt(fid)

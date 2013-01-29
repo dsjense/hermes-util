@@ -99,6 +99,8 @@ c
 #include "pfbufp.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -107,8 +109,8 @@ c     Passed:
       integer   fid, status, ierr
 c
 c     Internal
-      integer   dslen, dsloc, ids, ifirst, ilast, ip
-      integer   locpck, maxloc, next ,tapp, traw
+      integer   dslen, ids, ifirst, ilast, ip ,tapp, traw
+      HU_FPOS_TYPE dsloc, locpck, maxloc, next
       character sc*1, st*1
 c
 c ... Parameters:

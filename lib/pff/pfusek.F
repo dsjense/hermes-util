@@ -57,6 +57,7 @@ c ----------------------------------------------------------------------
 c
 c     Internals:
 c       locb    -  buffer pointer position associated with "locwrd"
+c       locrec  -  offset of FW of record containing current file position
 c       rec     -  file record # associated with "locwrd"
 c
 c ----------------------------------------------------------------------
@@ -79,15 +80,19 @@ c
 #include "pfbufm.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, locwrd, ierr
+      integer   fid, ierr
+      HU_FPOS_TYPE locwrd
 c
 c     Internal
       integer   locb, rec
+      HU_FPOS_TYPE locrec
 c
 c ... Parameters:
       character PFMODU*6
@@ -150,8 +155,10 @@ c
 c
 c ..... translate word address to record # and buffer pointer
 c
-        rec  = locwrd/LBUF + 1
-        locb = locwrd - (rec-1)*LBUF
+        locrec = locwrd/LBUF
+        rec = locrec + 1
+        locrec = locrec*LBUF
+        locb = locwrd - locrec
 c
 c ..... is target record different that current record ?
 c ..... if so, need to read and unpack that record

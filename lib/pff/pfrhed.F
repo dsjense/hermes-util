@@ -104,13 +104,16 @@ c
 #include "pferrs.inc"
 #include "pfhrfu.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, lds, lstadr, nchrsc, nchrst, nrfu
+      integer   fid, ierr, lds, nchrsc, nchrst, nrfu
       integer   tapp, traw, trunsc, trunst, vds
+      HU_FPOS_TYPE lstadr
       character st*(*), sc*(*)
 c
 c ... Parameters:
@@ -121,9 +124,10 @@ c ... External Block Data
       external  pffbd
 c
 c     Internal
-      integer   i, iertmp, nblen, nloc
+      integer   i, iertmp, nblen
+      HU_FPOS_TYPE nloc
       integer   buf(3)
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
 c
 c
 c ... write status message if DEBUG is on

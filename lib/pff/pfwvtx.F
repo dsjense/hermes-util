@@ -107,6 +107,8 @@ c
 #include "pferrs.inc"
 #include "pffils.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -125,7 +127,8 @@ c ... Parameters:
       parameter ( BUFLEN = 4 )
 c
 c     Internal
-      integer   i, lds, lstadr, prec_x, prec_a
+      integer   i, prec_x, prec_a, tlen
+      HU_FPOS_TYPE lds, lstadr
       integer   buf(0:BUFLEN), idlist(3), jdlist(3), kdlist(3)
 c
 c ----------------------------------------------------------------------
@@ -232,7 +235,8 @@ c
 c
 c ... put directory info into memory-resident directory structure
 c
-      call pfdput ( fid, PFTVTX, tapp, lds, lstadr, st, sc, ierr )
+      tlen = lds
+      call pfdput ( fid, PFTVTX, tapp, tlen, lstadr, st, sc, ierr )
 c
 c ----------------------------------------------------------------------
 c

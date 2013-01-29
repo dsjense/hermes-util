@@ -89,12 +89,15 @@ c
 #include "pfstfg.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, lstadr
+      integer   fid, ierr
+      HU_FPOS_TYPE lstadr
 c
 c ... Parameters:
       character PFMODU*6
@@ -104,9 +107,10 @@ c ... External Block Data
       external  pffbd
 c
 c     Internal
-      integer   i, iertmp, ifrm, nloc, nullen
+      integer   i, iertmp, ifrm, nullen
+      HU_FPOS_TYPE nloc
       integer   buf(3)
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
 c
 c
 c ----------------------------------------------------------------------

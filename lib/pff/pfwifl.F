@@ -106,6 +106,8 @@ c
 #include "pferrs.inc"
 #include "pffils.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -121,7 +123,8 @@ c ... Parameters:
       parameter ( PFMODU = 'PFWIFL' )
 c
 c     Internal
-      integer   i, lds, lstadr
+      integer   i, tlen
+      HU_FPOS_TYPE lds, lstadr
       integer   ival(3)
 c
 c ----------------------------------------------------------------------
@@ -195,7 +198,8 @@ c
 c
 c ... put directory info into memory-resident directory structure
 c
-      call pfdput ( fid, PFTIFL, tapp, lds, lstadr, st, sc, ierr )
+      tlen = lds
+      call pfdput ( fid, PFTIFL, tapp, tlen, lstadr, st, sc, ierr )
 c
 c ----------------------------------------------------------------------
 c

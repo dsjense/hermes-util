@@ -86,12 +86,15 @@ c
 #include "pfbufm.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   den, fid, ierr, traw, tapp, lendir, locdir
+      integer   den, fid, ierr, traw, tapp, lendir
+      HU_FPOS_TYPE locdir
       character st*(*), sc*(*)
 c
 c ... Parameters:
@@ -168,7 +171,8 @@ c
       traw   = dirinfo(PDRAW,iloc,mapblk)
       tapp   = dirinfo(PDAPP,iloc,mapblk)
       lendir = dirinfo(PDLEN,iloc,mapblk)
-      locdir = dirinfo(PDLOC,iloc,mapblk)
+      locdir = dirinfo(PDRLOC,iloc,mapblk)
+      locdir = LBUF*locdir + dirinfo(PDOLOC,iloc,mapblk)
       ierr   = NS_getname(dirinfo(PDTTL,iloc,mapblk),sc)
       if ( ierr.ge.0 ) ierr = NS_getname(dirinfo(PDTYP,iloc,mapblk),st)
       if ( ierr.lt.0 ) then

@@ -1,5 +1,8 @@
       function pfutel (fid, ierr)
-      integer  pfutel
+c
+#include "mdfpos.h"
+c
+      HU_FPOS_TYPE pfutel
 c
 c***********************************************************************
 c     $Id$
@@ -134,18 +137,22 @@ c
 c
 c ... otherwise, compute address
 c
-      else if ( wrflag(fid).ne.WR ) then
-c
-c ..... Read mode  (includes Read/Write mode)
-c
-        pfutel = LBUF*(currec(fid) - 1) + locbuf(fid)
-c
       else
+        if ( wrflag(fid).ne.WR ) then
 c
-c ..... Write mode -- Remember, for WRITE mode, currec is already one
-c .....               less than current record
+c ....... Read mode  (includes Read/Write mode)
 c
-        pfutel = LBUF*currec(fid) + locbuf(fid)
+          pfutel = currec(fid) - 1
+c
+        else
+c
+c ....... Write mode -- Remember, for WRITE mode, currec is already one
+c .......               less than current record
+c
+          pfutel = currec(fid)
+c
+        endif
+        pfutel = LBUF*pfutel + locbuf(fid)
 c
       endif
 c

@@ -56,6 +56,7 @@ c
 c     Internals:
 c       ctype   -  dataset type string for output
 c       first   -  first file ID # in loop
+c       floc    -  temporary file offet value
 c       i       -  do loop index words in I/O buffer
 c       iblk    -  current file directory block #
 c       iden    -  loop index over file directory blocks
@@ -96,6 +97,8 @@ c
 #include "pferrs.inc"
 #include "pffils.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -105,7 +108,8 @@ c     Passed:
 c
 c     Internal
       integer   first, i, iblk, iden, ifid, ifil, ilast, iloc, im
-      integer   last, lbytes, ldptr, mapblk
+      integer   last, lbytes, mapblk
+      HU_FPOS_TYPE floc, ldptr
       character ctype*(MCHTYP), ctitle*(MCHTTL)
 c
 c     External functions
@@ -206,7 +210,8 @@ c
 c
 c ......... write pointer to directory info into file header
 c
-            call pfwlds ( ifid, 0, ldptr, ierr )
+            floc = 0
+            call pfwlds ( ifid, floc, ldptr, ierr )
 c
 c ......... Write directory to file now --
 c ......... loop over all directory blocks used by this file
@@ -241,10 +246,12 @@ c
 c
 c ............. write out this directory entry
 c
+                floc = dirinfo(PDRLOC,iloc,mapblk)
+                floc = LBUF*floc + dirinfo(PDOLOC,iloc,mapblk)
                 call pfwdir ( ifid, dirinfo(PDRAW,iloc,mapblk),
      &                        dirinfo(PDAPP,iloc,mapblk), ctype,
      &                        ctitle, dirinfo(PDLEN,iloc,mapblk),
-     &                        dirinfo(PDLOC,iloc,mapblk), ierr )
+     &                        floc, ierr )
                 if ( ierr.ne.0 ) goto 999
 c
     1         continue

@@ -59,16 +59,19 @@ c                been modified (RW mode only)
 c     ubuf    -  (*,*)  unpacked buffer space for each PFF file
 c     wrflag  -  (*)  status flag for each PFF file
 c
+#include "mdfpos.h"
 c ----------------------------------------------------------------------
 c
 c   Declare variables and define the common block:
 c
-      integer   locbuf, currec, wrflag, fillun, ubuf, mdflag, lstwrd
+      HU_FPOS_TYPE lstwrd
+      integer   locbuf, currec, wrflag, fillun, ubuf, mdflag
       integer   dircur, dircnt, maxrec
       logical   eofre, extflg, modrec
 c
-      common /pfbufm/ eofre(1:MXFILS),  extflg(1:MXFILS),
-     &                modrec(1:MXFILS), lstwrd(1:MXFILS),
+      common /pfbufm8/ lstwrd(1:MXFILS)
+      common /pfbufm/ eofre(1:MXFILS),
+     &                extflg(1:MXFILS), modrec(1:MXFILS),
      &                locbuf(1:MXFILS), currec(1:MXFILS),
      &                wrflag(1:MXFILS), mdflag(1:MXFILS),
      &                fillun(1:MXFILS), maxrec(1:MXFILS),

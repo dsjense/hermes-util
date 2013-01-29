@@ -85,12 +85,15 @@ c
 #include "pfstfg.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, traw, tapp, lendir, locdir
+      integer   fid, ierr, traw, tapp, lendir
+      HU_FPOS_TYPE locdir
       character st*(*), sc*(*)
 c
 c ... Parameters:
@@ -100,7 +103,7 @@ c ... Parameters:
       parameter ( BUFLEN = 6 )
 c
 c     Internal
-      integer   lds, lstadr
+      HU_FPOS_TYPE lds, lstadr
       integer   buf(0:BUFLEN)
 c
 c
@@ -131,7 +134,7 @@ c
 c
       buf(0) = traw
       call pful2i ( lendir, buf(1), ierr)
-      call pful2i ( locdir, buf(4), ierr)
+      call pful2i64 ( locdir, buf(4), ierr)
 c
       call pfusio ( fid, WR, 7, buf, ierr)
 c

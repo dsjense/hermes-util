@@ -73,21 +73,24 @@ c
 #include "pfbsiz.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, adr1st, lds
+      integer   fid, ierr
+      HU_FPOS_TYPE adr1st, lds
 c
 c ... Parameters:
       character PFMODU*6
       parameter ( PFMODU = 'PFWLDS' )
 c
 c     Internal
-      integer   lenloc, adrend
+      HU_FPOS_TYPE lenloc, adrend
       integer   buf(3)
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
 c
 c ... External Block Data
       external  pffbd
@@ -121,7 +124,7 @@ c
 c
 c ... Encode dataset length to <LONG>
 c
-      call pful2i ( lds, buf, ierr )
+      call pful2i64 ( lds, buf, ierr )
       if ( ierr.ne.0 ) goto 999
 c
 c ... Write length back to header location

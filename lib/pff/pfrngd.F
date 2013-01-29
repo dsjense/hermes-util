@@ -151,6 +151,8 @@ c
 #include "pfstfg.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -171,9 +173,10 @@ c ... Parameters:
 c
 c     Internal
       character erstrg*64
-      integer   i, j, j0, lds, lstadr, nvpj, nxgi, tnxg
+      integer   i, j, j0, lds, nvpj, nxgi, tnxg
       integer   vds, traw, nrfu
       integer   slen, nblen, nchrst, nchrsc, trunst, trunsc
+      HU_FPOS_TYPE lstadr
       integer   buf(3)
       real      off
 c

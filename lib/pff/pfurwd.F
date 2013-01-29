@@ -74,6 +74,8 @@ c
 #include "pfbufm.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -83,7 +85,7 @@ c     Passed:
 c
 c     Internal
       integer   i
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
 c
 c ... Parameters:
       character PFMODU*6

@@ -117,11 +117,13 @@ c                     -1,   EOF marker encountered (Not really an error)
 c                      0,   No error
 c                      1,   Incorrect dataset type
 c                      2,   Insufficient array dimensions
+c                      3,   File offset (locfa) overflow
 c
 c ----------------------------------------------------------------------
 c
 c     Internals:
 c       buf     -  work buffer for decoding <FLOAT>s, etc.
+c       floc    -  temporary file offet value
 c       i       -  loop index over attributes
 c       j       -  loop index over spatial dimension of vertex
 c       k       -  loop index over vertices
@@ -158,6 +160,8 @@ c
 #include "pfstfg.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -178,11 +182,12 @@ c ... Parameters:
       parameter ( BUFLEN = 8 )
 c
 c     Internal
-      integer   i, j, k, iloc, lds, lstadr, tlen
+      integer   i, j, k, iloc, lds, tlen
       integer   vds, traw, nrfu, vofftmp, voffmax
       integer   slen, nblen, nchrst, nchrsc, trunst, trunsc
+      HU_FPOS_TYPE lstadr, floc
       integer   buf(0:BUFLEN), idlist(3), jdlist(3), kdlist(3)
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
       real      xfact
 c
 c ----------------------------------------------------------------------
@@ -300,10 +305,18 @@ c ......... find out where we are in file; skip over scale and offset;
 c .........    read in the array length; then reposition file pointer
 c .........    to end of array
 c
-            locv = pfutel (fid, ierr )
+            floc = pfutel (fid, ierr )
+            locv = floc
+            if( floc.ne.locv ) then
+              ierr = 3
+              call pfserr ( PFMODU, ierr, fid,
+     &                          'File offset (locfa) overflow' )
+              goto 999
+            endif
+c
             call pfusio (fid, RE, 9, buf, ierr)
             call pfui2l ( buf(6), tlen, ierr)
-            call pfusek (fid, locv+tlen+9, ierr )
+            call pfusek (fid, floc+tlen+9, ierr )
 c
           endif
 c
@@ -393,10 +406,18 @@ c ....... find out where we are in file; skip over scale and offset;
 c .......    read in the array length; then reposition file pointer
 c .......    to end of array
 c
-          loca(i) = pfutel (fid, ierr )
+          floc = pfutel (fid, ierr )
+          loca(i) = floc
+          if( floc.ne.loca(i) ) then
+            ierr = 3
+            call pfserr ( PFMODU, ierr, fid,
+     &                          'File offset (locfa) overflow' )
+            goto 999
+          endif
+c
           call pfusio (fid, RE, 9, buf, ierr)
           call pfui2l ( buf(6), tlen, ierr)
-          call pfusek (fid, loca(i)+tlen+9, ierr )
+          call pfusek (fid, floc+tlen+9, ierr )
 c
         endif
 c

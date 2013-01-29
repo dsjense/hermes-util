@@ -105,6 +105,8 @@ c
 #include "pfbufp.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -113,10 +115,11 @@ c     Passed:
       integer   ib, ie, ifid, isk, ofid, ierr
 c
 c     Internal
-      integer   ids, idslen, idsloc, ilast, ip, kb, ke, ksk, odsloc
+      integer   ids, idslen, ilast, ip, kb, ke, ksk
       integer   tapp, traw
+      HU_FPOS_TYPE idsloc, odsloc
       character st*(MCHTYP), sc*(MCHTTL)
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
 c
 c ... Parameters:
       character PFMODU*6

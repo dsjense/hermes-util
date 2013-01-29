@@ -146,6 +146,8 @@ c
 #include "pfstfg.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -171,8 +173,9 @@ c ... Parameters:
 c
 c     Internal
       integer   i, io1, io2, io3, ilocx, ilocy, ilocz, iblk
-      integer   lbblk, lbmax, lds, lstadr, vds, traw, nrfu, off, tnx
+      integer   lbblk, lbmax, lds, vds, traw, nrfu, off, tnx
       integer   tny, tnz, slen, nblen, nchrst, nchrsc, trunst, trunsc
+      HU_FPOS_TYPE lstadr
       integer   buf(0:BUFLEN)
 c
 c

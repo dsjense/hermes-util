@@ -97,6 +97,8 @@ c
 #include "pfbufp.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -113,8 +115,9 @@ c ... External Block Data
       external  pffbd
 c
 c     Internal
-      integer   ilast, ioff, iloc, ip_mode, iw, mread
-      integer   pfutel
+      integer   ilast, ioff, ip_mode, iw, mread
+      HU_FPOS_TYPE iloc
+      HU_FPOS_TYPE pfutel
 c
 c ----------------------------------------------------------------------
 c

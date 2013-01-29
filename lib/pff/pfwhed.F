@@ -111,12 +111,15 @@ c
 #include "pffils.inc"
 #include "pfhrfu.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, lds, lstadr, tapp, traw, vds
+      integer   fid, ierr, lds, tapp, traw, vds
+      HU_FPOS_TYPE lstadr
       integer   rfuarr(*)
       character st*(*), sc*(*)
 c
@@ -127,7 +130,7 @@ c
 c     Internal
       integer   i, rfmode
       integer   buf(RFUMAX)
-      integer   pfutel
+      HU_FPOS_TYPE pfutel
 c
 c ... External Block Data
       external  pffbd

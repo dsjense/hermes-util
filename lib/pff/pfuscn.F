@@ -136,6 +136,8 @@ c
 #include "pfbufm.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
@@ -147,8 +149,9 @@ c     Passed:
       character s*(*)
 c
 c     Internal
-      integer   dslen, dsloc, i, ic, ids, kb, ke, ksk
+      integer   dslen, i, ic, ids, kb, ke, ksk
       integer   sb, se, strl, tapp, traw
+      HU_FPOS_TYPE dsloc
       character sc*(MCHTTL), st*1, tmpstr*(MCHTTL)
       logical   find
 c

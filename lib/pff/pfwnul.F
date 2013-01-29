@@ -101,20 +101,24 @@ c
 #include "pfbufp.inc"
 #include "pferrs.inc"
 c
+#include "mdfpos.h"
+c
 c ----------------------------------------------------------------------
 c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, lnul, nulloc
+      integer   fid, ierr, lnul
+      HU_FPOS_TYPE nulloc
 c
 c ... Parameters:
       character PFMODU*6
       parameter ( PFMODU = 'PFWNUL' )
 c
 c     Internal
-      integer   cloc, fill, floc, i, ifrm, nloc, ploc, tlen
-      integer   pfutel
+      integer   fill, i, ifrm, tlen
+      HU_FPOS_TYPE cloc, floc, nloc, ploc
+      HU_FPOS_TYPE pfutel
 c
 c ... External Block Data
       external  pffbd
