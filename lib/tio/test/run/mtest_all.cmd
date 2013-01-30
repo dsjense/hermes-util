@@ -67,6 +67,22 @@ cmd1 '----------------------------------------'
 cmd2 "*** Running LOOP3.CMD ***"
 ^run loop3.cmd   4  "new_string"
 
+cmd1 '----------------------------------------'
+cmd2 "*** Running LOOP4B.CMD ***"
+^run loop4b.cmd  2 2 2 iter
+
+cmd1 '----------------------------------------'
+cmd2 "*** Running LOOP4B.CMD (zero trip 1) ***"
+^run loop4b.cmd  0 2 2 iter
+
+cmd1 '----------------------------------------'
+cmd2 "*** Running LOOP4B.CMD (zero trip 2) ***"
+^run loop4b.cmd  2 2 1 iter
+
+cmd1 '----------------------------------------'
+cmd2 "*** Running LOOP4B.CMD (zero trip 3) ***"
+^run loop4b.cmd  2 0 2 iter
+
 ! IF-statements
 
 cmd1 '----------------------------------------'
