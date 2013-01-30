@@ -31,7 +31,7 @@ c     writing.  It returns the following values:-
 c
 c        0  -  File opened successfully
 c       -1  -  Error opening file
-c       -2  -  Error in MDPATH getting full path name
+c       -2  -  Error in MDPATH getting full path name or blank file name
 c
 #if defined(ABSOFTsys)
 c *** ABSoft MAC version.  Special features:
@@ -92,11 +92,16 @@ c
           goto 2
         endif
     1 continue
-      lenfnm = 1
-    2 continue
+c
+      if (luerr.ge.0) then
+        write(luerr,9800) fname(1:1)
+        mdotxf = -2
+        return
+      endif
 c
 c ... Get full file name
 c
+    2 continue
       ierr = mdpath (fname, fulnam)
 c
       if (ierr .NE. 0) then
@@ -134,7 +139,17 @@ c
 c ... File failed to open
 c
  9000 continue
-      if (luerr.ge.0) write(luerr,9810) fname(1:lenfnm)
+      if (luerr.ge.0) then
+        do i=len(fulnam),1,-1
+          if ( fulnam(i:i).ne.' ' ) then
+            lenfnm = i
+            goto 3
+          endif
+        enddo
+        lenfnm = 1
+    3   continue
+        write(luerr,9810) fulnam(1:lenfnm)
+      endif
       mdotxf = -1
       return
 c
