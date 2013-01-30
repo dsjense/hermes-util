@@ -45,25 +45,25 @@ c
 c
 c ... Loop line storage management
 c
-c     beglpl  -  (*,*) Beginning line of loop in buffer
-c     endlpl  -  (*,*) Ending line of loop in buffer
-c     curlpl  -  (*,*) Current line in of loop in buffer
-c     lplbuf  -  (*) FOR loop command line buffer
+c     beglpl  -  (*,*) Beginning line # of loop in buffer
+c     endlpl  -  (*,*) Ending    line # of loop in buffer
+c     ilpln   -  (*) Current loop line # in buffer
+c     lplchr  -  (*) FOR loop command line character buffer
 c     lplchb  -  (*) Beginning character of each loop line in buffer
 c     lplche  -  (*) Ending character of each loop line in buffer (note
 c                that to simplify code, we define lplche(0) = 0)
 c     lstlch  -  Last character in use in loop line buffer
-c     nlpln   -  # loop lines currently stored in buffer
+c     nlpln   -  Total # loop lines currently stored in buffer, over
+c                all command files and loop levels
 c
-      character*(MXLPCH) lplbuf
-      common /iolpa/ lplbuf
+      character*(MXLPCH) lplchr
+      common /iolpa/ lplchr
 c
       integer lstlch, nlpln
       integer lplchb(1:MXLPLN), lplche(0:MXLPLN)
-      integer beglpl(1:MXLPLV,0:MXCMFL), endlpl(1:MXLPLV,0:MXCMFL) ,
-     1        curlpl(1:MXLPLV,0:MXCMFL)
-      common /iolpn/ lstlch, nlpln, lplchb, lplche,
-     1               beglpl, endlpl, curlpl
+      integer beglpl(1:MXLPLV,0:MXCMFL), endlpl(1:MXLPLV,0:MXCMFL)
+      integer ilpln(0:MXCMFL)
+      common /iolpn/ lstlch, nlpln, lplchb, lplche, beglpl,endlpl, ilpln
 c
 c ... Control of file line numbers for loop lines
 c

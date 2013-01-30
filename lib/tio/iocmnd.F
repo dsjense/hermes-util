@@ -76,7 +76,7 @@ c
 c-----------------------------------------------------------------------
 c
       data  iocnam / 'help', 'archive', 'case', 'char', 'cmferr',
-     &               'cmfparam', 'define', 'echo', '^endfor', 'else',
+     &               'cmfparam', 'define', 'echo', 'endfor', 'else',
      &               'endif', 'for', 'gdefine', 'if ', 'ifdef',
      &               'ifndef', 'pause', 'prompt', 'run', 'show',
      &               'spawn', 'undefine', 'wide' /
@@ -227,7 +227,7 @@ c
      1                    ueclvl, uecoio, ueccmt, elwid, status)
 c
 c-----------------------------------------------------------------------
-c ... ENDFOR (This is an ERROR condition here)
+c ... ENDFOR
 c-----------------------------------------------------------------------
 c
       elseif (strmch(iocmd,'endfor')) then

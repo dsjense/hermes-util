@@ -58,7 +58,7 @@ c-----------------------------------------------------------------------
 c
 c ... Local variables
 c
-      integer  ierr, lnum
+      integer  ierr, lnum, lplev
 c
 c
 c=======================================================================
@@ -66,60 +66,60 @@ c     BEGIN:
 c=======================================================================
 c
     1 continue
-      curlpl(looplv(cmflvl),cmflvl) = curlpl(looplv(cmflvl),cmflvl) + 1
+      lplev = looplv(cmflvl)
 c
-c ... Handle last line of current loop: Note that the last line of a
-c     loop is the "^endfor" line which does not need to be returned to
-c     the calling program
+c ... Increment loop line pointer for this level. Note that this
+c     automatically handles finishing a nested loop and getting the
+c     next command at the lower level
 c
-      if (curlpl(looplv(cmflvl),cmflvl) .EQ.
-     1    endlpl(looplv(cmflvl),cmflvl) ) then
+      ilpln(cmflvl) = ilpln(cmflvl) + 1
+c
+c ... Last line of the loop is the '^endfor' line
+c
+      if (ilpln(cmflvl) .EQ. endlpl(lplev,cmflvl) ) then
 c
 c ..... Decrement iteration count
 c
-        nlpit(looplv(cmflvl),cmflvl) = nlpit(looplv(cmflvl),cmflvl) - 1
+        nlpit(lplev,cmflvl) = nlpit(lplev,cmflvl) - 1
 c
 c ..... Handle loop if it is complete
 c
-        if (nlpit(looplv(cmflvl),cmflvl) .EQ. 0) then
-          looplv(cmflvl) = looplv(cmflvl) - 1
+        if (nlpit(lplev,cmflvl) .EQ. 0) then
+          lplev = lplev - 1
+          looplv(cmflvl) = lplev
 c
 c ....... Zero level: Handle END-OF-LOOP
 c
-          if (looplv(cmflvl) .EQ. 0) then
+          if (lplev .EQ. 0) then
             nlpln  = beglpl(1,cmflvl) - 1
             lstlch = lplche(nlpln)
             lnumcf(cmflvl) = lnumcx(cmflvl)
             status = 1
             return
 c
-c ....... Completed loop was nested loop.  Reset to process
+c ....... Completed loop was nested loop. Reset to process
 c         lower level loop
 c
           else
-            curlpl(looplv(cmflvl),cmflvl) =
-     1      curlpl(looplv(cmflvl)+1,cmflvl)
             go to 1
           endif
 c
 c ..... Or reset to go through the loop again
 c
         else
-          loopv(looplv(cmflvl),cmflvl)  = loopv(looplv(cmflvl),cmflvl) +
-     1                                    lpstep(looplv(cmflvl),cmflvl)
-          call ljusti (loopv(looplv(cmflvl),cmflvl), 0,
-     &      loopvc(looplv(cmflvl),cmflvl),
-     &      nchlpv(looplv(cmflvl),cmflvl), ierr )
-          curlpl(looplv(cmflvl),cmflvl) = beglpl(looplv(cmflvl),cmflvl)
-     1                                    - 1
+          loopv(lplev,cmflvl) = loopv(lplev,cmflvl) +
+     1                          lpstep(lplev,cmflvl)
+          call ljusti (loopv(lplev,cmflvl), 0,
+     &      loopvc(lplev,cmflvl), nchlpv(lplev,cmflvl), ierr )
+          ilpln(cmflvl) = beglpl(lplev,cmflvl) - 1
           go to 1
         endif
       endif
 c
 c ... Return loop line
 c
-      lnum   = curlpl(looplv(cmflvl),cmflvl) 
-      nxtlpl = lplbuf(lplchb(lnum):lplche(lnum))
+      lnum   = ilpln(cmflvl) 
+      nxtlpl = lplchr(lplchb(lnum):lplche(lnum))
       lnumcf(cmflvl) = lplnmf(lnum)
       status = 0
       return

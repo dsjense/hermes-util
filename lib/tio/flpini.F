@@ -63,18 +63,18 @@ c-----------------------------------------------------------------------
 c
 c ... Function calls
 c
-      character*80 chrpar, iogioc
-      integer      intpar, tioerh
-      logical      strmch
+      character chrpar*132, iogioc*32
+      integer   intpar, tioerh
+      logical   strmch
 c
 c-----------------------------------------------------------------------
 c
 c ... Local PARAMETERs and variables
 c
-      character*132 errmsg
-      character*80  iocmd, lpvn, tmplin
+      character*255 errmsg, tmplin
+      character*80  iocmd, lpvn
       integer ln, lntyp, lenil, lnail, lpi, lpf, lpst, lplev,
-     1        lstlc0, nch, nlpln0, oldlty
+     1        nch, niter, oldlty
 c
 c
 c=======================================================================
@@ -82,44 +82,27 @@ c=======================================================================
 c
       status = 0
 c
-c ... Process input:
-c
-      lpvn = chrpar (RQD, ' ', ' ', ' ', ioerr, nch)
-      lpi  = intpar (RQD, ' ',   0, ' ', ioerr)
-      lpf  = intpar (RQD, ' ',   0, ' ', ioerr)
-      lpst = intpar (OPT, ' ',   1, ' ', ioerr)
-c
-      if (ioerr .GE. 0) then
-        if (lpst .EQ. 0) status = tioerh ('TIO', 'FLPINI', 2,
-     1                              'Zero loop increment', IOINTERR)
-      else
-        status = IOINTERR
-      endif
-c
 c=======================================================================
-c *** Load FOR loop command line buffer, if not currently running loop
+c *** MODE 1: Load FOR loop command line buffer
 c=======================================================================
 c
       if (looplv(cmflvl) .EQ. 0) then
-c
-        lstlc0 = lstlch
-        nlpln0 = nlpln
-c
-        lplev = 1
-        beglpl(lplev,cmflvl) = nlpln + 1
+        ilpln(cmflvl)    = nlpln
+        beglpl(1,cmflvl) = nlpln + 1
 c
 c ..... Loop over input lines: Note that we keep going until we find
 c       a matching "^endfor" or hit an EOF, so that we do not return
 c       until we have read the entire loop.
 c
         oldlty = 0
+        lplev  = 1
 c
-        do 100 ln=1,99999
+        do while (lplev .GT. 0)
 c
 c ....... Load next command line into temporary buffer
 c
           ioerr = 0
-          call getsln ('FOR>', 80, tmplin, lntyp, lenil, lnail, ioerr)
+          call getsln ('FOR>', 255, tmplin, lntyp, lenil, lnail, ioerr)
 c
 c ....... If we hit an EOF reading the input line:-
 c           1. Set the flag to unconditionally close the input file if it
@@ -134,7 +117,7 @@ c
             status = tioerh ('TIO', 'FLPINI', 2,
      1               'EOF on file processing FOR loop', IOINTERR)
             if (cmflvl .GT. 0) fatalcfer = .TRUE.
-            go to 101
+            go to 100
 c
 c ....... If we had any other trouble reading the line, set error flag,
 c         but keep on reading lines (attempt to find matching ^endfor)
@@ -149,7 +132,7 @@ c
             status = tioerh ('TIO', 'FLPINI', 2, errmsg, IOINTERR)
           endif
 c
-c ....... Set file line number of loop line
+c ....... Set file line number of loop line for error messages
 c
           lplnmf(nlpln) = lnumcf(cmflvl)
 c
@@ -168,54 +151,48 @@ c
 c ......... ENDFOR: Decrement loop nest level
 c
             if (strmch(iocmd,'endfor')) then
-              if (lplev .LE. MXLPLV) endlpl(lplev,cmflvl) = nlpln
               lplev = lplev - 1
 c
 c ......... FOR: Increment loop level
 c
             elseif (strmch(iocmd,'for')) then
               lplev = lplev + 1
-              if (lplev .LE. MXLPLV) then
-                beglpl(lplev,cmflvl) = nlpln+1
-              else
+              if (lplev .GT. MXLPLV) then
                 write(errmsg,9800) 'nest levels', MXLPLV
                 status = tioerh ('TIO', 'FLPINI', 2, errmsg, IOINTERR)
               endif
+              lplev = min(lplev,MXLPLV)
             endif
 c
           endif
 c
-c ....... Store command line in loop line buffer
+c ....... Store command line in loop line character buffer
 c
           if (status .EQ. 0) then
             if (lstlch+lenil .GT. MXLPCH) then
               write(errmsg,9800) 'characters', MXLPCH
               status = tioerh ('TIO', 'FLPINI', 2, errmsg, IOINTERR)
-              go to 99
             endif
 c
-            lplbuf(lstlch+1:lstlch+lenil) = tmplin(1:lenil)
-            lplchb(nlpln) = lstlch + 1
-            lplche(nlpln) = lstlch + lenil
-            lstlch        = lstlch + lenil
+            if (status .EQ. 0) then
+              lplchr(lstlch+1:lstlch+lenil) = tmplin(1:lenil)
+              lplchb(nlpln) = lstlch + 1
+              lplche(nlpln) = lstlch + lenil
+              lstlch        = lstlch + lenil
+            endif
           endif
 c
-   99     continue
           oldlty = lntyp
-c
-c ....... Exit loading loop lines if we are at nest level ZERO
-c
-          if (lplev .EQ. 0) go to 101
-  100   continue
+        enddo
 c
 c ..... Abort loop if errors were encountered
 c
-  101   continue
+  100   continue
         if (status .NE. 0) then
-          status = tioerh(' ', ' ', 2, 
+          status = tioerh ('TIO', 'FLPINI', 2,
      1                    '           Aborting FOR loop', status)
-          nlpln  = nlpln0
-          lstlch = lstlc0
+          nlpln  = ilpln(cmflvl)
+          lstlch = lplche(nlpln)
           return
         endif
 c
@@ -225,8 +202,8 @@ c       to be archived)
 c
         if (arcvln) then
           call ioarcl (1, ' ', ioerr)
-          do 200 ln=beglpl(1,cmflvl),endlpl(1,cmflvl)
-            call ioarcl (2, lplbuf(lplchb(ln):lplche(ln)), ioerr)
+          do 200 ln=beglpl(1,cmflvl),nlpln
+            call ioarcl (2, lplchr(lplchb(ln):lplche(ln)), ioerr)
   200     continue
         endif
 c
@@ -235,20 +212,78 @@ c
         lnumcx(cmflvl) = lnumcf(cmflvl)
       endif
 c
+      if (status .NE. 0) return
+c
 c=======================================================================
-c ... Set up loop for execution if there are no errors
+c ... MODE 2: execute the loop
 c=======================================================================
 c
-      if (status .LT. 0) return
+c ... Process loop iteration control from command line input:
 c
-      looplv(cmflvl) = looplv(cmflvl) + 1
+      ioerr = 0
+      lpvn  = chrpar (RQD, ' ', ' ', ' ', ioerr, nch)
+      lpi   = intpar (RQD, ' ',   0, ' ', ioerr)
+      lpf   = intpar (RQD, ' ',   0, ' ', ioerr)
+      lpst  = intpar (OPT, ' ',   1, ' ', ioerr)
 c
-      loopvn(looplv(cmflvl),cmflvl) = lpvn
-      lpstep(looplv(cmflvl),cmflvl) = lpst
-      loopv(looplv(cmflvl),cmflvl)  = lpi - lpst
+      if (ioerr .GE. 0) then
+        if (lpst .NE. 0) then
+          niter = (lpf - lpi)/lpst + 1
+        else
+          status = tioerh ('TIO', 'FLPINI', 2,
+     &                     'Zero loop increment', IOINTERR)
+        endif
+      else
+        status = IOINTERR
+      endif
 c
-      nlpit(looplv(cmflvl),cmflvl)  = (lpf - lpi + lpst)/lpst + 1
-      curlpl(looplv(cmflvl),cmflvl) = endlpl(looplv(cmflvl),cmflvl) - 1
+c ... Abort on error
+c
+      if (status.NE.0 .OR. ioerr.NE.0) return
+c
+c ... Set the beginning line # in the buffer for the executable commands
+c     in this loop and find line # of corresponding '^endfor' command
+c
+      lplev = looplv(cmflvl) + 1
+      ln    = ilpln(cmflvl)
+      beglpl(lplev,cmflvl) = ilpln(cmflvl) + 1
+      do while (lplev .GT. looplv(cmflvl))
+        ln = ln + 1
+        iocmd = iogioc(lplchr(lplchb(ln):lplche(ln)))
+        if (strmch(iocmd,'endfor')) then
+          lplev = lplev - 1
+        elseif (strmch(iocmd,'for')) then
+          lplev = lplev + 1
+        endif
+      enddo
+c
+c ... Set up loop if there is at least one iteration. Note that we set
+c     nlpit(*,*) and ilpln(*) so that the first call to nxtlpl.F will
+c     trip the loop variable increment
+c
+      if (niter .GT. 0) then
+        looplv(cmflvl) = looplv(cmflvl) + 1
+        lplev = looplv(cmflvl)
+c
+        loopvn(lplev,cmflvl) = lpvn
+        lpstep(lplev,cmflvl) = lpst
+        nlpit(lplev,cmflvl)  = niter + 1
+        loopv(lplev,cmflvl)  = lpi - lpst
+        endlpl(lplev,cmflvl) = ln
+c
+        ilpln(cmflvl) = ln - 1
+c
+c ... Otherwise ...
+c       *  looplev > 0: Set pointer for next command at lower level
+c       *  looplev = 0: Shut down loop processing at the command file lev.
+c
+      elseif (looplv(cmflvl) .GT. 0) then
+        ilpln(cmflvl) = ln
+      else
+        nlpln  = beglpl(1,cmflvl) - 1
+        lstlch = lplche(nlpln)
+        lnumcf(cmflvl) = lnumcx(cmflvl)
+      endif
 c
       return
 c
