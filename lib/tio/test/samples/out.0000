@@ -675,6 +675,1290 @@
 
    par.    type    parameter string         numeric value
    ----    ----    ----------------         -------------
+     1       4     '*** Running LOOP4B.CMD ***'
+
+ END-OF-LINE:  1 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '20'                             20
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '20'                             20
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       4     '----------------------------------------'
+
+ END-OF-LINE:  1 parameters read
+ Status =   0
+
+
+ Command: cmd2
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       4     '*** Running LOOP4B.CMD (zero trip 1) ***'
+
+ END-OF-LINE:  1 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       4     '----------------------------------------'
+
+ END-OF-LINE:  1 parameters read
+ Status =   0
+
+
+ Command: cmd2
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       4     '*** Running LOOP4B.CMD (zero trip 2) ***'
+
+ END-OF-LINE:  1 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '20'                             20
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '20'                             20
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop1_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       4     '----------------------------------------'
+
+ END-OF-LINE:  1 parameters read
+ Status =   0
+
+
+ Command: cmd2
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       4     '*** Running LOOP4B.CMD (zero trip 3) ***'
+
+ END-OF-LINE:  1 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '20'                             20
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '20'                             20
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev1_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '10'                             10
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_iloop2'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '11'                             11
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_ondx1_iloop2_indx1'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       1     '12'                             12
+     2       2     '0.0'                      0.000000E+00
+     3       4     'iter_lev2_end'
+
+ END-OF-LINE:  3 parameters read
+ Status =   0
+
+
+ Command: cmd1
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
+     1       4     '----------------------------------------'
+
+ END-OF-LINE:  1 parameters read
+ Status =   0
+
+
+ Command: cmd2
+ Status =   0
+
+   par.    type    parameter string         numeric value
+   ----    ----    ----------------         -------------
      1       4     '*** Running IF1.CMD ***'
 
  END-OF-LINE:  1 parameters read
