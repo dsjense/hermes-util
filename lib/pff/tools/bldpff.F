@@ -100,7 +100,8 @@ c ... Internal
       integer   nargs, iarg, nlarg, errcnt, inout, pomode
       integer   fname_req, nch, imatch, ptype
       integer   nchfsuf
-      HU_FPOS_TYPE max_bytes, byte_lim, sav_mxb
+      real      max_bytes, rmax_words, rtest
+      HU_FPOS_TYPE max_words, word_lim, sav_mxw
       integer   dpnt(IN:OUT), poifid(IN:OUT)
       logical   logans
       logical   conflg, logflg, quit, cmdflg, arcflg
@@ -134,6 +135,7 @@ c ... Functions:
       integer   pfg1lu, pfgfid, pfgnds, pfgnof, pfuopn
       integer   mstrng
       integer   tioini, intpar, lstmch, partyp, chrtoi, gtfrlu
+      real      reapar
       character chrpar*132
       logical   strmch, yesno
       integer   iogtlu
@@ -202,12 +204,10 @@ c
       luin     = stdin
       infile   = ' '
 c
-      byte_lim = pfgmxsek()
+      word_lim = pfgmxsek()
 c
 c ... start with 75% of maximum
-      max_bytes = (byte_lim/2) * 3
-c ... convert byte_lim from 2-byte words to single bytes
-      byte_lim = 2*byte_lim
+      max_words = (word_lim/4) * 3
 c
       nargs = mdargc()
 c
@@ -663,7 +663,7 @@ c
               endif
 c
               if(logans)then
-                call chk_outfile(nchfsuf,max_bytes,stdout,ofid,ierr)
+                call chk_outfile(nchfsuf,max_words,stdout,ofid,ierr)
                 call pfucpy(ifid,ofid,i,i,1,ierr)
                 if ( ierr.ne.0 ) goto 99
                 if (logflg)then
@@ -676,7 +676,7 @@ c
 c
           else
 c
-            call chk_outfile(nchfsuf,max_bytes,stdout,ofid,ierr)
+            call chk_outfile(nchfsuf,max_words,stdout,ofid,ierr)
             call pfucpy(ifid,ofid,ib,ie,isk,ierr)
 c
           endif
@@ -810,24 +810,32 @@ c ..... MULTI_OUTPUT option
 c
         else if ( strmch(cmd,'multi_output') )then
 c
-          sav_mxb   = max_bytes
-          max_bytes = intpar(RQD,'max. # bytes', max_bytes, ' ',istat)
+          sav_mxw   = max_words
+          max_bytes = reapar(RQD,'max. # bytes', 0.0, ' ',istat)
+          rmax_words = 0.5*max_bytes
 c
           str80 = chrpar(OPT,'MB|GB',' ',' ',istat,nch)
-          if (partyp(str80) .EQ. INT) then
-            nchfsuf = chrtoi(str80,istat)
+          if (str80.eq.' ' .or. partyp(str80) .EQ. INT) then
+            if (str80.ne.' ') nchfsuf = chrtoi(str80,istat)
+            rtest = float(word_lim)
+            if ( rmax_words.lt.rtest ) then
+              max_words = rmax_words
+            else
+              istat = 2
+              str80 = ' '
+            endif
           else
             if ( strmch(str80,'GB') ) then
-              i = byte_lim / 1073741824
-              if ( max_bytes.le.i ) then
-                max_bytes = max_bytes * 1073741824
+              rtest = word_lim / 1073741824.0
+              if ( rmax_words.lt.rtest ) then
+                max_words = rmax_words * 1073741824
               else
                 istat = 2
               endif
             else if ( strmch(str80,'MB') ) then
-              i = byte_lim / 1048576
-              if ( max_bytes.le.i ) then
-                max_bytes = max_bytes * 1048576
+              rtest = word_lim / 1048576.0
+              if ( max_words.lt.rtest ) then
+                max_words = rmax_words * 1048576
               else
                 istat = 2
               endif
@@ -844,8 +852,8 @@ c
             write(stderr,*)
      &        'Usage:  m[ulti_output] max_bytes [MB|GB] [ nchfsuf ]'
             if ( istat.eq.2 )  write(stderr,*)
-     &        '        MAX_BYTES must be <= ',i,' ',str80(1:2)
-            max_bytes = sav_mxb
+     &        '        MAX_BYTES must be <= ',rtest,' ',str80(1:2)
+            max_words = sav_mxw
             goto 99
           endif
 c
@@ -1193,7 +1201,7 @@ c
               endif
 c
               if(logans)then
-                call chk_outfile(nchfsuf,max_bytes,stdout,ofid,ierr)
+                call chk_outfile(nchfsuf,max_words,stdout,ofid,ierr)
                 call pfucpy(ifid,ofid,ids,ids,1,ierr)
                 if (logflg)then
                   write(stdout,'(1x,a,$)') str80(1:slen)
@@ -1279,7 +1287,7 @@ c
             mwork = tsize
           endif
 #endif
-          call dssort ( ifid,ofid,nchfsuf,max_bytes,
+          call dssort ( ifid,ofid,nchfsuf,max_words,
      &                  ib,ie,isk, subb,sube,exact,contmp,
      &                  logtmp,stdin,stdout,MWORK,iwork,ierr)
 c
