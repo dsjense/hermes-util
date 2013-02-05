@@ -76,9 +76,11 @@ c
 c
 #if HU_FPOS_BYTES < 6
 c ... file is limited by system file addressing:
-c ...    (2^31 - 1) bytes -> (2^30 - 1) 2-byte words
+c ...    (2^32 - 1) bytes -> (2^31 - 1) 2-byte words
+c ...  if 32-bit signed integer, need to be careful about overflow
 c
-       pfgmxsek = two**30 - 1
+       pfgmxsek = two**30
+       pfgmxsek = (pfgmxsek - 1) + pfgmxsek
 #else
 c ... file is limited by other constraints:
 c ...    maximum pful2i lval:           2^44 - 1
