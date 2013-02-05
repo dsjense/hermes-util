@@ -1,4 +1,4 @@
-      subroutine chk_outfile (nchfsuf, max_bytes, stdout, ofid, ierr)
+      subroutine chk_outfile (nchfsuf, max_words, stdout, ofid, ierr)
 c
 c **********************************************************************
 c     $Id$
@@ -24,13 +24,13 @@ c
 C_Groups bldpff  
 c **********************************************************************
 c
-c     Check that the output file has not exceeded the maximum byte size.
+c     Check that the output file has not exceeded the maximum word size.
 c     If it has, close the file, and reopen a new one with a suffix
 c     appended to the "base" name.
 c
 c     Input:
 c       nchfsuf   -  # characters to use for the suffix
-c       max_bytes -  Max. # of bytes in a PFF file
+c       max_words -  Max. # of words in a PFF file
 c       stdout    -  standard output LU
 c
 c     Input/Output:
@@ -63,7 +63,7 @@ c     Declare variables:
 c
 c     Passed:
       integer   ierr, nchfsuf, ofid, stdout
-      HU_FPOS_TYPE max_bytes
+      HU_FPOS_TYPE max_words
 c
 c     Internal
       integer   count, dspntr, ndir, rwmode, fen
@@ -84,8 +84,8 @@ c       1. Error flag is not zero on entry
 c       2. Max. file size not exceeded
 c
       if (ierr.ne.0) return
-      fsize = 2*pfutel(ofid,ierr)
-      if (fsize .LT. max_bytes) return
+      fsize = pfutel(ofid,ierr)
+      if (fsize .LT. max_words) return
 c
 c ----------------------------------------------------------------------
 c
