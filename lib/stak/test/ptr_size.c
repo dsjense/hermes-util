@@ -26,6 +26,7 @@
  */
 
 #include <stdio.h>
+#include <sys/types.h>
 
 int main ()
 {
@@ -35,5 +36,6 @@ int main ()
   printf("Size of double type is %d bytes\n",(int)sizeof(double));
   printf("Size of pointer type is %d bytes\n",(int)sizeof(char*));
   printf("Size of size_t type is %d bytes\n",(int)sizeof(size_t));
+  printf("Size of off_t type is %d bytes\n",(int)sizeof(off_t));
   return 0;
 }
