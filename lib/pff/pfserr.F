@@ -149,8 +149,6 @@ c ..... NOTE:  Write file info messages only if FID > 0
 c
         if (vrbflg) then
 c
-          modlen = min(modlen,6)
-c
 c ....... write message to VERBOSE file (if on)
 c
           if (luverb.ne.OFFLUN) then
