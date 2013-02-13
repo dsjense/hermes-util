@@ -80,6 +80,8 @@ c ... External Block Data
 c
 c ----------------------------------------------------------------------
 c
+      pfgnof = 0
+c
 c     write status message if DEBUG is on
 c
       if (ludbg.ne.OFFLUN)then
