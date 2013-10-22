@@ -102,6 +102,7 @@ c       r/w:  wrflag(*)
 c ... pferrs
 c       r:    OFFLUN, ludbg
 c ... pffils
+c       r:    frstlu, lastlu
 c       w:    filcnt, filcur, fidmap(*), files(*)
 c
 #include "pfbsiz.inc"
@@ -133,10 +134,6 @@ c
 c ... Parameters:
       character PFMODU*6
       parameter ( PFMODU = 'PFUREP' )
-c
-      integer   PFIRST, PLAST
-      parameter (PFIRST = 20 )
-      parameter (PLAST  = 90 )
 c
 c ... External Block Data
       external  pffbd
@@ -177,7 +174,7 @@ c
 c
 c     search for 1st available logical unit
 c
-      lun = pfg1lu ( PFIRST, PLAST, ierr )
+      lun = pfg1lu ( frstlu, lastlu, ierr )
 c
 c     no available files, return
 c
