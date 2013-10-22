@@ -109,7 +109,6 @@ c     Parameters:
 c       PFMODU  -  module name
 c       LOG2    -  base-10 logarithm of 2
 c       RLOG2   -  inverse of base-10 logarithm of 2
-c       TWO15   -  2.**15
 c       RTWO15  -  1./(2.**15)
 c
 c ----------------------------------------------------------------------
@@ -132,13 +131,10 @@ c ... Parameters:
       character PFMODU*6
       parameter ( PFMODU = 'PFUI2F' )
 c
-      double precision LOG2, RLOG2
-      parameter ( LOG2  = 0.30102999566398119521 )
-      parameter ( RLOG2 = 1./LOG2 )
-      real      TWO15
-      double precision RTWO15
-      parameter ( TWO15  = 32768. )
-      parameter ( RTWO15 = 1.d0/TWO15 )
+      double precision LOG2, RLOG2, RTWO15
+      parameter ( LOG2   = 0.30102999566398119521 )
+      parameter ( RLOG2  = 1./LOG2 )
+      parameter ( RTWO15 = 1.d0/32768.0d0 )
 c
 c     Declare variables:
 c
