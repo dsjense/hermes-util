@@ -99,14 +99,13 @@ c ... Parameters:
       parameter ( PFMODU = 'PFUF2I' )
 c
       integer   EXCESS
-      real      TWO15
       parameter ( EXCESS = 8192 )
-      parameter ( TWO15 = 32768. )
-      double precision LN2, LOG2, RLN2, RLOG2
+      double precision LN2, LOG2, RLN2, RLOG2, TWO15
       parameter ( LN2   = 0.6931471805599453094d0 )
       parameter ( LOG2  = 0.30102999566398119521d0 )
       parameter ( RLN2  = 1.d0/LN2 )
       parameter ( RLOG2 = 1.d0/LOG2 )
+      parameter ( TWO15 = 32768.0D0 )
 c
 c     Declare variables:
 c
