@@ -35,6 +35,9 @@ Overview
   TFLUSH helps determine if the machine-dependent output buffer flush
   routine (pfmflu) is working properly.
 
+  TDOUBLE tests that the encoding/decoding of double precision values
+  to/from 5 16-bit ints is working correctly
+
 Using TREAD, TWRITE, TFLOAT, and TFLUSH
 
   Run make with the command line "make". Some changes to the
@@ -181,3 +184,32 @@ Using TREAD, TWRITE, TFLOAT, and TFLUSH
    Calling PFMFLU
   q                             <--------  File should contain 12288 bytes.
 
+
+  Run TDOUBLE. This routine loops over some powers of pi, and:
+     * executes pfud2i and prints out the 5 16-bit unsigned ints
+     * executes pfui2d to convert back to a new double
+     * prints out the original and new doubles, and the relative
+       error of the new value
+  The exact value of the relative error is platform-specific.
+  However, if working correctly, the magnitude should be < 1e-14
+  This is the output using the Intel compiler, version 11.1,
+  on a Linux system:
+
+0  18703  27985   2138   6144  16388
+0   3.141592653590E+00
+    3.141592653590E+00     0.000E+00
+0   8953  16823   5009    768  16383
+0  -3.183098861838E-01
+   -3.183098861838E-01     0.000E+00
+1  26850   6509  30039  11264  16414
+1   2.980909933345E+04
+    2.980909933345E+04     1.110E-15
+1   3252  19859   8890  29696  16357
+1  -3.354680357209E-05
+   -3.354680357209E-05    -1.110E-15
+2  11593  12007   7482  30976  16798
+2   1.392304051057E+62
+    1.392304051057E+62     6.217E-15
+2  15640  28528  12932  13568  15973
+2  -7.182339225692E-63
+   -7.182339225692E-63    -6.217E-15
