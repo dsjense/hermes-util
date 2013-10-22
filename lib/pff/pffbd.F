@@ -121,6 +121,8 @@ c ... initialize file info arrays
 c
       data filcnt  / 0 /
       data filcur  / 0 /
+      data frstlu  / 20 /
+      data lastlu  / 90 /
       data stwrop  / 'new' /
       data fidmap  / MXFILS*0 /
       data fpprec  / DFAULT, MXFILS*DFAULT /
