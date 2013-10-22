@@ -52,6 +52,8 @@ c                  FP_ALLFULL - all <FARRAY>s at full (4-byte) precision
 c                  FP_ORDFULL - ordinate <FARRAY>s at full (4-byte)
 c                               precision, other data at reduced prec.
 c                fpprec(0) is the default value for a newly opened file.
+c     frstlu  \  MIN and MAX values for range of Fortran logical unit
+c     lastlu  /  numbers to search for a free LU for opening PFF files
 c     stwrop  -  status value for Fortran open statements for files 
 c                opened in WRITE_ONLY mode ('new' or 'unknown')
 c
@@ -59,10 +61,11 @@ c ----------------------------------------------------------------------
 c
 c   Declare variables and define the common block:
 c
-      integer   filcnt, filcur, fidmap, fpprec
+      integer   filcnt, filcur, fidmap, fpprec, frstlu, lastlu
       character stwrop*8, files*(CHRFIL)
 c
-      common /pffils/ filcnt, filcur, fidmap(1:MXFILS), fpprec(0:MXFILS)
+      common /pffils/ filcnt, filcur, frstlu, lastlu,
+     &                fidmap(1:MXFILS), fpprec(0:MXFILS)
 c
       common /pffilc/ stwrop, files(1:MXFILS)
 c
