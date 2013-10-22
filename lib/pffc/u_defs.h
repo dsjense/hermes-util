@@ -37,6 +37,7 @@
 #if defined(__STDC__) || defined(__cplusplus)
 
   EXTERN void       pf_u_close            ( PFFfid *fid, int *ierr );
+  EXTERN void       pf_u_d2i              ( double dval, int *ival, int *ierr);
   EXTERN void       pf_u_f2i              ( float xval, int off10, int *ival,
                                             int *ierr );
   EXTERN void       pf_u_f4               ( int iop, long len, int *iarr,
@@ -47,6 +48,7 @@
                                             short int *shrt);
   EXTERN void       pf_u_processor_toggle ( PFFfid *fid,  long offset,
                                             int *ierr );
+  EXTERN void       pf_u_i2d              ( int *ival, double *dval, int *ierr );
   EXTERN void       pf_u_i2f              ( int keep, int *ival, float *xval,
                                             int *off10, int *ierr );
   EXTERN void       pf_u_i2io             ( FILE *file, PFFfid *fid, int iop,
@@ -72,11 +74,13 @@
 #else
 
   extern void       pf_u_close            ();
+  extern void       pf_u_d2i              ();
   extern void       pf_u_f2i              ();
   extern void       pf_u_i4               ();
   extern void       pf_u_f4               ();
   extern void       pf_u_4to2             ();
   EXTERN void       pf_u_processor_toggle ();
+  extern void       pf_u_i2d              ();
   extern void       pf_u_i2f              ();
   extern void       pf_u_i2io             ();
   extern void       pf_u_i2l              ();
