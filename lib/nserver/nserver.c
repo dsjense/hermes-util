@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "nserver_c.h"
 
 /* function name mangling for F77 linkage */
 #include "mdf77mangle.h"
@@ -76,6 +77,7 @@ int nsu_find_match ( const int *nblen, const char *name, const int *hlist,
                      const int *nlist );
 int ns_locate_match ( const int *handle, const int *hlist, const int *nlist );
 void nsu_debug (int *cnt, int *free, int *hmax);
+int UTIL_get_free_handle_loc();
 
 /*! \addtogroup PublicInterface Fortran-callable Application (Public) Interface
  *
@@ -222,6 +224,70 @@ int ns_locate_match ( const int *handle, const int *hlist, const int *nlist )
 
 /*!  \} */ /* END of PublicInterface group */
 
+
+/*! \addtogroup CPublicInterface C/C++ Application (Public) Interface
+ *
+ * \brief Although not absolutely guaranteed, it is the intent that
+ *        the functions in the NSERVER library's application layer
+ *        will not change in terms of their functionality or interface
+ *        specification. Any changes in future versions can be
+ *        expected be upward compatible with earlier versions.
+ *
+ *  The functions in this group are designed to allow C and C++ code
+ *  to use the features of the NSERVER library. In particular, this
+ *  provides an easy way to indirectly pass strings, via NSERVER handles,
+ *  between Fortran and C/C++ code.
+ *
+ *  \{
+ */
+
+/*! \brief nsc_putname provides a means of storing strings directly from C code.
+ *
+ *  \param[in]  name   pointer to supplied string
+ *
+ *  \return \li   >  0, string's handle for later retrieval
+ *          \li   <= 0, memory allocation error
+ */
+int nsc_putname ( const char *name )
+{
+  char *p;
+  int   loc, slen;
+
+  slen = strlen(name);
+  if ( (p = (char *) malloc(slen+1)) == NULL )   {
+    perror("nsc_putname");
+    return -1;
+  }
+  strcpy(p,name);
+
+  if ( (loc = UTIL_get_free_handle_loc()) < 0) return 0;
+  NSU_strings[loc] = p;
+  return loc+1;
+}
+
+/*! \brief nsc_getname provides access from C code to the string referenced
+ *         by the supplied handle.
+ *
+ *  It returns a pointer the string, or NULL on error.
+ *
+ *  \param[in]  handle   supplied string handle
+ *
+ *  \return \li  Pointer to the string associated with provided handle
+ *          \li  NULL, on error
+ */
+char *nsc_getname(int handle)
+{
+  int loc;
+
+  loc = handle - 1;
+  if ( loc < 0 || loc >= NSU_count || NSU_strings[loc] == NULL ) return NULL;
+
+  return NSU_strings[loc];
+}
+
+/*!  \} */ /* END of CPublicInterface group */
+
+
 /*! \addtogroup PrivateInterface Documentation of Non-Public, Utility Functions
  * \brief The utility functions used in the NSERVER's Non-Public layer
  *        are used by the Fortran wrapper functions and their use by
@@ -246,23 +312,7 @@ int ns_locate_match ( const int *handle, const int *hlist, const int *nlist )
 int nsu_putname ( const int *nblen, const char *name )
 {
   char *p;
-  int   i, j, loc, slen;
-
-  if ( NSU_nfree == 0 )  {
-    NSU_count += INCR_SIZE;
-    if ( (NSU_strings = 
-          (char **) realloc(NSU_strings,NSU_count*sizeof(char *))) == NULL ||
-         (NSU_freelist = 
-          (int *) realloc(NSU_freelist,NSU_count*sizeof(int))) == NULL )  {
-      perror("nsu_putname");
-      return 0;
-    }
-    for (i=0,j=NSU_count; i<INCR_SIZE; i++)  {
-      NSU_freelist[i] = --j;
-      NSU_strings[j]  = NULL;
-    }
-    NSU_nfree = INCR_SIZE;
-  }
+  int   loc, slen;
 
   slen = *nblen;
   if ( (p = (char *) malloc(slen+1)) == NULL )   {
@@ -272,7 +322,7 @@ int nsu_putname ( const int *nblen, const char *name )
   strncpy(p,name,slen);
   p[slen] = '\0';
 
-  loc = NSU_freelist[--NSU_nfree];
+  if ( (loc = UTIL_get_free_handle_loc()) < 0) return 0;
   NSU_strings[loc] = p;
   return loc+1;
 }
@@ -467,6 +517,44 @@ void nsu_debug (int *cnt, int *free, int *hmax)
 
   for(i=0;i<NSU_count;i++)  if (NSU_strings[i]) *hmax = i;
   ++(*hmax);
+}
+
+/* local utility functions */
+/*! \brief UTIL_get_free_handle_loc retrieves the an unused location in the
+ *         NSERVER string list. Note that the returned array index is on less
+ *         than the handle used to access the string.
+ *
+ *  This function performs the following tasks in its operation:
+ *   \li Allocates or reallocates the string array if it is fully used.
+ *   \li Removes the returned index from the stack of free locations
+ *
+ *  \warning  This is a utility function used by nsu_putname and nsc_putname.
+ *            It is not intended to be a public interface!
+ *
+ *  \return \li   <  0, memory allocation error
+ *          \li   >= 0, the index of the string in the NSU_strings array (one
+ *                      less than the string handle
+ */
+int UTIL_get_free_handle_loc()
+{
+  int   i, j;
+
+  if ( NSU_nfree == 0 )  {
+    NSU_count += INCR_SIZE;
+    if ( (NSU_strings = 
+          (char **) realloc(NSU_strings,NSU_count*sizeof(char *))) == NULL ||
+         (NSU_freelist = 
+          (int *) realloc(NSU_freelist,NSU_count*sizeof(int))) == NULL )  {
+      perror("UTIL_get_free_handle_loc");
+      return -1;
+    }
+    for (i=0,j=NSU_count; i<INCR_SIZE; i++)  {
+      NSU_freelist[i] = --j;
+      NSU_strings[j]  = NULL;
+    }
+    NSU_nfree = INCR_SIZE;
+  }
+  return NSU_freelist[--NSU_nfree];
 }
 
 /*!  \} */ /* END of PrivateInterface group */
