@@ -318,6 +318,14 @@ c
         work(i) = 0.0
     1 continue
 c
+c ... initialize field values to zero (ensure all buffer values are zero)
+c
+      do i=0,bgla
+        ei(i)  = 0.0
+        ej(i)  = 0.0
+        phi(i) = 0.0
+      end do
+c
 c ... call Poisson algorithm's initializer routine
 c
       call p2dini
