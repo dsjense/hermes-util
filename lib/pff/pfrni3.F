@@ -2,7 +2,7 @@
      &                    mspare, mdim, tapp, st, sc, nblks, nx, ny, nz,
      &                    nspare, ispare, x, y, z, goff10,
      &                    xlabel, ylabel, zlabel, blabel, locx, locy,
-     &                    locz, locfa, lenfa, iarray, ierr )
+     &                    locz, locia, lenia, iarray, ierr )
 c
 c***********************************************************************
 c   $Id$
@@ -39,7 +39,7 @@ c       - This operation is ONLY ALLOWED in READ mode !!!
 c       - This routine operates in two modes:
 c           0)  The Integer array is returned in "iarray"
 c           1)  The integer array is NOT returned; instead, a
-c               PFF file pointer ("locfa") and array length ("lenfa")
+c               PFF file pointer ("locia") and array length ("lenia")
 c               is returned for each block.
 c       - Dataset Format:
 c           <HEADER>       PFTNI3
@@ -78,8 +78,8 @@ c       mgrdz   -  dimension size of Z grid array "z"
 c       mspare  -  1st dimension of ispare array ( mspare .ge. nspare)
 c       mode    -  subroutine mode flag --
 c                   = 0,        return integer array in "iarray"
-c                   otherwise,  return pointer and length in "locfa"
-c                               and "lenfa"
+c                   otherwise,  return pointer and length in "locia"
+c                               and "lenia"
 c       ierr    -  if not zero, return with no operation
 c
 c ----------------------------------------------------------------------
@@ -90,8 +90,8 @@ c       goff10  -  (*) power-of-ten offset for grid arrays for each block
 c       iarray  -  (*) linear array containing integer data (Mode 0
 c                  only)
 c       ispare  -  (*,*) spare words reserved for application for each block
-c       lenfa   -  (*) length of integer array for each block
-c       locfa   -  (*) pointer to floating array for each block:
+c       lenia   -  (*) length of integer array for each block
+c       locia   -  (*) pointer to integer array for each block:
 c                        Mode 0:  FWA of block in "iarray"
 c                        Mode 1:  PFF file pointer to <IARRAY> "iarray"
 c       locx    -  (*) FWA of block in the X grid array "x"
@@ -116,7 +116,7 @@ c                     -1,   EOF marker encountered (Not really an error)
 c                      0,   No error
 c                      1,   Incorrect dataset type
 c                      2,   Insufficient array dimensions
-c                      3,   File offset (locfa) overflow
+c                      3,   File offset (locia) overflow
 c
 c ----------------------------------------------------------------------
 c
@@ -177,7 +177,7 @@ c     Passed:
       integer   fid, ierr, mblks, mdim, mgrdx, mgrdy, mgrdz, mode
       integer   mspare, nblks, nspare, tapp
       integer   goff10(mblks)
-      integer   ispare(mspare,mblks), lenfa(mblks), locfa(mblks)
+      integer   ispare(mspare,mblks), lenia(mblks), locia(mblks)
       integer   locx(mblks), locy(mblks), locz(mblks)
       integer   nx(mblks), ny(mblks), nz(mblks)
       integer   iarray(mdim)
@@ -327,11 +327,11 @@ c
 c
 c ....... set FWA array pointer; Read out array
 c
-          call pfria ( fid, mdim-iloc+1, lenfa(iblk),
+          call pfria ( fid, mdim-iloc+1, lenia(iblk),
      &                 iarray(iloc), ierr)
 c
-          locfa(iblk) = iloc
-          iloc  = iloc  + lenfa(iblk)
+          locia(iblk) = iloc
+          iloc  = iloc  + lenia(iblk)
 c
         else
 c
@@ -340,17 +340,17 @@ c .......    read in the array length; then reposition file pointer
 c .......    to end of array
 c
           floc = pfutel (fid, ierr )
-          locfa(iblk) = floc
-          if( floc.ne.locfa(iblk) ) then
+          locia(iblk) = floc
+          if( floc.ne.locia(iblk) ) then
             ierr = 3
             call pfserr ( PFMODU, ierr, fid,
-     &                          'File offset (locfa) overflow' )
+     &                          'File offset (locia) overflow' )
             goto 999
           endif
 c
           call pfusio (fid, RE, 3, buf, ierr)
-          call pfui2l ( buf, lenfa(iblk), ierr)
-          call pfusek (fid, floc+lenfa(iblk)+3, ierr )
+          call pfui2l ( buf, lenia(iblk), ierr)
+          call pfusek (fid, floc+lenia(iblk)+3, ierr )
 c
         endif
 c
