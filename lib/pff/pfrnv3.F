@@ -204,6 +204,7 @@ c     Internal
       integer   i, io1, io2, io3, iloc, ilocx, ilocy, ilocz, iblk
       integer   lbblk, lbmax, lds, vds, traw, nrfu, off, tnx
       integer   tny, tnz, slen, nblen, nchrst, nchrsc, trunst, trunsc
+      integer   ifloc
       HU_FPOS_TYPE lstadr, floc
       integer   buf(0:BUFLEN)
       HU_FPOS_TYPE pfutel
@@ -375,23 +376,24 @@ c
 c
         else
 c
-c ....... find out where we are in file; skip over scale and offset;
-c .......    read in the array length; then reposition file pointer
-c .......    to end of array
+c ....... Get pointer to first word of the array, and verify that it is
+c ....... in range for an INTEGER value. Then use pfuskiparr to skip
+c ....... over the three arrays, returning the length
 c
-          floc = pfutel (fid, ierr )
-          locfa(iblk) = floc
-          if( floc.ne.locfa(iblk) ) then
-            ierr = 3
-            call pfserr ( PFMODU, ierr, fid,
-     &                          'File offset (locfa) overflow' )
-            goto 999
-          endif
-c
-          call pfusio (fid, RE, 9, buf, ierr)
-          call pfui2l ( buf(6), lenfa(iblk), ierr)
-          call pfusek (fid, floc*(lenfa(iblk)+9), ierr )
-c
+          do i=1,3
+            if (ierr .EQ. 0) then
+              floc  = pfutel (fid, ierr )
+              ifloc = floc
+              if( floc.eq.ifloc ) then
+                if ( i.eq.1 ) locfa(iblk) = ifloc
+                call pfuskiparr(fid, floc, lenfa(iblk), ierr)
+              else
+                ierr = 3
+                call pfserr ( PFMODU, ierr, fid,
+     &                        'File offset (locfa) overflow' )
+              endif
+            endif
+          enddo
           if ( ierr.ne.0 ) goto 999
 c
         endif

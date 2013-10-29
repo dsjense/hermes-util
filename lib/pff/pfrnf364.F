@@ -198,7 +198,6 @@ c     Internal
       integer   tny, tnz, slen, nblen, nchrst, nchrsc, trunst, trunsc
       HU_FPOS_TYPE lstadr
       integer   buf(0:BUFLEN)
-      HU_FPOS_TYPE pfutel
 c
 c
 c ... write status message if DEBUG is on
@@ -332,14 +331,9 @@ c
 c
         else
 c
-c ....... find out where we are in file; skip over scale and offset;
-c .......    read in the array length; then reposition file pointer
-c .......    to end of array
+c ....... Skip over array, returning pointer to first word and length
 c
-          locfa(iblk) = pfutel (fid, ierr )
-          call pfusio (fid, RE, 9, buf, ierr)
-          call pfui2l ( buf(6), lenfa(iblk), ierr)
-          call pfusek (fid, locfa(iblk)+lenfa(iblk)+9, ierr )
+          call pfuskiparr(fid, locfa(iblk), lenfa(iblk), ierr)
 c
         endif
 c

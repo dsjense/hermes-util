@@ -100,7 +100,7 @@ c       attr    -  (*) linear array containing attribute data  (see mode)
 c       ispare  -  (*) spare words reserved for application
 c       loca    -  (*) PFF file pointers to the attribute arrays ("attr")
 c                  (mode 2 only)
-c       locv    -  PFF file pointer to the vertex array ("attr")  (mode
+c       locv    -  PFF file pointer to the vertex array ("vert")  (mode
 c                  2 only)
 c       m       -  vertex dimensionality
 c       n       -  attribute dimensionality
@@ -182,7 +182,7 @@ c ... Parameters:
       parameter ( BUFLEN = 8 )
 c
 c     Internal
-      integer   i, j, k, iloc, lds, tlen
+      integer   i, j, k, iloc, lds, llocv, tlen
       integer   vds, traw, nrfu, vofftmp, voffmax
       integer   slen, nblen, nchrst, nchrsc, trunst, trunsc
       HU_FPOS_TYPE lstadr, floc
@@ -301,22 +301,19 @@ c
 c
           else
 c
-c ......... find out where we are in file; skip over scale and offset;
-c .........    read in the array length; then reposition file pointer
-c .........    to end of array
+c ......... Get pointer to first word of the array, and verify that it is in
+c ......... range for an INTEGER value. Then use pfuskiparr to skip over it
 c
             floc = pfutel (fid, ierr )
             locv = floc
-            if( floc.ne.locv ) then
+            if( floc.eq.locv ) then
+              call pfuskiparr(fid, floc, tlen, ierr)
+            else
               ierr = 3
               call pfserr ( PFMODU, ierr, fid,
      &                          'File offset (locfa) overflow' )
-              goto 999
             endif
-c
-            call pfusio (fid, RE, 9, buf, ierr)
-            call pfui2l ( buf(6), tlen, ierr)
-            call pfusek (fid, floc+tlen+9, ierr )
+            if ( ierr.ne.0)  goto 999
 c
           endif
 c
@@ -359,14 +356,21 @@ c
 c
           else
 c
-c ......... find out where we are in file; skip over scale and offset;
-c .........    read in the array length; then reposition file pointer
-c .........    to end of array
+c ......... Get pointer to first word of the array, and verify that it is in
+c ......... range for an INTEGER value. Then use pfuskiparr to skip over it
+c ......... Save 1st value as pointer to the data
 c
-            locv = pfutel (fid, ierr )
-            call pfusio (fid, RE, 9, buf, ierr)
-            call pfui2l ( buf(6), tlen, ierr)
-            call pfusek (fid, locv+tlen+9, ierr )
+            floc  = pfutel (fid, ierr )
+            llocv = floc
+            if( floc.eq.llocv ) then
+              if (j .EQ. 1) locv = llocv
+              call pfuskiparr(fid, floc, tlen, ierr)
+            else
+              ierr = 3
+              call pfserr ( PFMODU, ierr, fid,
+     &                      'File offset (locv) overflow' )
+            endif
+            if ( ierr.ne.0)  goto 999
 c
           endif
 c
@@ -402,22 +406,18 @@ c
 c
         else
 c
-c ....... find out where we are in file; skip over scale and offset;
-c .......    read in the array length; then reposition file pointer
-c .......    to end of array
+c ....... Get pointer to first word of the array, and verify that it is in
+c ....... range for an INTEGER value. Then use pfuskiparr to skip over it
 c
           floc = pfutel (fid, ierr )
           loca(i) = floc
-          if( floc.ne.loca(i) ) then
+          if( floc.eq.loca(i) ) then
+            call pfuskiparr(fid, floc, tlen, ierr)
+          else
             ierr = 3
             call pfserr ( PFMODU, ierr, fid,
-     &                          'File offset (locfa) overflow' )
-            goto 999
+     &                          'File offset (loca) overflow' )
           endif
-c
-          call pfusio (fid, RE, 9, buf, ierr)
-          call pfui2l ( buf(6), tlen, ierr)
-          call pfusek (fid, floc+tlen+9, ierr )
 c
         endif
 c

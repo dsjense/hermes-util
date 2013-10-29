@@ -278,22 +278,19 @@ c
 c
         else
 c
-c ....... find out where we are in file; skip over scale and offset;
-c .......    read in the array length; then reposition file pointer
-c .......    to end of array
+c ....... Get pointer to first word of the array, and verify that it is
+c ....... in range for an INTEGER value. Then use pfuskiparr to skip
+c ....... over the array, returning the length
 c
           floc = pfutel (fid, ierr )
           locfa(iblk) = floc
-          if( floc.ne.locfa(iblk) ) then
+          if( floc.eq.locfa(iblk) ) then
+            call pfuskiparr(fid, floc, tlen, ierr)
+          else
             ierr = 3
             call pfserr ( PFMODU, ierr, fid,
      &                          'File offset (locfa) overflow' )
-            goto 999
           endif
-c
-          call pfusio (fid, RE, 9, buf, ierr)
-          call pfui2l ( buf(6), tlen, ierr)
-          call pfusek (fid, floc+tlen+9, ierr )
 c
         endif
 c

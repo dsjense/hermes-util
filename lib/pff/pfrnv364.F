@@ -204,9 +204,8 @@ c     Internal
       integer   i, io1, io2, io3, iloc, ilocx, ilocy, ilocz, iblk
       integer   lbblk, lbmax, lds, vds, traw, nrfu, off, tnx
       integer   tny, tnz, slen, nblen, nchrst, nchrsc, trunst, trunsc
-      HU_FPOS_TYPE lstadr
+      HU_FPOS_TYPE lstadr, tlocfa
       integer   buf(0:BUFLEN)
-      HU_FPOS_TYPE pfutel
 c
 c
 c ... write status message if DEBUG is on
@@ -375,15 +374,11 @@ c
 c
         else
 c
-c ....... find out where we are in file; skip over scale and offset;
-c .......    read in the array length; then reposition file pointer
-c .......    to end of array
+c ....... Skip over arrays, returning pointer to first word and length
 c
-          locfa(iblk) = pfutel (fid, ierr )
-          call pfusio (fid, RE, 9, buf, ierr)
-          call pfui2l ( buf(6), lenfa(iblk), ierr)
-          call pfusek (fid, locfa(iblk)*(lenfa(iblk)+9), ierr )
-c
+          call pfuskiparr(fid, locfa(iblk), lenfa(iblk), ierr)
+          call pfuskiparr(fid, tlocfa, lenfa(iblk), ierr)
+          call pfuskiparr(fid, tlocfa, lenfa(iblk), ierr)
           if ( ierr.ne.0 ) goto 999
 c
         endif

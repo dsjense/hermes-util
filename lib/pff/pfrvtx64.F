@@ -185,9 +185,8 @@ c     Internal
       integer   i, j, k, iloc, lds, tlen
       integer   vds, traw, nrfu, vofftmp, voffmax
       integer   slen, nblen, nchrst, nchrsc, trunst, trunsc
-      HU_FPOS_TYPE lstadr
+      HU_FPOS_TYPE llocv, lstadr
       integer   buf(0:BUFLEN), idlist(3), jdlist(3), kdlist(3)
-      HU_FPOS_TYPE pfutel
       real      xfact
 c
 c ----------------------------------------------------------------------
@@ -301,14 +300,10 @@ c
 c
           else
 c
-c ......... find out where we are in file; skip over scale and offset;
-c .........    read in the array length; then reposition file pointer
-c .........    to end of array
+c ....... Skip over array, returning pointer to first word and length
 c
-            locv = pfutel (fid, ierr )
-            call pfusio (fid, RE, 9, buf, ierr)
-            call pfui2l ( buf(6), tlen, ierr)
-            call pfusek (fid, locv+tlen+9, ierr )
+          call pfuskiparr(fid, locv, tlen, ierr)
+          if ( ierr.ne.0 ) go to 999
 c
           endif
 c
@@ -351,14 +346,11 @@ c
 c
           else
 c
-c ......... find out where we are in file; skip over scale and offset;
-c .........    read in the array length; then reposition file pointer
-c .........    to end of array
+c ......... Skip over array, returning pointer to first word and length
 c
-            locv = pfutel (fid, ierr )
-            call pfusio (fid, RE, 9, buf, ierr)
-            call pfui2l ( buf(6), tlen, ierr)
-            call pfusek (fid, locv+tlen+9, ierr )
+            call pfuskiparr(fid, llocv, tlen, ierr)
+            if ( ierr.ne.0 ) go to 999
+            if (j .EQ. 1) locv = llocv
 c
           endif
 c
@@ -394,14 +386,9 @@ c
 c
         else
 c
-c ....... find out where we are in file; skip over scale and offset;
-c .......    read in the array length; then reposition file pointer
-c .......    to end of array
+c ....... Skip over array, returning pointer to first word and length
 c
-          loca(i) = pfutel (fid, ierr )
-          call pfusio (fid, RE, 9, buf, ierr)
-          call pfui2l ( buf(6), tlen, ierr)
-          call pfusek (fid, loca(i)+tlen+9, ierr )
+          call pfuskiparr(fid, loca(i), tlen, ierr)
 c
         endif
 c
