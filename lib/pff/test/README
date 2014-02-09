@@ -28,9 +28,17 @@ Overview
   be used to determine the value of the end-of-file parameter 
   EOFSTA that should be used in the subroutine PFMIO.
 
-  TFLOAT helps determine the values PF2MIN and PF2MAX.  These parameters
-  determine the minimum and maximum power-of-two exponent for single
-  precision floating point numbers on a specific machine.
+  TFLOAT checks to make sure a specific machine's floating point
+  limits are properly handled, so that PFUF2I and PFUI2F will not
+  produce floating point exceptions or otherwise fail to function
+  properly. Critical parameters (PF2MIN and PF2MAX) determine the
+  minimum and maximum power-of-two exponent for single precision
+  floating point numbers on a specific machine. PFRMIN returns the
+  minimum normalized floating-point number that can be represented,
+  and whose inverse will not overflow. PFRMAX returns the maximum
+  normalized floating-point number that can be represented. With the
+  adoption of the IEEE 754 single-precision binary floating-point
+  format on most hardware, this test is very unlikely to fail.
 
   TFLUSH helps determine if the machine-dependent output buffer flush
   routine (pfmflu) is working properly.
@@ -38,8 +46,8 @@ Overview
   TDOUBLE tests that the encoding/decoding of double precision values
   to/from 5 16-bit ints is working correctly
 
-Using TREAD, TWRITE, TFLOAT, and TFLUSH
-
+TWRITE
+------
   Run make with the command line "make". Some changes to the
   Makefile may be required on a new machine or with a newer version of
   an operating system.
@@ -71,6 +79,8 @@ Using TREAD, TWRITE, TFLOAT, and TFLUSH
 
   >>> no differences
 
+TREAD
+-----
   Now run TREAD. Enter the file name "twrite.pff". TREAD reads and
   prints the 1st word from each of the 14 records in the file. These
   words should be the same. The first 2 records test the 4-byte integer
@@ -111,49 +121,53 @@ Using TREAD, TWRITE, TFLOAT, and TFLUSH
       12   14337   14337
       13   16385   16385
       14   18433   18433
- mio error =    -1  irec =    15
+  mio error =    -1  irec =    15
 
   >>> EOFSTA has the correct value
 
-  Run TFLOAT. Successively enter integer values.  If the power-of-two
-  exponents are exceeded the program will often abort.  At the minimum
-  end, some machines abort, while others set the value to zero.  Some
-  machines extend their lower range by throwing away mantissa precision.
-  This is indicated if the precision value deviates significantly 
-  from 1.0.
+TFLOAT
+------
+  Run TFLOAT. For all hardware/compiler configurations of which we are
+  aware, the test should pass, and produce output similar to:
 
-  Example:
+  $ tfloat
+   Current Float Limits:
+     MAX_EXP:          127
+     MIN_EXP:         -125
+    FLT_MIN:  1.17549435E-38  0x00800000
+    FLT_MAX:  3.40282347E+38  0x7F7FFFFF
+   TFLOAT PASSED
 
-  sahp058% tfloat
-   Enter PF2 parameter value
-  127                                  <--------  PF2MAX
-   Decoded MAX value =  1.70141E+38
-   Decoded MIN value =  8.50706E+37
-   Precision     =  1.0
-   1.0/MAX value     =  5.87747E-39    <--------  PFRMIN
-   1/(1/MAX) value   =  1.70141E+38
-   Enter PF2 parameter value
-  128
-   Decoded MAX value =  3.40282
-   Decoded MIN value =  1.70141
-   1.0/MAX value     =  0.29387
-   1/(1/MAX) value   =  3.40282
-   Precision     =  1.00000E-38
-   Enter PF2 parameter value
-  -127                                 <--------  PF2MIN
-   Decoded MAX value =  5.87747E-39
-   Decoded MIN value =  2.93874E-39
-   Precision     =  1.0
-   Enter PF2 parameter value
-  -128
-   Decoded MAX value =  .0
-   Decoded MIN value =  .0
-   Precision     =  .0
-   Enter PF2 parameter value
+  There are two ways that we anticipate that TFLOAT might fail. It
+  could run successfully to completion, but print a failure message,
+  Alternatively, it could produce a floating-point exception and
+  crash. In either case, there is currently not a machine-dependent
+  parameter that can be set to fix this problem (since there has never
+  been a need for one). However, if you should encounter a failure
+  while attempting to port this to a new environment, you will need to
+  email a description of your problem along with information about
+  your hardware/OS/compiler environment to the project administrators
+  (go to http://www.sourceforge.net/projects/hermes-util/support), and
+  we will provide a solution for you. You should also include any
+  output you get from running the test. In addition, for the case of a
+  floating-point exception failure, you will need to also do some
+  further tests (described below) and send the output of those tests
+  to us as well.
 
-  >>>  PF2MAX = 127,  PF2MIN = -127,  PFRMIN = 5.87747E-39
+  If a file named CHG_TFLOAT_MAX exists in the directory where you run
+  TFLOAT, it changes the behavior of the program. (Note that on
+  unix/linux systems, you can simply "touch CHG_TFLOAT_MAX" to invoke
+  this change.) In this altered mode, you will be prompted to change
+  the value of the MAX_EXP parameter. Begin by setting it to be one
+  less that its current value. If this runs to completion (PASS or
+  FAIL), you are done. If still crashes due to a floating-point
+  exception, iteratively repeat the test with successively smaller
+  values of MAX_EXP until the the test does run to completion. Then
+  send us the output from these test runs along with the information
+  requested in the preceding paragraph.
 
-
+TFLUSH
+------
   Run TFLUSH. This routine writes out consecutive 4096-byte blocks to an 
   output file.  For each block, it pauses twice, once after writing the block, 
   and once after calling pfmflu to flush the system output buffer.  After the
@@ -185,6 +199,8 @@ Using TREAD, TWRITE, TFLOAT, and TFLUSH
   q                             <--------  File should contain 12288 bytes.
 
 
+TDOUBLE
+-------
   Run TDOUBLE. This routine loops over some powers of pi, and:
      * executes pfud2i and prints out the 5 16-bit unsigned ints
      * executes pfui2d to convert back to a new double
