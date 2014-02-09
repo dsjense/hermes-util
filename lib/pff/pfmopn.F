@@ -158,11 +158,11 @@ c
 
           if ( .NOT.lexist ) then
             ierr = 3
-            call pfserr ( PFMODU, ierr, lun, 'File Does Not Exist' )
+            call pfserr ( PFMODU, ierr, fid, 'File Does Not Exist' )
             goto 999
           else if( lopen ) then
             ierr = 4
-            call pfserr ( PFMODU, ierr, lun, 'File Already Open' )
+            call pfserr ( PFMODU, ierr, fid, 'File Already Open' )
             goto 999
           endif
 c
@@ -225,7 +225,7 @@ c
    20 continue
 c
         ierr = 1
-        call pfserr ( PFMODU, ierr, lun, 'Error Opening File' )
+        call pfserr ( PFMODU, ierr, fid, 'Error Opening File' )
 c
   999 continue
 c
