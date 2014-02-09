@@ -31,23 +31,26 @@
 # define pf_flt_limits      HU_F77_FUNC_( pf_flt_limits, PF_FLT_LIMITS )
 #endif
 
-/*
-  Initializes MD parameters for floating point limits.
-
-  Note: this needs to be called in PFUOPN, and in any other module that
-        includes pfmdpr.inc and can be called without an open FID (like
-        pfui2f)
-
-    pf2max  -  Maximum power-of-2 exponent that is in range for this
-               machine's default REAL data type
-    pf2min  -  Minimum power-of-2 exponent that is in range for this
-               machine's default REAL data type
-    pfrmin  -  Minimum floating point number that can be inverted 
-               without floating point overflow
-*/
-void pf_flt_limits( int *pf2max, int *pf2min, float *pfrmin )
+/*! \brief Initializes MD parameters for Fortran floating point limits.
+ *
+ *  \note this needs to be called in PFUOPN, and in any other module that
+ *        includes pfmdpr.inc and can be called without an open FID (like
+ *        pfui2f)
+ *
+ *  \param pf2max Maximum power-of-2 exponent that is in range for this
+ *                machine's default REAL data type
+ *  \param pf2min Minimum power-of-2 exponent that is in range for this
+ *                machine's default REAL data type
+ *  \param pfrmin Minimum floating point number that can be inverted 
+ *                without floating point overflow
+ *  \param pfrmax Maximum floating point number that can be represented
+ *                without floating point overflow
+ */
+void pf_flt_limits( int *pf2max, int *pf2min, float *pfrmin, float *pfrmax )
 {
   *pf2max = FLT_MAX_EXP - 1;
   *pf2min = FLT_MIN_EXP;
-  *pfrmin = FLT_MIN;
+  *pfrmax = FLT_MAX;
+  *pfrmin = 1.0/FLT_MAX;
+  if (FLT_MIN > *pfrmin ) *pfrmin = FLT_MIN;
 }
