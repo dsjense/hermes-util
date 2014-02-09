@@ -96,6 +96,8 @@ c       pf2min  -  Minimum power-of-2 exponent that is in range for this
 c                  machine's default REAL data type
 c       pfrmin  -  Minimum floating point number that can be inverted 
 c                  without floating point overflow
+c       pfrmax  -  Minimum floating point number that can be represented 
+c                  without floating point overflow
 c       tmax    -  maximum of encoded integers
 c       tmin    -  minimum of encoded integers
 c       twooff  -  power-of-2 multiplier of mantissa
@@ -145,7 +147,7 @@ c     Passed:
 c
 c     Internal
       integer   ie, is, i2, i2m, i2rest, i2x, pf2max, pf2min, tmin, tmax
-      real      pfrmin, twooff, y, xsign
+      real      pfrmax, pfrmin, twooff, y, xsign
 c
 c ... External Block Data
       external  pffbd
@@ -184,7 +186,7 @@ c
 c
 c ... get FLOAT LIMITS
 c
-      call pf_flt_limits(pf2max, pf2min, pfrmin)
+      call pf_flt_limits(pf2max, pf2min, pfrmin, pfrmax)
 c
 c ... extract excess-8192 exponent and sign bit from 3rd integer
 c

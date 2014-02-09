@@ -90,6 +90,8 @@ c       pf2min  -  Minimum power-of-2 exponent that is in range for this
 c                  machine's default REAL data type
 c       pfrmin  -  Minimum floating point number that can be inverted 
 c                  without floating point overflow
+c       pfrmax  -  Minimum floating point number that can be represented 
+c                  without floating point overflow
 c       rscale  -  inverse of "scale"
 c       scale   -  scale factor for converting integers to floats
 c
@@ -143,7 +145,7 @@ c ... Parameters:
 c
 c     Internal
       integer   ib, ib_incr, iw, ioff, ilast, pf2max, pf2min
-      real      maxv, minv, offset, pfrmin, rscale, scale
+      real      maxv, minv, offset, pfrmax, pfrmin, rscale, scale
 c
 c ... External Block Data
       external  pffbd
@@ -169,7 +171,7 @@ c
 c
 c ... get FLOAT LIMITS
 c
-      call pf_flt_limits(pf2max, pf2min, pfrmin)
+      call pf_flt_limits(pf2max, pf2min, pfrmin, pfrmax)
 c
       if ( prec.eq.FP_FULL ) then
 c

@@ -124,6 +124,8 @@ c       pf2min  -  Minimum power-of-2 exponent that is in range for this
 c                  machine's default REAL data type
 c       pfrmin  -  Minimum floating point number that can be inverted 
 c                  without floating point overflow
+c       pfrmax  -  Minimum floating point number that can be represented 
+c                  without floating point overflow
 c       roff10  -  real power-of-ten offset
 c       scale   -  scale factor for converting integers to floats
 c
@@ -181,7 +183,7 @@ c     Internal
       integer   lenia, lenfa, mxlbuf, nleft, nread, off10
       integer   pf2max, pf2min
       HU_FPOS_TYPE iloc
-      real      offset, pfrmin, scale
+      real      offset, pfrmax, pfrmin, scale
       real      lgsca, lgoff, lgrang, lgmax, biglog, roff10
       HU_FPOS_TYPE pfutel
 c
@@ -254,7 +256,7 @@ c
 c
 c ....... get FLOAT LIMITS
 c
-          call pf_flt_limits(pf2max, pf2min, pfrmin)
+          call pf_flt_limits(pf2max, pf2min, pfrmin, pfrmax)
 c
           lgsca  = alog10(abs(scale)) + io2
           lgrang = LOG215 + lgsca
