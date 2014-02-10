@@ -188,6 +188,7 @@ $(MACRO_LIST_FILE) build_macro_list :
 	@bld_macro_list -mtest -nwinrtl -sc -scc -OTEST_TARGETS -Ead \
 	                $(PRODNAME)
 
+ifneq ($(strip $(NEED_BOOTSTRAP)),yes)
 $(DEP_LIST_FILE) : $(SRCS) $(INCS)
 	@bld_dep_list -mhermes -nwinrtl -sc -S'# LIBRARY dependencies' -lP \
 	              -e0 $(PRODNAME)
@@ -220,6 +221,7 @@ nmakedepend :
 	              $(DEP_INCDIRS) $(CPPFLAGS) -e0 $(PRODNAME) .nmake
 	@bld_dep_list -mtest -sc -scc -S"# Test dependencies" -W -a \
 	              $(DEP_INCDIRS) $(CPPFLAGS) -e0 $(PRODNAME) .nmake
+endif
 
 cleandep:
 	@rm -f $(MACRO_LIST_FILE) $(DEP_LIST_FILE)
