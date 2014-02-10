@@ -250,6 +250,10 @@ int main(int argc, char *argv[])
       while ( offset < top ) {
         int nextlen = std::min(max1line,top - offset);
         string part = sline.substr(offset,nextlen);
+        // DON'T want to separate a backslash from a trailing special character
+        if ( part.at(nextlen-1) == '\\' &&  part.at(nextlen-2) != '\\' ) {
+          part.erase(--nextlen);
+        }
         if ( top-offset <= max1line ) finish = &suffix;
         out << *start << part << *finish << endl;
         offset += nextlen;
