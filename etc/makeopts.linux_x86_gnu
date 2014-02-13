@@ -21,7 +21,7 @@
 
 # Linux on X86 processors w/ GNU Fortran, C and C++ compilers.
 
-HU_SYS_LOCAL = linux_x86_gnu:linux_x86_64_gnu:
+HU_SYS_LOCAL = :linux_x86_gnu:linux_x86_64_gnu:
 HU_SYSTEM = LINUX_X86
 FC            = gfortran
 MPI_FC        = mpif77
