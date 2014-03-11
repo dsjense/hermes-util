@@ -166,12 +166,14 @@ endif
 
 # Presently, MPI_ROOT_C is used for the MPI version of pffc -- it only needs
 # to be defined if you build this library
-setenv MPI_ROOT_C $MPI_ROOT
+if ( $?MPI_ROOT != 0 ) then
+  setenv MPI_ROOT_C $MPI_ROOT
+endif
 
 setenv HERMES_ARCH_LIST $HERMES_SYS_TYPE # default value
 
 # if extra_ARCH_LIST is set, add it to HERMES_ARCH_LIST
-if ( "$extra_ARCH_LIST" != "" ) then
+if ( $?extra_ARCH_LIST != 0 ) then
   setenv HERMES_ARCH_LIST "$HERMES_ARCH_LIST $extra_ARCH_LIST"
 endif
 
@@ -212,7 +214,7 @@ endif
 #
 #  IDL/PFIDL environmental variables
 #
-if ( "$IDLROOT" != "" ) then
+if ( $?IDLROOT != 0 ) then
   if ( ! -d "$IDLROOT" ) then
     set idlexe=`which idl | grep '/idl$'`
     if ( $idlexe != "" ) then
