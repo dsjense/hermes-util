@@ -32,10 +32,13 @@ as if it were a delimiter character. Note this means that individual
 commands can span multiple lines and multiple commands can be on a
 single line. In fact, commands needn't even start at the beginning of
 an input line, although such usage is probably best avoided in the
-interest of readability. In addition, comments can be inserted into
-the input file using the special comment character '#'. The comment
-character, when not quoted or escaped (described later), causes itself
-and the remainder of the input line containing it to be discarded.
+interest of readability. It should also be noted that if a parsing
+error occurs while processing a command, the remainder of the line
+will be discarded; consequently, any additional commands on the same
+line will not be processed. Comments can be inserted into the input
+file using the special comment character '#'. The comment character,
+when not quoted or escaped (described later), causes itself and the
+remainder of the input line containing it to be discarded.
 
 COMMAND SYNTAX
 All PFFDIFF commands have the form:
@@ -44,43 +47,36 @@ All PFFDIFF commands have the form:
 
 where "cmd_name" is the name of a supported command, followed by
 multiple, possibly optional, order-independent arguments. Arguments
-can be of two forms: a keyword-value argument, or an option-flag
-argument. A keyword-value argument has the form:
+can be of two forms: an option-flag argument, or a keyword-value
+argument.
 
-     kwrd<kwrd_separator>val
-
-where "kwrd_separator" is one of the valid keyword separator
-characters '=' or ':', optionally proceeded and/or followed by any
-number of delimiter characters. "kwrd" is a valid keyword for the
-command and "val" is the value to be used for the keyword. A
-option-flag argument has the form:
+An option-flag argument has the form:
 
      <opt_flg>opt
 
 where "opt_flag" is the option flag character '/' and "opt" is a valid
 option name for the command.
 
-PFFDIFF matches command names, keywords, or options (referred to
-collectively as identifiers) referenced in the input control file by
-performing a case-insensitive comparison of each supplied identifier
-to the corresponding supported identifiers. Identifiers can usually be
-abbreviated by using only their first few characters. The minimum
-number of characters for the abreviation can be determined from the
-documentation for the particular identifier. For example, if the
-command TESTFILE is documented by TEST[FILE], then the shortest
-recognized abreviation would be TEST. For this example, "TEST",
-"testfile", or "TestFi" would all be recognized as the TESTFILE
-command, but "TES", "testp", and "testfile1" would not be recognized.
+A keyword-value argument has the form:
+
+     kwrd<kwrd_separator>val
+
+where "kwrd_separator" is one of the valid keyword delimiter
+characters '=' or ':', optionally proceeded and/or followed by any
+number of delimiter characters. "kwrd" is a valid keyword for the
+command and "val" is the value to be used for the keyword.
 
 A value supplied in the control file for a keyword can be either a
 number (a string that can be interpreted as an integer or real
 number), a string (any other string not containing an unquoted or
 unescaped special character, i.e., a delimiter, comment, keyword
-sparator, or option flag character), or a list of number or string
-values separated by delimiter characters. The documentation for each
-keyword will define which of these value types are expected, and
+sparator, or option flag character), a list of number or string values
+separated by delimiter characters, or a more complex value that MUST
+be enclosed within the value delimiters "{}". The documentation for
+each keyword will define which of these value types are expected, and
 providing an unexpected type is processed as a parsing error. Also
-note that string values are case sensitive.
+note that string values are case sensitive, and that value delimiters
+can be used to enclose any legal value.
 
 To specify a string value that contains one or more characters with
 special meaning, two methods are available.  If a string of characters
@@ -97,10 +93,23 @@ which case they lose their special meaning and are interpreted
 literally. Note that to include a '"' or '\' character literally, it
 must be escaped, whether within delimiting quote characters or not.
 
+PFFDIFF matches command names, keywords, or options (referred to
+collectively as identifiers) referenced in the input control file by
+performing a case-insensitive comparison of each supplied identifier
+to the corresponding supported identifiers. Identifiers can usually be
+abbreviated by using only their first few characters. The minimum
+number of characters for the abreviation can be determined from the
+documentation for the particular identifier. For example, if the
+command TESTFILE is documented by TEST[FILE], then the shortest
+recognized abreviation would be TEST. For this example, "TEST",
+"testfile", or "TestFi" would all be recognized as the TESTFILE
+command, but "TES", "testp", and "testfile1" would not be recognized.
+
 SUPPORTED COMMANDS
 PFFDIFF commands fall into one of two distinct types. The first type
 are used to manage the PFF file or files that will be used for the
-analysis. The second type perform some sort of analysis of the data,
+analysis, and to customize the the rules for the comparison of PFF
+datasets. The second type perform some sort of analysis of the data,
 and optionally can produce a status (pass or fail) for that
 analysis. Note that one particular choice of delimiter usage has been
 made for this documentation. The reader is reminded that delimiter
@@ -128,6 +137,37 @@ as the base file) that is required by most of the analysis commands to
 provide baseline data for comparison purposes. Its usage is identical
 to that of the TESTFILE command, except that the operations are
 associated with the base file rather than the test file.
+
+Currently there is one command for customizing the dataset comparison
+rules. By default, when comparing datasets from the "test" and "base"
+files, it is required that both their file indicies and their titles
+match in order for the comparison to pass. If either are different,
+the comparison test will fail. The match command can be used to modify
+this behavior, and has two forms:
+
+MAT[CH] [/TI[TLE]] [/ON|/OF[F]|SUB[STRING]=M:n]
+  or
+MAT[CH] /I[NDEX] [/ON|/OF[F]]
+
+The first form changes the state of the environment for handling title
+matching. The /TITLE flag can be omitted and is the default form of
+the command. Similarly, the /ON flag is the default, and restores the
+pffdiff's default state for title matching. If /OFF is specified,
+title matching will not be performed for any subsequent test. The
+value supplied for the SUBSTRING keyword is a pair of integers, m<=n,
+that specify a substring of each dataset title that are required to
+match (note the first character of the string is by convention 1). If
+"n" is not positive, it indicates that the substring extends from the
+"m"th character to the last character of each dataset title. Note that
+this is a special use of the ':' character, and that "m:n" is
+considered to be a single token (value delimiters are consequently not
+required). Note that a MATCH /TITLE command with either the /ON or
+/OFF flag turns off any previous SUBSTRING specification.
+
+The second form of the MATCH command changes the state of the
+environment for handling dataset index matching. Here the /INDEX flag
+is required, and /ON and /OFF behave exactly as they do for the MATCH
+/TITLE command.
 
 The remaining commands are used to activate a specific analysis of
 data in the test file. Note that these commands will fail if there is
@@ -158,17 +198,18 @@ one of the spatial (independent) dimensions over which the requested
 analysis of data is to be performed. The format for a subrange
 specification is:
 
-  SUB[RANGE] : [dir] LOW=number HI[GH]=number
+  SUB[RANGE] : {[dir] LOW=number HI[GH]=number}
 
 "dir" is an integer value that specifies the spatial dimension to
 which the subrange specification applies. It is optional for datasets
 with only one spatial dimension. The LOW and HIGH keywords provide
 lower and upper limits for the subrange, respectively, and at least
 one of the two must be specified. If either LOW or HIGH is not
-specified, then no lower or upper limit, respectively, is
-used. Multiple SUBRANGE specifications can be provided for a single
-command, limited only by the number of spatial dimensions in the
-dataset to which the command is applied.
+specified, then no lower or upper limit, respectively, is used. Note
+that the value supplied for the SUBRANGE keyword must be enclosed
+within value delimiters "{}". Multiple SUBRANGE specifications can be
+provided for a single command, limited only by the number of spatial
+dimensions in the dataset to which the command is applied.
 
 If the /GRID option is specified immediately after the command name
 (note this is the one case where command arguments are not
@@ -262,19 +303,24 @@ PFFDIFF returns 0.  Otherwise it returns the sum of all the errors
 encountered and the number of commands that produce a "fail" status.
 
 EXAMPLE
-The following file will direct PFFDIFF to perform data analysis on
-datasets in the file regress_1.pff. The file baseline_1.pff will
-provide baseline data for any commands that require a base
-file. RANGE_ALLOWED tests will be performed on datasets 1 and 2, a
-RMS_DEVIATION test will be performed on the dataset whose title is
-"Voltage", and a MEAN_DEVIATION test will be performed on the dataset
-whose title is "Current @ inlet". Next, it performs a RANGE_ALLOWED
-test, without specifying any limits, on dataset 8 from a new test file
-regress_2.pff. It next performes a MAX_DEVIATION test on dataset 10,
-subject to a SUBRANGE restriction in the second spatial (independent)
-coordinate. Finally, a RANGE_ALLOWED test is performed the grid in the
-first coordinate direction of the third block of dataset 11, with no
-supplied limiting values.
+
+The following file directs PFFDIFF to perform data analysis on
+datasets in the file regress_1.pff. The file baseline_1.pff provides
+baseline data for any commands that require a base file. After setting
+the test file, RANGE_ALLOWED tests are performed on datasets 1 and
+2. The dataset index matching requirement is then turned off before a
+RMS_DEVIATION test is performed on the dataset whose title is
+"Voltage" and a MEAN_DEVIATION test is performed on the dataset whose
+title is "Current @ inlet", afterwhich index matching is turned back
+on. After setting the environment to match dataset titles over just
+their first 20 characters, it next performs a MAX_DEVIATION test on
+dataset 10, subject to a SUBRANGE restriction in the second spatial
+(independent) coordinate, then subsequently turns full title matching
+back on. Next, it performs a RANGE_ALLOWED test, without specifying
+any limits, on dataset 8 from a new test file regress_2.pff.  Finally,
+a RANGE_ALLOWED test is performed the grid in the first coordinate
+direction of the third block of dataset 11, with no supplied limiting
+values.
 
    # Sample input file
 
@@ -284,15 +330,19 @@ supplied limiting values.
 
    base, file=baseline_1.pff
 
+   match, /ind /off
    rms, title=Voltage   limit : 1.5e-5
    mean, tit = "Current @ inlet" lim:1e-7
+   match /ind
+
+   match, /ti sub=1:20
+   max, ds=10, sub={2 (low=0.012, hi=0.085)}
+   match
 
    test,fi=regress_2.pff  # first closes test file that's already open
    base, /cl              # close base file -- not really necessary
 
    range, ds=8
-
-   max, ds=10, sub:2 (low=0.012 hi=0.085)
 
    range /grid, ds=11, block=3 dir=1
 
