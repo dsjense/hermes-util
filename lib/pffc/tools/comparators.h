@@ -31,15 +31,15 @@
 #include <list>
 #include <string>
 #include <stdexcept>
-#include "token.h"
-#include "token_stream.h"
 #include "code_types.h"
 #include "PFFdataset.h"
 #include "test_error.h"
 #include "metrics.h"
 
 class Test_Environment;
-class Generic_Metric;
+class Syntax;
+class Token;
+class Token_Stream;
 
 /*! \brief An abstraction for a test to be performed on PFF datasets from
  *         supplied "test" and/or "base" files.
@@ -71,13 +71,11 @@ class Generic_Test
    *                         provides PFF datasets from the "base" and/or
    *                         "test" files, etc.
    *  \param type            Type of metric to be used
-   *  \param keyword_delims  Keyword delimiters for parsing.
-   *  \param flag_chars      For parsing, characters that prefix option flags.
+   *  \param sntx            Pointer to Syntax object for handling keyword and 
+   *                         value delimiters as well as option flags.
    */
   Generic_Test(Token_Stream *tok_stream, Test_Environment* test_env, 
-               Generic_Metric::Metric_Type type,
-               const std::string &keyword_delims,
-               const std::string &flag_chars="");
+               Generic_Metric::Metric_Type type, const Syntax *sntx);
 
   /*! \brief Alternate constructor.
    *
@@ -314,11 +312,13 @@ class Generic_Test
   //! Type of metric used for this test
   Generic_Metric::Metric_Type test_type;
 
-  //! Keyword delimiters for parsing.
-  std::string kw_delims;
+  //! Pointer to object for handling keyword/value delimiters and option flags.
+  const Syntax *syntax;
 
-  //! For parsing, characters that prefix option flags.
-  std::string flag_chrs;
+  /*! \brief Flag indicating that the keyword value currently being processed
+   *         needs a terminating value delimiter.
+   */
+  bool need_val_rhs;
 
   /*! \brief If true, the test performed by this object requires data from a
    *         "test" file.
@@ -377,13 +377,11 @@ class Grid_Test : public Generic_Test
    *                         provides PFF datasets from the "base" and/or
    *                         "test" files, etc.
    *  \param type            Type of metric to be used
-   *  \param keyword_delims  Keyword delimiters for parsing.
-   *  \param flag_chars      For parsing, characters that prefix option flags.
+   *  \param sntx            Pointer to Syntax object for handling keyword and 
+   *                         value delimiters as well as option flags.
    */
   Grid_Test(Token_Stream *tok_stream, Test_Environment* test_env, 
-            Generic_Metric::Metric_Type type,
-            const std::string &keyword_delims,
-            const std::string &flag_chars="");
+            Generic_Metric::Metric_Type type, const Syntax *sntx);
 
   /*! \brief Alternate constructor.
    *
@@ -484,13 +482,11 @@ class Attr_Test : public Generic_Test
    *                         provides PFF datasets from the "base" and/or
    *                         "test" files, etc.
    *  \param type            Type of metric to be used
-   *  \param keyword_delims  Keyword delimiters for parsing.
-   *  \param flag_chars      For parsing, characters that prefix option flags.
+   *  \param sntx            Pointer to Syntax object for handling keyword and 
+   *                         value delimiters as well as option flags.
    */
   Attr_Test(Token_Stream *tok_stream, Test_Environment* test_env, 
-            Generic_Metric::Metric_Type type,
-            const std::string &keyword_delims,
-            const std::string &flag_chars="");
+            Generic_Metric::Metric_Type type, const Syntax *sntx);
 
   /*! \brief Alternate constructor.
    *

@@ -31,7 +31,10 @@
 #include <sstream>
 #include "comparators.h"
 #include "metrics.h"
+#include "syntax.h"
 #include "test_environment.h"
+#include "token.h"
+#include "token_stream.h"
 
 using std::string;
 using std::list;
@@ -130,12 +133,10 @@ bool Generic_Test::SubRangeInfo::GetBlockIndicies(int block, int *&max,
 Generic_Test::Generic_Test(Token_Stream *tok_stream,
                            Test_Environment* test_env,
                             Generic_Metric::Metric_Type type,
-                           const string &keyword_delims,
-                           const string &flag_chars)
+                           const Syntax *sntx)
   : token_stream(tok_stream), env(test_env), metric(0), test_type(type),
-    kw_delims(keyword_delims), flag_chrs(flag_chars), use_base(true),
-    use_test(true), loop_count(0), ds_number(-1), ds_name(""), base_ds(0),
-    test_ds(0), test_name("??"), sr_info(0)
+    syntax(sntx), use_base(true), use_test(true), loop_count(0), ds_number(-1),
+    ds_name(""), base_ds(0), test_ds(0), test_name("??"), sr_info(0)
 /*****************************************************************************/
 {
   if (test_type == Generic_Metric::RANGE ) use_base = false;
@@ -143,10 +144,9 @@ Generic_Test::Generic_Test(Token_Stream *tok_stream,
 
 Generic_Test::Generic_Test(Test_Environment* test_env, int ds_num,
                            Generic_Metric::Metric_Type type, Real *lims)
-  : token_stream(0), env(test_env), metric(0), test_type(type), kw_delims(""),
-    flag_chrs(""), use_base(true), use_test(true),
-    loop_count(0), ds_number(ds_num), ds_name(""), base_ds(0), test_ds(0),
-    test_name("??")
+  : token_stream(0), env(test_env), metric(0), test_type(type), syntax(0),
+    use_base(true), use_test(true), loop_count(0), ds_number(ds_num),
+    ds_name(""), base_ds(0), test_ds(0), test_name("??")
 /*****************************************************************************/
 {
   switch (test_type) {
@@ -187,12 +187,14 @@ void Generic_Test::Initialize() throw(Test_Error)
 /*****************************************************************************/
 {
   bool both = true;
+  bool NandT = false;
   int dsnb = ds_number;
   int dsnt = ds_number;
   string titleb = ds_name;
   string titlet = ds_name;
 
-  if ( ds_number < 1 && ds_name.empty() ) 
+  if ( ds_number > 0 && !ds_name.empty() ) NandT = true;
+  else if ( ds_number < 1 && ds_name.empty() ) 
     throw Test_Error("PFF dataset title or number not supplied");
 
   if (use_base) {
@@ -210,7 +212,7 @@ void Generic_Test::Initialize() throw(Test_Error)
     ds_type = base_ds->Raw_Type();
     titleb = base_ds->Title();
     if ( ds_name.empty() ) ds_name = titleb;
-    else if ( ds_name != titleb )
+    else if ( NandT && !env->Title_Match(ds_name,titleb) )
       throw Test_Error("Dataset number/title mismatch in base file", ds_name);
   } else both = false;
 
@@ -231,20 +233,26 @@ void Generic_Test::Initialize() throw(Test_Error)
     if ( ds_name.empty() ) {
       if ( !use_base ) ds_name = titlet;
     }
-    else if ( ds_name != titlet )
+    else if ( NandT && !env->Title_Match(ds_name,titlet) )
       throw Test_Error("Dataset number/title mismatch in test file", ds_name);
   } else both = false;
 
   if ( both ) {
     string msg("");
-    if ( dsnt != ds_number ) msg += "Base & Test file indicies do not match";
+    if ( !env->Index_Match(dsnt,ds_number) ) {
+      msg += "Base & Test file indicies do not match: ";
+      ostringstream tmp;
+      tmp << ds_number << "," << dsnt;
+      msg += tmp.str();
+    }
 
-    if ( titlet != ds_name ) {
+    if (!env->Title_Match(ds_name,titlet)  ) {
       if ( !msg.empty() ) msg += "\n     ";
-      msg += "Base & Test file names do not match: ";
+      msg += "Base & Test dataset names do not match:\n   \"";
       msg += ds_name;
-      msg += ", ";
+      msg += "\"\n   \"";
       msg += titlet;
+      msg += "\"";
     }
 
     if ( base_ds->Raw_Type() != test_ds->Raw_Type() ) {
@@ -407,9 +415,7 @@ Generic_Test::Keyword_Status Generic_Test::Parse_Keyword(Token &keyword)
 
   while (1) {
     tok = token_stream->Lookahead();
-    if ( tok.Type() == TK_STRING &&
-         flag_chrs.find(tok.As_String()) != string::npos ) {
-      token_stream->Pop();
+    if ( syntax->isOptionFlag(tok,token_stream) ) {
       tok = token_stream->Lookahead();
       if ( tok.Type() != TK_IDENTIFIER )
         token_stream->Parse_Error("Illegal flag syntax",
@@ -422,9 +428,8 @@ Generic_Test::Keyword_Status Generic_Test::Parse_Keyword(Token &keyword)
       key = tok;
       token_stream->Pop();
       tok = token_stream->Pop();
-      if ( tok.Type() == TK_STRING &&
-           kw_delims.find(tok.As_String()) != string::npos ) {
-        rval = IS_KEYWORD;
+      if ( syntax->isKeywordDelimiter(tok,token_stream,need_val_rhs,false) ) {
+         rval = IS_KEYWORD;
       }
       else { // otherwise, put both tokens back on the stack and return
         token_stream->Push_Back(tok);
@@ -441,23 +446,17 @@ Generic_Test::Keyword_Status Generic_Test::Parse_Keyword(Token &keyword)
     if ( rval == IS_OTHER ) break;
 
     // now scan & process keywords that Generic_Test knows about
-    if ( key == "DS*_INDEX" ) {
-      if ( rval == IS_FLAG )
-        token_stream->Parse_Error("Unknown option flag", key.As_String());
-      else                   ds_number = token_stream->Parse_Integer();
-    }
-    else if ( key == "TI*TLE" ) {
-      if ( rval == IS_FLAG )
-        token_stream->Parse_Error("Unknown option flag", key.As_String());
-      else                   ds_name = token_stream->Parse_String();
-    }
-    else if ( key == "SUB*RANGE" ) {
-      // syntax is:  SUBRANGE : [dir] [LOW=value] [HIGH=val]
-      //    dir is optional for 1D datasets
-      //    Either HIGH or LOW must be provided, or both
-      if ( rval == IS_FLAG )
-        token_stream->Parse_Error("Unknown option flag", key.As_String());
-      else {
+    if ( rval == IS_KEYWORD ) {
+      bool handled = true;
+      if ( key == "DS*_INDEX" ) ds_number = token_stream->Parse_Integer();
+      else if ( key == "TI*TLE" ) ds_name = token_stream->Parse_String();
+      else if ( key == "SUB*RANGE" ) {
+        // syntax is:  SUBRANGE = {[dir] [LOW=value] [HI*GH=val]}
+        //    dir is optional for 1D datasets
+        //    Either HIGH or LOW must be provided, or both
+        if ( !need_val_rhs ) 
+          token_stream->Parse_Error("SUBRANGE value must be delimited by \""
+                                    + syntax->ValueDelimiters() + "\"");
         SubRangeInput *sub = new SubRangeInput;
         sublist.push_back(sub);
         tok = token_stream->Lookahead();
@@ -465,54 +464,51 @@ Generic_Test::Keyword_Status Generic_Test::Parse_Keyword(Token &keyword)
           sub->dir = token_stream->Parse_Integer() - 1;
           tok = token_stream->Lookahead();
         }
-        bool done = false;
-        bool err = false;
-        while (tok.Type() == TK_IDENTIFIER && !done ) {
+        while ( !syntax->isRightValueDelimiter(tok, token_stream, false) ) {
           key = tok;
           token_stream->Pop();
           tok = token_stream->Pop();
-          if ( tok.Type() == TK_STRING &&
-               kw_delims.find(tok.As_String()) != string::npos ) {
-            rval = IS_KEYWORD;
-          }
-          else if (tok.Type() == TK_EXIT ) {
-            rval = IS_OTHER;
-            break;
-          }
-          else done = true;
+          bool need_rhs;
+          if (!syntax->isKeywordDelimiter(tok,token_stream,need_rhs,false))
+            token_stream->Parse_Error("Subrange keyword syntax error:",
+                                         key.As_String());
 
-          if ( !done && (key == "LOW" || key == "HI*GH") ) {
-            Real val = token_stream->Parse_Real();
-            if ( key == "LOW" ) {
-              if ( sub->mode & 1 ) err = true;
-              else {
-                sub->mode += 1;
-                sub->low = val;
-              }
-            }
-            else {
-              if ( sub->mode & 2 ) err = true;
-              else {
-                sub->mode += 2;
-                sub->high = val;
-              }
-            }
+          if ( key == "LOW" ) {
+            if ( sub->mode & 1 ) 
+              token_stream->Parse_Error("Duplicate LOW subrange keyword");
+            sub->low = token_stream->Parse_Real();
+            sub->mode += 1;
           }
-          else done = true;
-
-          if ( done && sub->mode == 0 ) err = true;
-          if (err) token_stream->Parse_Error("Subrange option needs HIGH and/"
-                                      "or LOW specifier", key.As_String());
-          if (done) {
-            token_stream->Push_Back(tok);
-            token_stream->Push_Back(key);
+          else if ( key == "HI*GH" ) {
+            if ( sub->mode & 2 )
+              token_stream->Parse_Error("Duplicate HIGH subrange keyword");
+            sub->high = token_stream->Parse_Real();
+            sub->mode += 2;
+          }
+          else token_stream->Parse_Error("Unknown subrange keyword:",
+                                         key.As_String());
+          if ( need_rhs ) {
+            tok = token_stream->Lookahead();
+            if ( !syntax->isRightValueDelimiter(tok, token_stream) )
+              token_stream->Parse_Error("Unmatched value delimiter");
           }
           tok = token_stream->Lookahead();
         }
+        if ( sub->mode == 0 ) 
+          token_stream->Parse_Error("Subrange option needs HIGH and/"
+                                    "or LOW specifier", key.As_String());
+      }
+      else handled = false;
+      // If we don't know about this keyword, pass back to caller
+      if ( !handled ) break;
+      else if ( need_val_rhs ) {
+        tok = token_stream->Lookahead();
+        if ( !syntax->isRightValueDelimiter(tok, token_stream) )
+          token_stream->Parse_Error("Unmatched value delimiter");
       }
     }
-    else break; // If we don't know about this keyword, pass back to caller
-
+    // now scan & process options that Generic_Test knows about
+    else if ( rval == IS_FLAG ) break;  // no options known
     if ( rval == IS_OTHER ) break;
   }
   keyword = key;
@@ -580,8 +576,16 @@ void Generic_Test::Parse_Metric_Keywords()
           matched = true;
         }
     }
-    if (!matched) 
-      token_stream->Parse_Error("Unknown keyword: ", key.As_String());
+    if (!matched) {
+      string s = "Unknown keyword: ";
+      if ( stat == IS_FLAG ) s = "Unknown option: /";
+      token_stream->Parse_Error(s + key.As_String());
+    }
+    else if ( need_val_rhs ) {
+      key = token_stream->Lookahead();
+      if ( !syntax->isRightValueDelimiter(key, token_stream) )
+        token_stream->Parse_Error("Unmatched value delimiter");
+    }
   }
   switch (test_type) {
     case Generic_Metric::MAXIMUM:
@@ -599,8 +603,8 @@ void Generic_Test::Parse_Metric_Keywords()
 /*****************************************************************************/
 Grid_Test::Grid_Test(Token_Stream *tok_stream, Test_Environment* test_env,
                      Generic_Metric::Metric_Type type,
-                     const string &keyword_delims, const string &flag_chars)
-  : Generic_Test(tok_stream, test_env, type, keyword_delims, flag_chars),
+                     const Syntax *sntx)
+  : Generic_Test(tok_stream, test_env, type, sntx),
     block(0), direction(0)
 /*****************************************************************************/
 {
@@ -755,16 +759,22 @@ Generic_Test::Keyword_Status Grid_Test::Parse_Keyword(Token &keyword)
     if ( rval == IS_OTHER ) break; // Must be next command
  
     // now scan & process keywords that Grid_Test knows about
-    if ( key == "BL*OCK" ) {
-      if ( rval == IS_FLAG )
-        token_stream->Parse_Error("Unknown option flag", key.As_String());
-      else                   block = token_stream->Parse_Integer();
+    if ( rval == IS_KEYWORD ) {
+      bool handled = true;
+      if ( key == "BL*OCK" ) block = token_stream->Parse_Integer();
+      else if ( key == "DIR*ECTION" ) direction = token_stream->Parse_Integer();
+      else handled = false;
+      // If we don't know about this keyword, pass back to caller
+      if ( !handled ) break;
+      else if ( need_val_rhs ) {
+        tok = token_stream->Lookahead();
+        if ( !syntax->isRightValueDelimiter(tok, token_stream) )
+          token_stream->Parse_Error("Unmatched value delimiter");
+      }
     }
-    else if ( key == "DIR*ECTION" ) {
-      if ( rval == IS_FLAG )
-        token_stream->Parse_Error("Unknown option flag", key.As_String());
-      else                   direction = token_stream->Parse_Integer();
-    }
+    // now scan & process options that Grid_Test knows about
+    // currently, there are no such options
+    //else if ( rval == IS_FLAG ) break;
     else break; // If we don't know about this keyword, pass back to caller
   }
   keyword = key;
@@ -774,8 +784,8 @@ Generic_Test::Keyword_Status Grid_Test::Parse_Keyword(Token &keyword)
 /*****************************************************************************/
 Attr_Test::Attr_Test(Token_Stream *tok_stream, Test_Environment* test_env,
                      Generic_Metric::Metric_Type type,
-                     const string &keyword_delims, const string &flag_chars)
-  : Generic_Test(tok_stream, test_env, type, keyword_delims, flag_chars),
+                     const Syntax *sntx)
+  : Generic_Test(tok_stream, test_env, type, sntx),
     block(0), direction(0)
 /*****************************************************************************/
 {
@@ -856,7 +866,10 @@ Generic_Test::Keyword_Status Attr_Test::Parse_Keyword(Token &keyword)
     if ( rval == IS_OTHER ) break; // Must be next command
  
     // now scan & process keywords that Attr_Test knows about
-    // currently, there are no such keywords, so just break
+    // currently, there are no such keywords
+
+    // now scan & process options that Attr_Test knows about
+    // currently, there are no such options
 
     break; // If we don't know about this keyword, pass back to caller
   }
