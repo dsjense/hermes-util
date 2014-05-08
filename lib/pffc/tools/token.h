@@ -207,7 +207,6 @@ class Token
    *     if they are \b case-insensitively identical over their entire lengths.
    * \li If tok is a string token (TK_STRING), then the tokens match if they
    *     are \b case-sensitively identical over their entire lengths.
-   *     matches the char string if they are case-sensitively identical.
    * \li If tok is of any other type, tok and k to NOT match.
    */
   //@{
