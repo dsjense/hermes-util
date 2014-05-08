@@ -85,11 +85,7 @@ ifneq ($(strip $(IDL)),)
 endif
 
 ifneq ($(strip $(MPI)),)
-  ifeq ($(strip $(MPI_TYPE)),)
-    MPI_EXT = _mpi
-  else
-    MPI_EXT = _$(MPI_TYPE)
-  endif
+  MPI_EXT = _mpi
   CPP_OPTS = -DUSE_MPI
   FPP_OPTS = -DUSE_MPI
   F_OPTS = $(HU_MACRO_DEF)USE_MPI
