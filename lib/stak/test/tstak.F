@@ -47,11 +47,12 @@ cc      integer i_ptr, c3_ptr, c4_ptr, c5_ptr, f_ptr
       HU_SIZE_T last(5), size(5)
       real    f(0:1)
       logical nsave
-      integer lua
+      integer lua, lh1, lh2
       character c3(5)*(3),c4(5)*(4),c5(5)*(5)
+      character hex1*20, hex2*20
       character cdum*10
 c
-      integer stkinit, stkfptr, stkchk, stklist,
+      integer addr2hex, stkinit, stkfptr, stkchk, stklist,
      &        stkrbin, stkdmp, stkload, stkrclr
 
       HU_PTR_TYPE pgrow
@@ -259,7 +260,7 @@ c
 c
       nsize = 0
       pgrow = stkgrow(1,5000,nsize)
-      print *,'grow error: ',pgrow
+      if (pgrow.ge.-6.AND.pgrow.le.0) print *,'grow error: ',pgrow
 c
       print*,'before 50000'
       read'(a)',cdum
@@ -281,13 +282,17 @@ c
       print*,'before 100000'
       read'(a)',cdum
       pgrow = stkgrow(3,100000,nsize2)
-      print *,'grow error: ',pgrow
+      if (pgrow.ge.-6.AND.pgrow.le.0) print *,'grow error: ',pgrow
       print 200,'nsize2: ',nsize2
-      print *,'i_ptr,pgrow: ',i_ptr,pgrow
+      lh1 = addr2hex(i_ptr,hex1)
+      lh2 = addr2hex(pgrow,hex2)
+      print 300,'i_ptr,pgrow: ',hex1(1:lh1),hex2(1:lh2)
       call stkqry(5,n,bin,numb,size,last)
       print 100,'qry ',(bin(k),numb(k),size(k),last(k),k=1,n)
-      if  ( pgrow.gt. 0 ) then
-        print *,'i_ptr,pgrow: ',i_ptr,pgrow
+      if  ( pgrow.lt.-6.OR.pgrow.gt.0 ) then
+        lh1 = addr2hex(i_ptr,hex1)
+        lh2 = addr2hex(pgrow,hex2)
+        print 300,'i_ptr,pgrow: ',hex1(1:lh1),hex2(1:lh2)
         i_ptr = pgrow
         do k=1,nsize
           if ( i(k).ne.k ) ierr = ierr + 1
@@ -308,7 +313,7 @@ c
       print*,'before 10'
       read'(a)',cdum
       pgrow = stkgrow(3,10,10)
-      print *,'grow error: ',pgrow
+      if (pgrow.ge.-6.AND.pgrow.le.0) print *,'grow error: ',pgrow
       call stkqry(5,n,bin,numb,size,last)
       print 100,'qry ',(bin(k),numb(k),size(k),last(k),k=1,n)
       print *,'after 10'
@@ -326,5 +331,6 @@ c
   100 format(a,/,(8i9))
   110 format(a,/,(1p6e13.5))
   200 format(a,8i8)
+  300 format(a,' 0X',a,', 0X',a)
 c
       end
