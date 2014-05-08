@@ -13,7 +13,7 @@ Options:
       -c file              Process input commands from "file".
       -B                   Exit after processing command file. This option
                            is only valid when used in conjunction with
-                           the ­c option.
+                           the -c option.
       -a file              Open "file" in append mode.
       -b file              Open "file" in build mode.
       -o file              Open "file" in read mode.
@@ -22,7 +22,7 @@ Options:
 BLDPFF allows only one output file to be open at a time, so the -a and
 -b options cannot be used together. However, multiple files in
 "read-only" mode are allowed. Consequently, multiple input files can
-be specified with the ­o option. In addition, any command-line
+be specified with the -o option. In addition, any command-line
 arguments supplied after these command-line options are assumed to be
 names of files, which are also opened in "read-only" mode. The last
 "read- only" file specified is considered to be the active input file.
