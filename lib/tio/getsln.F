@@ -204,7 +204,7 @@ c ..... Otherwise, if not in QUOTE mode, see if we have reached
 c       the end of the active part of the line
 c
         if (quochr .EQ. ' ') then
-          if (line(i:i) .EQ. conchr) then
+          if (useconch .AND. line(i:i).EQ.conchr) then
             lintyp = CONLIN
             lenal  = lennb(line(1:i-1))
             return

@@ -381,7 +381,11 @@ c
             lentkn = ic - ic0 - 1
 c
             if (lc+lentkn .GT. echolw) then
-              write(luecho,'(2a)',err=9000) line(1:lc), conchr
+              if (useconch) then
+                write(luecho,'(2a)',err=9000) line(1:lc), conchr
+              else
+                write(luecho,'(a)',err=9000) line(1:max(1,lc-1))
+              endif
               line = ' '
               lc0  = 2 + l0
               lc   = lc0

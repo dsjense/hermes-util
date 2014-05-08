@@ -134,6 +134,7 @@ c     prompt  -  Input prompt in GETLIN for input from terminal
 c     reader  -  Path and name of pdf reader to start for help
 c     uhlpfl  -  User help file name (full name)
 c     uprcas  -  Flag indicating upper case conversion for input
+c     useconch - Flag that file syntax uses a continuation character
 c     wstate  -  Current width state for terminal (80 or 132 column)
 c     xitcmd  -  (*) array of commands interpreted as END PROGRAM
 c
@@ -147,9 +148,10 @@ c
       integer         arcbas, arclvl, cferlv, ecolvl, echowd, ioerr, 
      1                ntcols, ntlins, nexitc, wstate
       logical         arcunc, arcvln, echoio, ecocmt, eofxit, lwrcas,
-     1                pause , prepro, ppmode, uprcas, crmode, csmode
+     1                pause , prepro, ppmode, uprcas, crmode, csmode,
+     2                useconch
       common /ioctln/ arcbas, arclvl, cferlv, ecolvl, echowd, ioerr , 
      1                ntcols, ntlins, nexitc, wstate, arcvln, arcunc, 
      2                echoio, ecocmt, eofxit, lwrcas, pause , prepro, 
-     3                ppmode, uprcas, crmode, csmode
+     3                ppmode, uprcas, crmode, csmode, useconch
 c

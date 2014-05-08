@@ -104,6 +104,9 @@ c
         cmtchr = uchar
       elseif (strmch(chrtyp,'continuation')) then
         conchr = uchar
+        if (uchar .EQ. ' ') then
+          useconch = .FALSE.
+        endif
       elseif (strmch(chrtyp,'io_command')) then
         cmdchr(1:1) = uchar
       elseif (strmch(chrtyp,'aux')) then
