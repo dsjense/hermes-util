@@ -74,6 +74,7 @@ Token_Stream::Token_Stream(istream &in, ostream *out,
   line_number(0),
   error_count(0),
   this_lines_tok_cnt(0),
+  empty_count(0),
   line_buffer(""),
   last_buffer(""),
   sep(separator),
@@ -88,6 +89,13 @@ int Token_Stream::Increment_Line_Number(void)
 /*****************************************************************************/
 { 
   line_number++;
+  return line_number;
+}
+
+int Token_Stream::Line_Number() const
+{
+  if ( lookahead.size() >= this_lines_tok_cnt )
+    return line_number - 1 - empty_count;
   return line_number;
 }
 
@@ -260,6 +268,7 @@ string Token_Stream::get_next_token_string(Token_IOStatus &status)
   char buf[bufsiz];
 
   static bool start_of_line = false;
+  bool repeat = false;
 
   while (1) {
     if ( tok_iterator == tok.end() ) {
@@ -293,7 +302,14 @@ string Token_Stream::get_next_token_string(Token_IOStatus &status)
       tok_iterator = tok.end();
       return string("");
     }
-    if ( tok_iterator == tok.end() ) continue;
+    if ( tok_iterator == tok.end() ) {
+      if ( this_lines_tok_cnt == 0 ) {
+        repeat = true;
+        ++empty_count;
+      }
+      continue;
+    }
+    if ( !repeat ) empty_count = 0;
 
     string s = *tok_iterator;
     if ( s.size() ) {
@@ -391,7 +407,7 @@ Token Token_Stream::read_token()
 /*****************************************************************************/
   // Skip the remainder of the current line from the input stream.
 {
-  if ( lookahead.size() > this_lines_tok_cnt ) {
+  if ( lookahead.size() >= this_lines_tok_cnt ) {
     while (lookahead.size() > this_lines_tok_cnt ) lookahead.pop_back();
     return last_buffer;
   }

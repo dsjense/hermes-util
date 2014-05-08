@@ -75,7 +75,7 @@ class Token_Stream
   //! Returns number of errors processed by error-processing methods.
   int Error_Count() const {return error_count;}
   //! Returns the current line number of the input stream.
-  int Line_Number() const {return line_number;}
+  int Line_Number() const;
   //@}
  
   /*! \brief Examine the next token in the stream without extracting it.
@@ -220,6 +220,9 @@ class Token_Stream
 
   //! Number of tokens that have been read from the current input line.
   unsigned int this_lines_tok_cnt;
+
+  //! Number of empty lines read preceding the line currently being processed.
+  unsigned int empty_count;
 
   //! Buffer containing input line currently being processed.
   std::string line_buffer;
