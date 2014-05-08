@@ -44,8 +44,8 @@ static void usage(const string &cmd, int status)
   ostream *o = &cout;
   if ( status ) o = &cerr;
 
-  *o << "Usage: " << cmd << " [-h] [-c comment_char] [-w max_width] "
-        "text_file c_file " << endl;
+  *o << "Usage: " << cmd << " [-h] [-s] [-c comment_char] [-p prefix_string]\n"
+        "       [-w max_width] text_file c_file " << endl;
 
   exit(status);
 }
@@ -181,8 +181,11 @@ int main(int argc, char *argv[])
   string prefix, suffix;
   // set prefix and suffix for write command for C or C++
   string suf_cont = "\"";
-  string short_if = "  if ( mode == ";
+  string short_if = "  if ( mode >= ";
   string short_suf = " ) return;";
+  string start_if = "  if ( mode < ";
+  string start_suf = " ) {";
+  string end_if = "  }";
   if ( out_mode == C_MODE ) {
     prefix = "  fprintf(o,\"";
     suffix = "\\n\");";
@@ -191,8 +194,11 @@ int main(int argc, char *argv[])
     prefix = "      write(lun,1) '";
     suffix = "'";
     suf_cont = "'";
-    short_if = "      if ( mode .EQ. ";
+    short_if = "      if ( mode .GE. ";
     short_suf = " ) return";
+    start_if = "      if ( mode .LT. ";
+    start_suf = " ) then";
+    end_if = "      endif";
   }
   else {
     prefix = "  o << \"";
@@ -218,8 +224,15 @@ int main(int argc, char *argv[])
   while ( inp.getline(buf,buflen) ) {
     if ( buf[0] == cmmnt ) { // skip lines w/ comment char in col 1
       if ( short_mode && buf[1] == '#' ) {
-        int mode = atoi(buf+2);
-        if ( mode > 0 ) out << short_if << mode << short_suf << endl;
+        if ( strncmp(buf+2,"start",5) == 0 ) {
+          int mode = atoi(buf+7);
+          if ( mode > 0 ) out << start_if << mode << start_suf << endl;
+        }
+        else if ( strncmp(buf+2,"stop",4) == 0 ) out << end_if << endl;
+        else {
+          int mode = atoi(buf+2);
+          if ( mode > 0 ) out << short_if << mode << short_suf << endl;
+        }
       }
       continue;  
     }
@@ -288,7 +301,6 @@ int main(int argc, char *argv[])
                             << "      write(6,*) '----------------------'\n"
                             << "      call " << funct_name << "(6,TEST";
       out << ")\n"
-          << "      return\n"
           << "      end" << endl;
     }
     out << "#endif" << endl;
