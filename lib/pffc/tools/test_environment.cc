@@ -31,17 +31,19 @@
 #include "PFFdataset.h"
 #include "comparators.h"
 #include "metrics.h"
+#include "syntax.h"
 
 using std::string;
 using std::vector;
 
 /*****************************************************************************/
-Test_Environment::Test_Environment(const std::string &keyword_delims,
-                                   const std::string &flag_chars)
-  : kw_delims(keyword_delims), flag_chrs(flag_chars), error_count(0),
-    basefile(0), testfile(0)
+Test_Environment::Test_Environment(const Syntax *sntx)
+  : syntax(sntx), error_count(0), basefile(0), testfile(0)
 /*****************************************************************************/
 {
+  match[MATCH_INDEX] = true;
+  match[MATCH_TITLE] = true;
+  title_substr[0] = title_substr[1] = 0;
 }
 
 /*****************************************************************************/
@@ -63,9 +65,7 @@ Generic_Test *Test_Environment::Build_Tester(Token_Stream *token_stream)
 
   Token flag = token_stream->Lookahead();
   bool is_grid = false;
-  if ( flag.Type() == TK_STRING &&
-       flag_chrs.find(flag.As_String()) != string::npos ) {
-    token_stream->Pop();
+  if ( syntax->isOptionFlag(flag,token_stream) ) {
     flag = token_stream->Lookahead();
     if ( flag =="GRID" ) {
       is_grid = true;
@@ -75,9 +75,9 @@ Generic_Test *Test_Environment::Build_Tester(Token_Stream *token_stream)
   }
 
   if ( is_grid )
-    return new Grid_Test(token_stream, this, type, kw_delims,flag_chrs);
+    return new Grid_Test(token_stream, this, type, syntax);
   else
-    return new Attr_Test(token_stream, this, type, kw_delims,flag_chrs);
+    return new Attr_Test(token_stream, this, type, syntax);
 }
 
 /*****************************************************************************/
@@ -86,9 +86,7 @@ void Test_Environment::Process_File_Command(Token_Stream *tok_stream,
 /*****************************************************************************/
 {
   Token token = tok_stream->Lookahead();
-  if ( token.Type() == TK_STRING &&
-       flag_chrs.find(token.As_String()) != string::npos ) {
-    tok_stream->Pop();
+  if ( syntax->isOptionFlag(token, tok_stream) ) {
     token = tok_stream->Lookahead();
     if ( token == "C*LOSE" ) {
       tok_stream->Pop();
@@ -100,12 +98,16 @@ void Test_Environment::Process_File_Command(Token_Stream *tok_stream,
     if ( token == "F*ILE" ) {
       tok_stream->Pop();
       token = tok_stream->Lookahead();
-      if ( token.Type() == TK_STRING &&
-           kw_delims.find(token.As_String()) != string::npos ) {
-        tok_stream->Pop();
+      bool need_rhs;
+      if ( syntax->isKeywordDelimiter(token, tok_stream, need_rhs ) ) {
         string fname = tok_stream->Parse_String();
         if ( Open_File(type, fname) ) {
           tok_stream->Parse_Error("Error opening file", fname);
+        }
+        if ( need_rhs) {
+          token = tok_stream->Lookahead();
+          if ( !syntax->isRightValueDelimiter(token, tok_stream) )
+            tok_stream->Parse_Error("Unmatched value delimiter");
         }
       }
       else tok_stream->Parse_Error("Missing keyword delimiter");
@@ -113,6 +115,118 @@ void Test_Environment::Process_File_Command(Token_Stream *tok_stream,
     else tok_stream->Parse_Error("Unrecognized Keyword", token.As_String());
   }
   else tok_stream->Parse_Error("Unrecognized syntax", token.Force_As_String());
+}
+
+/*****************************************************************************/
+void Test_Environment::Process_Match_Command(Token_Stream *tok_stream)
+/*****************************************************************************/
+{
+  int ntyp = 0;
+  int ntgl = 0;
+  int ss[] = { 0,0 };
+  Match_Type type = MATCH_TITLE;
+  bool is_on = true;
+
+  while (1) {
+    Token token = tok_stream->Lookahead();
+    if ( syntax->isOptionFlag(token, tok_stream) ) {
+      token = tok_stream->Lookahead();
+      if ( token.Type() != TK_IDENTIFIER )
+        tok_stream->Parse_Error("Illegal flag syntax", token.Force_As_String());
+      if ( token == "I*NDEX" ) {
+        type = MATCH_INDEX;
+        ++ntyp;
+      }
+      else if ( token == "TI*TLE" ) {
+        type = MATCH_TITLE;
+        ++ntyp;
+      }
+      else if ( token == "ON" ) {
+        is_on = true;
+        ++ntgl;
+      }
+      else if ( token == "OF*F" ) {
+        is_on = false;
+        ++ntgl;
+      }
+      else tok_stream->Parse_Error("Unknown option flag",
+                                   token.Force_As_String());
+      tok_stream->Pop();
+    }
+     
+    else if (token.Type() == TK_IDENTIFIER ) {
+      Token key = token;
+      tok_stream->Pop();
+      token = tok_stream->Pop();
+      bool need_rhs;
+      if ( syntax->isKeywordDelimiter(token, tok_stream, need_rhs, false ) ) {
+        if ( key == "SUB*STRING" ) {
+          if ( ss[0] != 0 )
+            tok_stream->Parse_Error("Multiple substring specifications");
+          ss[0] = std::max(1,tok_stream->Parse_Integer());
+          token = tok_stream->Pop();
+          if ( token.As_String() != ":" )
+            tok_stream->Parse_Error("Missing substring delimiter");
+          else ss[1] = std::max(0,tok_stream->Parse_Integer());
+          if ( ss[1] != 0 && ss[1] < ss[0] )
+            tok_stream->Parse_Error("Illegal substring specification");
+          else if ( ss[1] == 0 && ss[0] == 1 ) ss[0] = -1; // full string match
+        }
+        else tok_stream->Parse_Error("Unknown keyword",
+                                     token.Force_As_String());
+        if ( need_rhs) {
+          token = tok_stream->Lookahead();
+          if ( !syntax->isRightValueDelimiter(token, tok_stream) )
+            tok_stream->Parse_Error("Unmatched value delimiter");
+        }
+      }
+      else { // otherwise, put both tokens back on the stack and return
+        tok_stream->Push_Back(token);
+        tok_stream->Push_Back(key);
+        break;
+      }
+    }
+    else if (token.Type() == TK_EXIT ) break;
+    else tok_stream->Parse_Error("Invalid keyword/flag syntax",
+                                 token.Force_As_String());
+  }
+  if ( ntgl>1 ) tok_stream->Parse_Error("Multiple on/off flags specified");
+  if ( ntyp>1 ) tok_stream->Parse_Error("Multiple match types specified");
+  if ( ss[0] != 0 ) {
+    if ( type == MATCH_INDEX )
+      tok_stream->Parse_Error("SUBSTRING only available for /TITLE option");
+    if ( ntgl > 0 ) tok_stream->Parse_Error("SUBSTRING keyword not compatible"
+                                            " with on/off option flags");
+    if ( ss[0] < 0 ) ss[0] = 0;
+    is_on = true;
+  }
+  match[type] = is_on;
+  title_substr[0] = ss[0]; title_substr[1] = ss[1];
+}
+
+/*****************************************************************************/
+bool Test_Environment::Index_Match(int i1, int i2)
+/*****************************************************************************/
+{
+  if ( !match[MATCH_INDEX] || i1 == i2 ) return true;
+  return false;
+}
+
+/*****************************************************************************/
+bool Test_Environment::Title_Match(const std::string &s1, const std::string &s2)
+/*****************************************************************************/
+{
+  if ( !match[MATCH_TITLE] ) return true;
+  if ( title_substr[0] == 0 ) return s1 == s2;
+  int indx = title_substr[0] - 1;
+  int cnt = 0;
+  if ( s1.size() <= indx ) ++cnt;
+  if ( s2.size() <= indx ) ++cnt;
+  if ( cnt == 1 ) return false;
+  if ( cnt == 2 ) return true;
+  if ( title_substr[1] == 0 ) return s1.substr(indx) == s2.substr(indx);
+  int len = title_substr[1] - indx;
+  return s1.substr(indx,len) == s2.substr(indx,len);
 }
 
 /*****************************************************************************/
