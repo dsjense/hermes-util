@@ -87,6 +87,9 @@ FFLAGS += $(FFLAGS_ALL)  $(FFLAGS_BSLSH) $(FFLAGS_OD) $(F_INCDIRS)
 FPPFLAGS = $(FPPFLAGS_SYS) $(FPP_OPTS)
 FFLAGS_FPP = $(FFLAGS_SYS) $(F_OPTS)
 
+%.f : %.gen
+	txt2cwriter -s $< $@
+
 %.cc : %.gen
 	txt2cwriter $< $@
 
@@ -219,6 +222,7 @@ help:
 #
 # ------------------ Explicit dependencies -----------------------------
 #
+$(LIBRARY) : $(LIBRARY)(tiopp_usage.o)
 
 #
 # ------------------ Include File Dependency Section --------------------
