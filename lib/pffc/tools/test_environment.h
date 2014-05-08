@@ -34,6 +34,7 @@ template <typename T> class PFF_Dataset;
 class PFF_File;
 class Token_Stream;
 class Generic_Test;
+class Syntax;
 
 //! \brief Class that hold the test environment information and provides an
 //!        interface to the PFF files.
@@ -49,11 +50,10 @@ class Test_Environment
 
   /*! \brief Constructor.
    *
-   *  \param keyword_delims String containing keyword delimiters.
-   *  \param flag_chars     String containing option flag characters
+   *  \param sntx            Pointer to Syntax object for handling keyword and 
+   *                         value delimiters as well as option flags.
    */
-  Test_Environment(const std::string &keyword_delims="",
-                   const std::string &flag_chars="");
+  Test_Environment(const Syntax *sntx);
 
   //! Destructor.
   ~Test_Environment();
@@ -74,12 +74,48 @@ class Test_Environment
    */
   Generic_Test *Build_Tester(Token_Stream *token_stream);
 
-  /*! \brief A method to process commands related to PFF files.
+  /*! \brief A method to process commands related to opening/closing PFF files.
    *
-   *  \param tok_stream  Token_Stream object to parse input command from.
-   *  \param type        The type of PFF file.
+   *  \param tok_stream  Token_Stream object from which to parse the command.
+   *  \param type        The type of PFF file (TEST or BASE).
    */
   void Process_File_Command(Token_Stream *tok_stream, Data_File_Type type);
+
+  /*! \brief A method to process the MATCH command, related to comparing PFF
+   *         datasets.
+   *
+   *  By default, comparisons between two datasets fail if either their dataset
+   *  comments to not match or if their dataset indices do not match. This
+   *  command allows the user to change that behavior.
+   *
+   *  \param tok_stream  Token_Stream object from which to parse the command.
+   */
+  void Process_Match_Command(Token_Stream *tok_stream);
+
+  /*! \brief Method compare the indices of two datasets, based on current
+   *         environment settings.
+   *
+   *  \param i1  File index of first dataset.
+   *  \param i2  File index of second dataset.
+   *
+   *  \return   true if the indicies match or index matching is turned OFF.
+   *            Otherwise, false is returned.
+   *  \sa Process_Match_Command
+   */
+  bool Index_Match(int i1, int i2);
+
+  /*! \brief Method compare the titles of two datasets, based on current
+   *         environment settings.
+   *
+   *  \param i1  Title of first dataset.
+   *  \param i2  Title of second dataset.
+   *
+   *  \return true if the titles match (or substrings of those titles, depending
+   *          on current environment settings) or title matching is turned OFF.
+   *          Otherwise, false is returned.
+   *  \sa Process_Match_Command
+   */
+  bool Title_Match(const std::string &s1, const std::string &s2);
 
   /*! \brief Method to increment the error count for the test environment.
    *
@@ -130,6 +166,14 @@ class Test_Environment
 
  private:
 
+  //! Enumeration of the two types of match used by the MATCH command.
+  typedef enum
+  {
+    MATCH_INDEX = 0,  //!< dataset index.
+    MATCH_TITLE,      //!< dataset title.
+    MATCH_TYPES       //!< Number of match types used.
+  } Match_Type;
+
   /*! \brief Method to open a PFF file
    *
    *  \param type   The type of PFF file.
@@ -144,11 +188,8 @@ class Test_Environment
    */
   void Close_File(Data_File_Type type);
 
-  //! String containing keyword delimiters.
-  std::string kw_delims;
-
-  //! String containing option flag characters
-  std::string flag_chrs;
+  //! Pointer to object for handling keyword/value delimiters and option flags.
+  const Syntax *syntax;
 
   //! Error counter
   int error_count;
@@ -158,6 +199,19 @@ class Test_Environment
 
   //! Test PFF file
   PFF_File *testfile;
+
+  //! Flags indicating whether the various match types are turned on or off.
+  bool match[MATCH_TYPES];
+
+  /*! \brief Flags indicating the current substring limits for matching titles.
+   *
+   *  If the second index is set to a non-positive value, the substring used is
+   *  from the character denoted by the first index to the end of the string.
+   *
+   *  \note The index of the first character in the string is by convention ONE
+   *        (NOT ZERO).
+   */
+  int title_substr[2];
 };
 
 #endif
