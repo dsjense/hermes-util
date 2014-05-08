@@ -50,7 +50,7 @@ c
 c ... Subroutine arguments
 c
 c     INPUT:
-c*      udelim  -  List of user delimiters (in addition to SP and TAB)
+c*      udelim  -  List of user delimiters (in addition to SPACE & TAB)
 c       uauxc   -  User auxiliary command control characters
 c       uauxl   -  (*) List of user auxiliary command sets
 c       nuxcmd  -  # exit commands
@@ -140,36 +140,36 @@ c
       luecho = ulueco
       luerr  = uluerr
 c
-c ... Control characters
+c ... Initialize TIO special characters
 c
-c ... User delimiters
-c
-      delim(1:1) = SPACE
-      delim(2:2) = TAB
+c ... Delimiters: Load any user-defined values, and then append
+c     SPACE and TAB
 c
       nudlim = lennb(udelim)
-      do 10 i=1,nudlim
-        delim(2+i:2+i) = udelim(i:i)
-   10 continue
+      if (nudlim .GT. 0) delim(1:nudlim) = udelim(1:nudlim)
+c
+      delim(nudlim+1:nudlim+1) = SPACE
+      delim(nudlim+2:nudlim+2) = TAB
 c 
       ndelim = 2 + nudlim
 c
 c ... Put a double quote as the NDELIM+1 character to handle variable
 c     substitution within a double quoted string (e.g. "... $var")
+c     NOTE: that we do not increment ndelim -- this extra delimiter
+c     is only used in this one specific context (in substexpr.F)
 c
       delim(ndelim+1:ndelim+1) = DUBLQT
 c
-c ... Reserved characters
+c ... Reserved characters: only add user delimiters to the list,
+c     i.e. do not include SPACE and TAB
 c
-      nrsvdc = 11 + ndelim
+      nrsvdc = 11 + nudlim
 c
       rsrvdc(1:11) = LITCHR // SNGLQT // DUBLQT // SUBCHR //
      &     LBRACE // RBRACE // LPAREN // RPAREN // LBRAKT // RBRAKT //
      &     ADRCHR
 c
-      do 20 i=1,ndelim
-        rsrvdc(11+i:11+i) = delim(i:i)
-   20 continue
+      if (nudlim .GT. 0) rsrvdc(12:11+nudlim) = delim(1:nudlim)
 c
 c ... Control characters
 c
@@ -203,6 +203,10 @@ c
           ierr = tioerh ('TIO', 'TIOINI', 2, errmsg, -1)
         endif
    30 continue
+c
+c ... Command line processing
+c
+      useconch = .TRUE.
 c
 c ... Command archiving
 c
