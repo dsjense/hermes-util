@@ -31,6 +31,7 @@
 #include <cstdio>
 #include "code_types.h"
 #include "comparators.h"
+#include "syntax.h"
 #include "test_environment.h"
 #include "token.h"
 #include "token_separator.h"
@@ -87,12 +88,14 @@ int main(int argc, char *argv[])
   string delims = " ,;()[]";
   // keyword delimiters (syntax is <keyword><delimiter><value>)
   string kw_delims = "=:";
+  // Variable delimiters (syntax is <left_delimiter><value><right_delimiter>)
+  string val_delims = "{}";
   // flag characters (syntax is <flag_char><flag_keyword>)
   string flag_chrs = "/";
   // characters indicating that remainder of input line should not be parsed
   string comment_chrs = "#";
 
-  string rtn_delims = kw_delims + flag_chrs;
+  string rtn_delims = kw_delims + val_delims + flag_chrs;
 
   bool is_false = false;
 
@@ -103,7 +106,9 @@ int main(int argc, char *argv[])
 
   Token_Stream *token_stream = new Token_Stream(*input, 0, grammar);
 
-  Test_Environment test_env(kw_delims, flag_chrs);
+  Syntax syntax(kw_delims, val_delims, flag_chrs);
+
+  Test_Environment test_env(&syntax);
 
   Generic_Test *current_test = 0;
   int test_cnt = 0;
@@ -152,6 +157,10 @@ int main(int argc, char *argv[])
         token_stream->Pop();
         test_env.Process_File_Command(token_stream,
                                       Test_Environment::TEST_FILE);
+      }
+      else if ( token == "MAT*CH" ) {
+        token_stream->Pop();
+        test_env.Process_Match_Command(token_stream);
       }
       else {
         current_test = test_env.Build_Tester(token_stream);
