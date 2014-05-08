@@ -34,6 +34,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <signal.h>
 
 /* function name mangling for F77 linkage */
