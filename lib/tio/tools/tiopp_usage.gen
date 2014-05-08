@@ -1,0 +1,54 @@
+! $Id$
+!
+!#start1 Longer preamble follows:
+
+TIOPP is a utility for processing files containing TIO symbols,
+expressions, loops, and conditional constructs. This provides a fast
+and efficient method for taking advantage of TIOLIB's capabilities
+using existing software without having to modify that software's input
+processing to use TIOLIB. Instead, TIOPP can be used to translate an
+input file utilizing any of TIOLIB's capabilities into a file suitable
+for use by the unmodified existing software. Even when a software tool
+uses TIOLIB to process its input, TIOPP can be used to find and repair
+mistakes in TIO syntax and usage in input files without the
+complication of simultaneously dealing with errors associated with the
+application's command usage.
+
+It is important to note that TIOPP handles very long output lines by
+breaking them up into multiple "sublines" of a specified width, and
+appending a continuation character ('&' by default) to all but the
+last line. For input processors that do not use this continuation
+character convention, TIOPP can still be used as a preprocessor by
+using the '-C ' option, i.e. '-C' with at least one space after it.
+This will still break up the output line into sublines of the
+specified width, but suppress appending a continuation character.
+
+!#stop1 Longer preamble ends
+Usage:
+   tiopp [-c ch] [-C[ch]] [ -D tio_var[=value] ... ] [-e num] 
+         [-f] [-w num]  [ inputfile [outputfile] ]
+   tiopp [-h]
+!#1 Longer description follows:
+
+Options:
+      -c ch                Comment character. (default: ch='!')
+      -C[ch]               Continuation character "connecting"
+                           sublines (default: ch='&')
+      -D tio_var[=value]   Predefine TIO global symbol "tio_var" with
+                           "value". If value is not supplied, the value
+                           of tio_var is set to 1 (the numeral "one").
+      -e num               Maximum error count. TIOPP will abort after
+                          `num' errors. (default: num=20)
+      -f                   Force overwrite of output file (default: if
+                           `outputfile' exists, TIOPP will abort.)
+      -h                   Print Usage help.
+      -w num               Maximum subline width. (default: num=76)
+
+Spaces between flags and values are optional, and can be omitted, EXCEPT
+that there can be no space between -C and a nonblank continuation character.
+This is required to support the '-C ' option to suppress the use of
+a continuation character.
+
+If either `inputfile' and/or `outputfile' are not supplied or have the
+value '-', then standard input and/or standard output, respectively,
+will be used.
