@@ -54,6 +54,9 @@ int main(int argc, char *argv[])
 {
   const string cxx_exts = ":C:cc:cp:cpp::cxx:CPP:c++:";
   const string f_exts = ":F:f:F90:f90:";
+  const string compsymbs = "<>=!";
+  const string whtspc = " \t";
+  string comps[5];
   char cmmnt = '!';  // '!' is default comment character
   int  width = 78;   // 78 is default line width for output code
   int c;
@@ -85,7 +88,7 @@ int main(int argc, char *argv[])
       pad = optarg;
       break;
     case 'w':
-      { int val = atoi(optarg);
+      { int val = std::atoi(optarg);
         if (val) width = val;
         else cerr <<"Can't parse -w argument -- width set to " <<width <<endl;
       }
@@ -181,11 +184,16 @@ int main(int argc, char *argv[])
   string prefix, suffix;
   // set prefix and suffix for write command for C or C++
   string suf_cont = "\"";
-  string short_if = "  if ( mode >= ";
+  string short_if = "  if ( mode ";
   string short_suf = " ) return;";
-  string start_if = "  if ( mode < ";
+  string start_if = "  if ( mode ";
   string start_suf = " ) {";
   string end_if = "  }";
+  comps[0] = "< ";
+  comps[1] = "> ";
+  comps[2] = "== ";
+  comps[3] = "!= ";
+  comps[4] = ">= ";
   if ( out_mode == C_MODE ) {
     prefix = "  fprintf(o,\"";
     suffix = "\\n\");";
@@ -194,11 +202,16 @@ int main(int argc, char *argv[])
     prefix = "      write(lun,1) '";
     suffix = "'";
     suf_cont = "'";
-    short_if = "      if ( mode .GE. ";
+    short_if = "      if ( mode ";
     short_suf = " ) return";
-    start_if = "      if ( mode .LT. ";
+    start_if = "      if ( mode ";
     start_suf = " ) then";
     end_if = "      endif";
+    comps[0] = ".LT. ";
+    comps[1] = ".GT. ";
+    comps[2] = ".EQ. ";
+    comps[3] = ".NE. ";
+    comps[4] = ".GE. ";
   }
   else {
     prefix = "  o << \"";
@@ -221,17 +234,34 @@ int main(int argc, char *argv[])
   if ( npad ) strcpy(line,pad.c_str());
   int buflen = bufsize - npad;
 
+  int nest = 0;
+  char *endptr = 0;
   while ( inp.getline(buf,buflen) ) {
     if ( buf[0] == cmmnt ) { // skip lines w/ comment char in col 1
       if ( short_mode && buf[1] == '#' ) {
         if ( strncmp(buf+2,"start",5) == 0 ) {
-          int mode = atoi(buf+7);
-          if ( mode > 0 ) out << start_if << mode << start_suf << endl;
+          int mode = std::strtol(buf+7,&endptr,10);
+          string comp = comps[0];
+          int ct = 0;
+          while ( whtspc.find(*endptr) != string::npos ) endptr++;
+          if ( *endptr && (ct=compsymbs.find(*endptr)) != string::npos )
+            comp = comps[ct];
+          out << start_if << comp << mode << start_suf << endl;
+          nest++;
         }
-        else if ( strncmp(buf+2,"stop",4) == 0 ) out << end_if << endl;
+        else if ( strncmp(buf+2,"stop",4) == 0 ) {
+          out << end_if << endl;
+          nest--;
+          if ( nest < 0 ) break; // a "stop" requires previous "start"
+        }
         else {
-          int mode = atoi(buf+2);
-          if ( mode > 0 ) out << short_if << mode << short_suf << endl;
+          int mode = std::strtol(buf+2,&endptr,10);
+          string comp = comps[4];
+          int ct = 0;
+          while ( whtspc.find(*endptr) != string::npos ) endptr++;
+          if ( *endptr && (ct=compsymbs.find(*endptr)) != string::npos )
+            comp = comps[ct];
+          out << short_if << comp << mode << short_suf << endl;
         }
       }
       continue;  
@@ -274,7 +304,12 @@ int main(int argc, char *argv[])
       }
     }
   }
-
+  if ( nest != 0 ) {
+    cerr << cmd << ": improper nesting of " << cmmnt << "#start/stop directives"
+         << endl;
+    exit(nest);
+  }
+    
   // write function ending for Fortran or C/C++ code
   if ( out_mode == F_MODE ) out << "    1 format(a)\n"
                                 << "      return\n" 
@@ -288,7 +323,10 @@ int main(int argc, char *argv[])
       out << "int main(int argc, char *argv[])\n{" << endl;
       if ( short_mode ) {
         out << "  int mode = 0;" << endl;
-        out << "  if ( argc > 1 ) mode = atoi(argv[1]);" << endl;
+        if ( out_mode == C_MODE )
+          out << "  if ( argc > 1 ) mode = atoi(argv[1]);" << endl;
+        else
+          out << "  if ( argc > 1 ) mode = std::atoi(argv[1]);" << endl;
       }
       out << "  " << funct_name << "(" << testarg;
       if ( short_mode ) out << ", mode";
