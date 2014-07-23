@@ -22,8 +22,6 @@ c
 C_Groups @(#)
 c **********************************************************************
 c
-c ----------------------------------------------------------------------
-c
 c     Summary:
 c
 c       Common block containing random # seed.
@@ -32,23 +30,25 @@ c       function, as well as any routine calling MDRGET or MDRSET.
 c
 c ----------------------------------------------------------------------
 c
-c     Restart info:
-c       - Save all variables in this common block
-c       - Immediately before writing RESTART file, call mdrget(rseed)
-c       - Immediately after reading RESTART file, call mdrset(rseed)
-c
-c     Parameters needed in this module, but not supplied:
-c
-c       - NUM_SEEDS (from mdranf.h)
+c     Parameters needed in this module, but not supplied: NONE
 c
 c ----------------------------------------------------------------------
 c
 c     Explanation of the variables:
 c
-c       rseed   -  (*) current value of random # seed
+c       NUM_SEEDS - (parameter) size of random # seed array
+c       rseed     -  (*) current value of random # seed array
 c
 c ----------------------------------------------------------------------
 c
+#define MDRANF_H
+#ifndef HU_RSEED_SIZE
+# define HU_RSEED_SIZE 1
+#endif
+c
+      integer NUM_SEEDS
+      parameter ( NUM_SEEDS = HU_RSEED_SIZE )
+      
 c     Declare variables and define the common block:
 c
       integer rseed(1:NUM_SEEDS)
