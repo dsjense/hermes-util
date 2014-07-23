@@ -33,18 +33,31 @@ c       mddelf
 c       mddtim
 c       mdgpsz
 c       mdprmt
+c       mdrget
+c       mdrset
 c       mdslep
 c       mdspwn
 c       mdswid
 c
+c     Program TMDUTIL also tests the statement functions defined in the
+c     following include files:
+c       bitwise.inc
+c       mdranf.h
+c
 c-----------------------------------------------------------------------
 c
+      implicit none
 c
       character file*80, str*80, dum*1, path*500
-      integer na, i, ic, nd, iwid, ipag
+      integer na, i, ic, nd, iwid, ipag, nseeds(2)
 
-      integer mdargc, mdargv, lstchr, mdotxf, mdflsh, fgeten, fputen
-cdbs  integer mdhelp
+      integer mdargc, mdargv, mdrchk, lstchr, mdotxf, mdflsh, fgeten,
+     &        fputen
+      real x1
+c
+#include "mdranf.h"
+#include "crseed.inc"
+      integer jseed(1:NUM_SEEDS)
 c
       integer stdin, stdout, stderr
 c
@@ -136,18 +149,65 @@ c
       call mdgpsz(ipag)
       print*, 'Page length = ',ipag
 c
-cdbs  remove help test since vhelp has it's own test suite
-ccc      print*, 'begin vhelp test'
-ccc      call mdprmt(stdout,'Help File Name ?')
-ccc      read(*,'(a)') file
-ccc      if ( file.ne.' ') then
-ccc        i = mdhelp(' ',file)
-ccc	print*,'mdhelp returns: ',i
-ccc      endif
+c     test random number tools
+      print*,'begin random number tools test'
+      i = mdrchk(NUM_SEEDS, -1, nseeds)
+      print*,'Required size of random number seed array: ',nseeds(1)
+      print*,'Current size of random number seed array:  ',NUM_SEEDS
+      print*,'Library size of random number seed array:  ',nseeds(2)
+      if ( i.ne.0 ) then
+        print '(a,i3)','mdrchk error: ',i
+      else
+c
+        call mdrget(jseed)
+        print *,'1st five random #s'
+        do i=1,5
+          RANF(x1)
+          print'(i2,1pe15.3,z10)',i,x1,x1
+        end do
+c
+        call mdrset(jseed)
+        print *,'1st five random #s (repeated)'
+        do i=1,5
+          RANF(x1)
+          print'(i2,1pe15.3,z10)',i,x1,x1
+        end do
+      endif
+c
+      print*, 'begin bitwise operations test'
+      call bittest()
 c
       print*, 'begin stderr test - writing text message to stderr'
       write(stderr,*) 'This message should go to STDERR'
 c      
       print*, 'calling cexit with value 2'
       call cexit(2)
+      end
+
+      subroutine bittest()
+c
+      integer ival, iadd, jval, i
+#include "bitwise.inc"
+c
+      ival = 1
+c
+      print '(i5,z10)',ival,ival
+      do i=1,5
+        ival = ior(lshift(ival,2),1)
+        print '(i5,z10)',ival,ival
+      end do
+c
+      ival = -1
+      iadd = rshift(ival,1)
+      jval = rshift(ival,5)
+      print'(2z10,a,z10)',iadd,jval,' XOR: ',ieor(iadd,jval)
+      iadd = comp(iadd)
+c
+      print'(2z10,a,z10)', ival,jval,' AND: ',iand(ival,jval)
+      do i=1,5
+        ival = ior(rshift(ival,2),iadd)
+        print'(2z10,a,z10)', ival,jval,' AND: ',iand(ival,jval)
+      end do
+c
+      return
       end
