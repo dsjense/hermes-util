@@ -65,7 +65,7 @@ ifneq ($(strip $(DEBUG)),)
 endif
 
 C_INCDIRS =
-F_INCDIRS = -I../../../finclude
+F_INCDIRS = -I.. -I../../../finclude
 BLDDEPLST_ARGS =
 
 LIBDIRNAME      = $(PLATFORM)
