@@ -24,16 +24,9 @@ c
 C_Groups @(#)
 c***********************************************************************
 c
+      implicit none
+c
 c     Subroutine MDRGET returns the current value of the random # seed.
-c     This is necessary for machines (such as a CRAY) whose random #
-c     function does not give access to the seed.
-c
-c     On machines whose random # function provides the current seed,
-c     make sure that function and this subroutine use
-c     the same variable for the seed.  In that case, this routine should
-c     be NO-OP.
-c
-c     Common blocks:  NONE
 c
 c     Output only:
 c       seed   -  (*) current value of random # seed
@@ -45,7 +38,14 @@ c ... passed variables:
 c
       integer seed(1:*)
 c
-c ... internal variables:  NONE
+c ----------------------------------------------------------------------
+c     Call common blocks and associated parameter modules
+c ----------------------------------------------------------------------
+c
+c ... Included common blocks:
+c ... crseed  (non-Cray, non-F90)
+c       r:    NUM_SEEDS
+c       r:    rseed(1:NUM_SEEDS)
 c
 #if defined(CRAsys)
 c
@@ -65,8 +65,15 @@ c
 #else
 c     !!!!!!!!! All others  !!!!!!!!!
 c
-c     This call is NO-OP (use RAN function as described above)
+# include "crseed.inc"
+
+      integer i
 c
+c     seed is stored in rseed array in common block crseed!
+c
+      do i=1,NUM_SEEDS
+        seed(i) = rseed(i)
+      end do
 #endif
 c
       return

@@ -24,16 +24,9 @@ c
 C_Groups @(#)
 c***********************************************************************
 c
-c     Subroutine MDRSET sets the current value of the random # seed.
-c     This is necessary for machines (such as a CRAY) whose random #
-c     function does not give access to the seed.
+      implicit none
 c
-c     On machines whose random # function provides the current seed,
-c     make sure that function and this subroutine use
-c     the same variable for the seed.  In that case, this routine should
-c     be NO-OP.
-c
-c     Common blocks:  NONE
+c     Subroutine MDRSET sets the current value of the random # seed array.
 c
 c     Input only:
 c       seed   -  (*) current value of random # seed
@@ -45,19 +38,27 @@ c ... passed variables:
 c
       integer seed(1:*)
 c
-c ... internal variables:  NONE
+c ----------------------------------------------------------------------
+c     Call common blocks and associated parameter modules
+c ----------------------------------------------------------------------
 c
+c ... Included common blocks:
+c ... crseed  (non-Cray, non-F90)
+c       r:    NUM_SEEDS
+c       w:    rseed(1:NUM_SEEDS)
+c
+c ... Set the seed for all algorithms
 #if defined(CRAsys)
 c
 c     !!!!!!!!!!!!!!!!!!!!!! UNICOS VERSION !!!!!!!!!!!!!!!!!!!!!
 c
-c     This calls the CRAY-specific routine RANSET
+c     This calls the CRAY-specific routine RANSET (rseed is NOT used)
 c
       call ranset(seed(1))
 c
 #elif defined(HU_RSEED_F90)
 c
-c     Use F90 random_seed procedure
+c     Use F90 random_seed procedure (rseed is NOT used)
 c
       integer k
 c
@@ -67,7 +68,14 @@ c
 c
 c     !!!!!!!!! All others  !!!!!!!!!
 c
-c     This call is NO-OP (use RAN function as described above)
+#include "crseed.inc"
+
+      integer i
+c
+c ... Copy supplied seed into the common block array
+      do i=1,NUM_SEEDS
+        rseed(i) = seed(i)
+      end do
 c
 #endif
 c
