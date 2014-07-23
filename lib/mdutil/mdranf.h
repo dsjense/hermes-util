@@ -24,18 +24,11 @@ c***********************************************************************
 c
 c ... Machine-dependent random # function
 c
-c ... NOTE:  For machines whose random # function provide access to the 
+c ... NOTE:  For machines whose random # function provides access to the 
 c            seed, the seed is provided by the integer RSEED in common 
 c            block CRSEED
 c
-      integer NUM_SEEDS
-c
 #ifndef MDRANF_H
-# define MDRANF_H
-# ifndef HU_RSEED_SIZE
-#  define HU_RSEED_SIZE 1
-# endif
-      parameter ( NUM_SEEDS = HU_RSEED_SIZE )
       
 # if defined(CRAsys)
 #  define  RANF(A)     A = ranf()
@@ -54,10 +47,9 @@ c     Use F90 random number generator
 # endif
 
 # if defined(HU_RSEED_RAN_PLUS_EPS)
-c     Add a small number (less than the machine dependent 
-c     precision of ~6e-8) to the value returned by ran() 
-c     because it can be zero which would produce a denormalized 
-c     real value when the species is packed into the low order bits.
+c     Add a small number (less than the machine dependent precision
+c     of ~6e-8 for IEEE 32-bit floats) to the value returned by ran()
+c     to avoid returned values that are precisely zero.
 c
 #  define  RANF(A)     A = ran(rseed(1)) + 1.0e-10
 # endif
