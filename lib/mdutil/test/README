@@ -89,6 +89,36 @@ Using TMDUTIL
    width =  80
    end set width test
    Page length =  24
+ begin random number tools test
+ Required size of random number seed array:            1
+ Current size of random number seed array:             1
+ Library size of random number seed array:             1
+ 1st five random #s
+ 1      6.281E-01  3F20CD04
+ 2      1.950E-01  3E47A4D8
+ 3      2.189E-02  3CB35640
+ 4      4.131E-02  3D2932A0
+ 5      1.059E-01  3DD8EB48
+ 1st five random #s (repeated)
+ 1      6.281E-01  3F20CD04
+ 2      1.950E-01  3E47A4D8
+ 3      2.189E-02  3CB35640
+ 4      4.131E-02  3D2932A0
+ 5      1.059E-01  3DD8EB48
+ begin bitwise operations test
+    1         1
+    5         5
+   21        15
+   85        55
+  341       155
+ 1365       555
+  7FFFFFFF   7FFFFFF XOR:   78000000
+  FFFFFFFF   7FFFFFF AND:    7FFFFFF
+  BFFFFFFF   7FFFFFF AND:    7FFFFFF
+  AFFFFFFF   7FFFFFF AND:    7FFFFFF
+  ABFFFFFF   7FFFFFF AND:    3FFFFFF
+  AAFFFFFF   7FFFFFF AND:    2FFFFFF
+  AABFFFFF   7FFFFFF AND:    2BFFFFF
    begin stderr test - writing text message to stderr
    This message should go to STDERR
    calling cexit with value 2
@@ -104,6 +134,11 @@ Using TMDUTIL
        if mdflsh is properly flushing a file's output buffer.
    >>> ND is the number of files deleted
    >>> the output from the set width test was truncated to 80 columns
+   >>> The required size of the random number seed array should be less than
+       or equal to the current size.
+   >>> The two sets of five random numbers should match, and there SHOULD
+       NOT be an error message from mdrchk.
+   >>> The output from the bitwise operations test should exactly match.
    >>> the line "This message should go to STDERR" should go to wherever
        stderr is directed
    >>> the cexit call should provide a return value if the operating 
