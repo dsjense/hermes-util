@@ -2,5 +2,5 @@ Parsing Error in error.pffdiff[23]: Unrecognized Keyword
    xxx
 Parsing Error in error.pffdiff[27]: Unknown command
    qqq
-Parsing Error in error.pffdiff[28]: Unknown keyword: 
-   abc
+Parsing Error in error.pffdiff[28]: Unknown keyword: abc
+Parsing Error in error.pffdiff[30]: SUBRANGE value must be delimited by "{}"

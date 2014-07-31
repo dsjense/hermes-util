@@ -23,4 +23,4 @@ pass: MEAN_DEVIATION, "ekill"(#3) -- Deviation = 3.673e-04, Limit = 1.000e+00
 FAIL: MEAN_DEVIATION, "ekill"(#4) -- Dataset number/title mismatch in base file:  ekill
 FAIL: MAX_DEVIATION, "vin"(#6) -- Deviation = 4.367e-03, Limit = 1.000e-03
 
-Error Count: (3/4)   3 Parsing Errors encountered
+Error Count: (3/4)   4 Parsing Errors encountered

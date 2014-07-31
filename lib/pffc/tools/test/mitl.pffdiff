@@ -44,10 +44,10 @@ range ds:3  limits = [20 , 80000]
 
 range ds:4
 range ds:4  limit = 6.0e-5
-range ds:4  limit = 6.0e-5 sub:3(low=1.5001e-11,hi=1.5e-9)
-range ds:4  limit = 6.0e-5 sub:1 low=11
+range ds:4  limit = 6.0e-5 sub:{3 (low=1.5001e-11,hi=1.5e-9)}
+range ds:4  limit = 6.0e-5 sub:{1 low=11}
 range, titl=divdmro_max, limits: (0.0, 8.0e-5)
-range, titl=divdmro_max, subrange:(low=1.5001e-11,hi=1.5e-9) lim:(0.0, 8.0e-5)
+range, titl=divdmro_max, subrange:{(low=1.5001e-11,hi=1.5e-9)} lim:(0.0, 8.0e-5)
 
 max, ds=6, limit=0.02
 mean, ds=6, limit=0.01
@@ -90,9 +90,9 @@ base, file=snap_base.pff
 test, file=qssnp.pff
 
 max_deviation, ds=2, limit=3.0e-4 
-               sub:1 low=1 sub:2 low=1 sub:3 high=-1
-max_deviation, ds=2, limit=3.0e-4  sub:4(low=.004)
-max_deviation, ds=2, limit=3.0e-4 
-               sub:1(low=.02,hi=.06) sub:2(low=.004) sub:3(low=.002,hi=.003)
+               sub:{1 low=1} sub:{2 low=1} sub:{3 high=-1}
+max_deviation, ds=2, limit=3.0e-4  sub:{4(low=.004)}
+max_deviation, ds=2, limit=3.0e-4 sub:{1(low=.02,hi=.06)}
+               sub:{2(low=.004)} sub:{3(low=.002,hi=.003)}
 max_deviation, ds=3, limit=3.0e-4
-               sub:1(low=.01,hi=.03)sub:2(hi=.006) 
+               sub:{1(low=.01,hi=.03)}sub:{2(hi=.006)} 

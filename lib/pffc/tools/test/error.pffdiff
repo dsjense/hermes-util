@@ -27,3 +27,4 @@ mean,ti=ekill ds=4
 qqq, fi=2, xx=yy
 rms, lim=5 abc=20
 max, ti=vin lim=1e-3
+range ds:4  limit = 6.0e-5 sub:3(low=1.5001e-11,hi=1.5e-9)
