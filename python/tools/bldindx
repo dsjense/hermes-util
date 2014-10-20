@@ -1,0 +1,325 @@
+#!/usr/bin/env python
+# $Id$
+# 
+# Copyright (2014) David Seidel.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+# This script finds all the modules, packages, and extension modules in the
+# Hermes Python directory tree constructs "make" dependencies for generating
+# HTML documentation
+#
+
+import os, sys
+from glob import glob
+import re
+from HTMLParser import HTMLParser
+from urllib2 import urlopen, URLError
+
+def chkURL(url):
+    try:
+        f = urlopen(url)
+        return True
+    except Exception:
+        return False
+
+class AnchorStripper(HTMLParser):
+    def __init__(self,newIndx=None):
+        self.nindex = newIndx
+        self.extraInit()
+        HTMLParser.__init__(self)
+    def extraInit(self):
+        self.in_drop = False
+        self.start_loc = None
+        self.data = None
+        self.dumpList = []
+        self.reg = re.compile('#.*$')
+        if self.nindex is not None: self.reindx = re.compile('"."')
+    def reset(self):
+        HTMLParser.reset(self)
+        self.extraInit()
+    def handle_starttag(self, tag, attrs):
+        if tag == 'a':
+            hr = [ (i,j) for i,j in attrs if i == 'href' ]
+            if hr:
+                ref = hr[0][1]
+                ##print self.getpos(),ref
+                if self.nindex is not None and ref == '.':
+                    txt = self.get_starttag_text()
+                    cnt = txt.count('\n')
+                    l = len(txt)
+                    tup = (self.getpos(),)
+                    ntxt = self.reindx.sub('"'+self.nindex+'"',txt)
+                    if cnt == 0:
+                        endp = (tup[0][0],tup[0][1]+l-1)
+                    else:
+                        lst = txt.rfind('\n')
+                        endp = (tup[0][0]+cnt,l-lst-2)
+                    tup += (endp,ntxt)
+                    ##print tup
+                    self.dumpList.append(tup)
+                else:
+                    self.in_drop = self.DropAnchor(ref)
+                    if self.in_drop:
+                        #print "In <a>:",self.getpos(),hr[0],self.get_starttag_text()
+                        self.start_loc = self.getpos()
+    def handle_endtag(self, tag):
+        if tag == 'a':
+            if self.in_drop:
+                self.in_drop = False
+                #print "End Anchor:", self.getpos()
+                self.dumpList.append((self.start_loc,self.getpos(),self.data))
+                
+    def handle_data(self,data):
+        if self.in_drop: self.data = data
+        
+    def DropAnchor(self,hr):
+        if hr[0] == '#': return False
+        href = self.reg.sub("",hr)
+        if re.match('\w+:',hr):
+            if hr[:5] == "file:":     href = href.replace("file:","")
+            else:   return not chkURL(hr)
+        ##if hr.find('#'): print 'DA:',hr,href
+        return not os.path.exists(href)
+
+    def GetDumpList(self):
+        return self.dumpList
+
+def chk_lnks(indx=None, backup=False, skplist=['index.html']):
+    # This function finds all the HTML files in the current directory and:
+    # 1) looks for and removes links to missing files (system modules, etc.)
+    # 2) replaces "." link for index with the index file written by writeIndex
+    # 3) saves a backup of modified files, if requested
+    parser = AnchorStripper(indx)
+    flist = glob('*.html')
+    for df in skplist:
+        if flist.count(df) > 0: flist.remove(df)
+    ##print flist,backup
+    for file in flist:
+        f = open(file)
+        
+        doc = f.read()
+        f.close()
+        parser.feed(doc)
+        dlist = parser.GetDumpList()
+        parser.close()
+        if dlist:
+            if backup:  os.rename(file,file+'.bak')
+            g = open(file,'w')
+            lines = doc.splitlines(1)
+            next_line = 0
+            partial = None
+            for first,last,data in dlist:
+                fline = first[0] - 1
+                lline = last[0] - 1
+                fcol = first[1]
+                if fline < next_line:
+                    g.write(partial[0][:fcol-partial[1]] + data)
+                    fcol = None
+                elif partial:
+                    g.write(partial[0])
+                for line in lines[next_line:fline]: g.write(line)
+                if fcol is not None: g.write(lines[fline][:fcol] + data)
+                lst = last[1]
+                line = lines[lline]
+                lcol = line.find('>',lst) + 1
+                if lcol == 0:
+                    print 'BAD'
+                partial = (line[lcol:],lcol)
+                next_line = last[0]
+            if partial: g.write(partial[0])
+            for line in lines[next_line:]: g.write(line)
+            g.close()
+        parser.reset()
+
+def try_it(dir,*args):
+    sdir = os.getcwd()
+    os.chdir(dir)
+    chk_lnks(*args)
+    os.chdir(sdir)
+
+def unique(seq):
+   # Not order preserving
+   keys = {}
+   for e in seq:
+       keys[e] = 1
+   return keys.keys()
+
+def htmlLook():
+    hlist = glob('*.html')
+    re1 = re.compile('\.html$')
+    re2 = re.compile('\..+$')
+    hls = [ re1.sub("",h) for h in hlist ]
+    cnt = [ h.count('.') for h in hls ]
+
+    mods = []
+    pmods = []
+    for i,h in enumerate(hls):
+        if cnt[i] == 0: mods.append(h)
+        if cnt[i] == 1: pmods.append(re2.sub("",h))
+
+    #print mods,pmods
+
+    pkgs = unique(pmods)
+    for p in pkgs:
+        if mods.count(p) > 0: mods.remove(p)
+
+    return mods,pkgs
+
+def writeIndex(f=None):
+    if f is None: f = sys.stdout
+    td1start = '<td width="10%" valign=top><font face="helvetica, arial">'
+    td2start = '<td><font face="helvetica, arial">'
+    tdend = '</font></td>'
+    tblclose = '</table></td></tr></table>'
+    preamble = '''
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Hermes Utilities: Python tools</title>
+</head><body bgcolor="#f0f0f8">
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+  <font color="#ffffff" face="helvetica, arial">&nbsp;<br>
+    <big><big><strong>Hermes Utilities &mdash; Python Modules and Packages
+    </strong></big></big></font>
+</td></tr></table>
+<p><tt>&nbsp;</tt></p>
+<p/>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+  <tr bgcolor="#aa55cc">
+    <td colspan=3 valign=bottom>&nbsp;<br>
+      <font color="#ffffff" face="helvetica, arial"><big><strong>Modules
+      </strong></big></font></td></tr>
+  <tr>
+    <td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+    <td>&nbsp;</td>
+    <td width="100%">
+      <table width="100%" summary="list">
+        <tr>
+'''
+
+    pkghdr = '''
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+  <tr bgcolor="#ee77aa">
+    <td colspan=3 valign=bottom>&nbsp;<br>
+      <font color="#ffffff" face="helvetica, arial"><big><strong>Packages
+      </strong></big></font></td></tr>
+  <tr>
+    <td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+    <td>&nbsp;</td>
+    <td width="100%">
+      <table width="100%" summary="list">
+        <tr>
+'''
+
+    mods,pkgs = htmlLook()
+    ##print mods,pkgs
+    f.write(preamble)
+    for mod in mods:
+        try:
+            exec 'import ' +  mod
+            f.write(td1start)
+            f.write('<a href="'+mod+'.html">'+mod+'</a>\n')
+            f.write(tdend)
+            f.write(td2start)
+            desc = '&nbsp;'
+            exec 'if ' + mod + '.__doc__: desc = ' + mod + '.__doc__'
+            ll = len(desc)
+            iloc = desc.find('\n---')
+            if iloc < 0: iloc = ll
+            iloc1 = desc.find('\n\n')
+            if iloc1 < 0: iloc1 = ll
+            iloc = min(iloc,iloc1)
+            if iloc < ll: desc = desc[:iloc]
+            f.write(desc)
+            f.write(tdend+'</tr>')
+        except ImportError:
+            pass
+    f.write(tblclose + '<p/>')
+
+    f.write(pkghdr)
+    for pkg in pkgs:
+        try:
+            exec 'import ' +  pkg
+            f.write(td1start)
+            f.write('<a href="'+pkg+'.html">'+pkg+'</a>\n')
+            f.write(tdend)
+            f.write(td2start)
+            desc = '&nbsp;'
+            exec 'if ' + pkg + '.__doc__: desc = ' + pkg + '.__doc__'
+            ll = len(desc)
+            iloc = desc.find('\n---')
+            if iloc < 0: iloc = ll
+            iloc1 = desc.find('\n\n')
+            if iloc1 < 0: iloc1 = ll
+            iloc = min(iloc,iloc1)
+            if iloc < ll: desc = desc[:iloc]
+            f.write(desc)
+            f.write(tdend+'</tr>')
+        except ImportError:
+            pass
+    f.write(tblclose + '</body></html>\n')
+
+if __name__ == "__main__":
+
+    import os, sys, getopt
+
+    cmd = os.path.basename(sys.argv[0])
+    usage = "Usage: " + cmd + " [-r|-a|-d]"
+
+    args = sys.argv[1:]
+    try:
+        opts,pargs = getopt.getopt(args, 'RbiI:d:')
+    except getopt.GetoptError, e:
+        print e
+        sys.exit(1)
+
+    restore = False
+    bak = False
+    findex = None
+    hdir = '../html'
+    skplist = []
+    for f,v in opts:
+        if f == '-R':     restore = True
+        elif f == '-b':   bak = True
+        elif f == '-i':   findex = 'index.html'
+        elif f == '-I':   findex = v
+        elif f == '-d':   hdir = v
+
+
+    sdir = os.getcwd()
+    os.chdir(hdir)
+    if restore:
+        blist = glob('*.html.bak')
+        if len(blist):
+            reg = re.compile('\.bak$')
+            for b in blist:
+                new = reg.sub("",b)
+                os.rename(b,new)
+    else:
+        touched = False
+        if findex is not None:
+            if skplist.count(findex) == 0: skplist.append(findex)
+            if not os.path.exists(findex): # so we don't remove a link to it
+                f = open(findex,'w') ; f.close() ; touched = True
+        chk_lnks(findex, bak, skplist)
+        if touched: os.unlink(findex)
+        if findex is not None:
+            if bak and os.path.exists(findex):  os.rename(findex,findex+'.bak')
+            f = open(findex,'w')
+            writeIndex(f)
+            f.close()
+
+    os.chdir(sdir)
