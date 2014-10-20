@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+# $Id$
+# 
+# Copyright (2014) David Seidel.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+# This script finds all the modules, packages, and extension modules in the
+# Hermes Python directory tree constructs "make" dependencies for generating
+# HTML documentation
+#
+
+import os,sys,re
+
+def mywalk(arg,dname,names):
+    global TargList
+    global StartPath
+    global HDir
+    out = arg[0] ; mode = arg[1]
+    ist = len(StartPath.split(os.sep))
+    ##print 'skip: ',ist
+    if mode == 'packages':
+        try:
+            loc = names.index('__init__.py')
+            src = os.path.join(dname,'__init__.py')
+            dsplt = dname.split(os.sep)
+            module = '.'.join(dsplt[ist:])
+            targ =  os.path.join(HDir, module + '.html')
+            print >>out, targ + " : " + src
+            print >>out, "\t$(PYDOC_HU) %s %s" % (module,targ)
+            TargList.append(targ)
+        except ValueError:
+            ##print dname, 'fail'
+            pass
+        return
+
+    if mode == 'modules':
+        reg = re.compile('\.py$')
+    else:
+        reg = re.compile('\.'+mode+'$')
+        mode = 'extensions'
+        ##print 'xxx',reg
+
+    for f in names:
+        if mode == 'modules' and f == '__init__.py': continue
+        if reg.search(f) is not None:
+            dsplt = dname.split(os.sep)
+            ##print dname,dsplt
+            src = os.path.join(dname,f)
+            dsplt = os.path.splitext(src)[0].split(os.sep)
+            ##print ist,dsplt
+            module = '.'.join(dsplt[ist:])
+            targ =  os.path.join(HDir, module + '.html')
+            print >>out, targ + " : " + src
+            print >>out, "\t$(PYDOC_HU) %s %s" % (module,targ)
+            TargList.append(targ)
+
+
+usage = '''usage: htmldeps sys_type [htmldir="../html" ] [share_ext="so"]
+       [macfile=sys.stdout] [depfile=macfile]'''
+
+##sys_type = 'linux_x86_64_intel-2.7'
+shr_ext = 'so'
+mout,dout = (sys.stdout,sys.stdout) 
+HDir = '../html'
+argc = len(sys.argv)
+if argc == 6 and sys.argv[5] != '-':
+   if sys.argv[4] != '-': mout = open(sys.argv[4],'w')
+   dout = open(sys.argv[5],'w')
+if argc == 5 and sys.argv[4] != '-':
+   mout = open(sys.argv[4],'w')
+   dout = mout
+if argc >= 4:   shr_ext = sys.argv[3]
+if argc >= 3:   HDir = sys.argv[2]
+if argc < 2 or argc > 6:
+    print usage
+    sys.exit(1)
+
+sys_type = sys.argv[1]
+
+###print 'args:',sys_type,HDir, shr_ext, mout, dout
+TargList = []
+
+StartPath = '../modules'
+os.path.walk(StartPath,mywalk,(dout,'modules'))
+StartPath = '../extensions/'+sys_type
+os.path.walk(StartPath,mywalk,(dout,shr_ext))
+StartPath = '../modules'
+os.path.walk(StartPath,mywalk,(dout,'packages'))
+
+if not os.path.exists(HDir):
+    os.mkdir(HDir)
+
+print >>mout, "TARGETS = " + ' '.join(TargList)
