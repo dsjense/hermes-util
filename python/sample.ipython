@@ -1,0 +1,204 @@
+# $Id$
+# 
+# Copyright (2014) David Seidel.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+# This script finds all the modules, packages, and extension modules in the
+# Hermes Python directory tree constructs "make" dependencies for generating
+# HTML documentation
+#
+# SAMPLE IPYTHON SESSION USING PFMPL
+
+Fedora16 1004$ ipython --pylab
+Python 2.7.3 (default, Jul 24 2012, 11:41:40) 
+Type "copyright", "credits" or "license" for more information.
+
+IPython 0.12 -- An enhanced Interactive Python.
+?         -> Introduction and overview of IPython's features.
+%quickref -> Quick reference.
+help      -> Python's own help system.
+object?   -> Details about 'object', use 'object??' for extra details.
+
+Welcome to pylab, a matplotlib-based Python environment [backend: GTKAgg].
+For more information, type 'help(pylab)'.
+
+In [1]: from pfmpl import *
+
+In [2]: openpff
+Out[2]: <function pfmpl.files.openpff>
+
+In [3]: openpff('qshis.pff')
+Out[3]: 1
+
+In [4]: showpff()
+
+                         DIRECTORY of Active PFF Files
++-------+------------------------------------------------------+----+---------+
+|     # | File Name                                            | St | Entries |
++-------+------------------------------------------------------+----+---------+
+| ->  1 | qshis.pff                                            | RW |     16  |
++-------+------------------------------------------------------+----+---------+
+Out[4]: 0
+
+In [5]: dirpff()
+
+                     DIRECTORY LISTING of File:  qshis.pff
++-------+------------------+--------------------------------------------------+
+|     # | Data Type        | Title                                            |
++-------+------------------+--------------------------------------------------+
+|     1 | Time History     | Vin                                              |
+|     2 | Time History     | Iin                                              |
+|     3 | Time History     | Vout                                             |
+|     4 | Time History     | Iout                                             |
+|     5 | Time History     | TL_Vin                                           |
+|     6 | Time History     | TL_Iin                                           |
+|     7 | Time History     | TL_Vout                                          |
+|     8 | Time History     | TL_Iout                                          |
+|     9 | Time History     | TL0_Vin                                          |
+|    10 | Time History     | TL0_Iin                                          |
+|    11 | Time History     | TL0_Vout                                         |
+|    12 | Time History     | TL0_Iout                                         |
+|    13 | Time History     | TL0c_Vin                                         |
+|    14 | Time History     | TL0c_Iin                                         |
+|    15 | Time History     | TL0c_Vout                                        |
+|    16 | Time History     | TL0c_Iout                                        |
+|->  17 | END-OF-DATA      |                                                  |
++-------+------------------+--------------------------------------------------+
+
+In [6]: re(1,'')
+Out[6]: 16
+
+In [7]: whelp,1
+Out[7]: (<function pfmpl._1d.whelp>, 1)
+
+In [8]: whelp(1)
+Values for wdf array number 1
+ Comment: Vin
+   File: /home/david/cliff/bfc/new/60_25_2/50/qshis.pff
+ X-label: Time
+ Y-label: 
+ Start Time:  3e-13 , Delta Time:  3e-13
+ Number of Points: 1355
+ Range of X-values:  3e-13    4.065e-10
+ Range of Y-values:  -0.410202    0.999984
+ -----------------
+Out[8]: 0
+
+In [9]: cha(range(1,17),mdt=1.e9,xlab='time (ns)')
+Out[9]: 16
+
+In [10]: whelp(16)
+Values for wdf array number 16
+ Comment: TL0c_Iout
+   File: /home/david/cliff/bfc/new/60_25_2/50/qshis.pff
+ X-label: time (ns)
+ Y-label: 
+ Start Time:  0.0003 , Delta Time:  0.0003
+ Number of Points: 1355
+ Range of X-values:  0.0003    0.4065
+ Range of Y-values:  -2.76715e-05    0.0235292
+ -----------------
+Out[10]: 0
+
+In [11]: dirpff()
+
+                     DIRECTORY LISTING of File:  qshis.pff
++-------+------------------+--------------------------------------------------+
+|     # | Data Type        | Title                                            |
++-------+------------------+--------------------------------------------------+
+|     1 | Time History     | Vin                                              |
+|     2 | Time History     | Iin                                              |
+|     3 | Time History     | Vout                                             |
+|     4 | Time History     | Iout                                             |
+|     5 | Time History     | TL_Vin                                           |
+|     6 | Time History     | TL_Iin                                           |
+|     7 | Time History     | TL_Vout                                          |
+|     8 | Time History     | TL_Iout                                          |
+|     9 | Time History     | TL0_Vin                                          |
+|    10 | Time History     | TL0_Iin                                          |
+|    11 | Time History     | TL0_Vout                                         |
+|    12 | Time History     | TL0_Iout                                         |
+|    13 | Time History     | TL0c_Vin                                         |
+|    14 | Time History     | TL0c_Iin                                         |
+|    15 | Time History     | TL0c_Vout                                        |
+|    16 | Time History     | TL0c_Iout                                        |
+|->  17 | END-OF-DATA      |                                                  |
++-------+------------------+--------------------------------------------------+
+
+In [12]: plo(range(1,16,2),ov=0)
+Out[12]: 0
+
+In [13]: plo(range(1,16,2))
+Out[13]: 0
+
+In [14]: plo(range(2,16,2))
+Out[14]: 0
+
+In [15]: whelp()
+List information about the WDF arrays.
+
+Usage:
+  whelp( [wdfs], [wdmax], [file=bool], [full=bool] )
+
+Arguments:
+  wdfs:     Integer index of first WDF array to be listed, a list of integer
+            WDF array numbers to be listed, or a string to be matched to
+            WDF array comments (titles). If WDMAX is specified, WDFS must be
+            an integer <= WDMAX. If WDFS is a non-positive integer, information
+            for all valid WDF arrays will be printed.
+  wdmax:    Integer index of last WDF array to be listed.
+  file:     If True, filename will be included in output for brief mode.
+  full:     If True, full, detailed WDF array information will be printed.
+            If False, only a brief listing (WDF array number, comment) is given.
+            If not specified, a detailed listing will be given if WDFS is an
+            integer and WDMAX is not specified, or if WDFS is a list.
+
+Return value: Returns 0 if successful, or None on error
+
+In [16]: whelp(1,16)
+WDF Arrays with Valid Data are Listed:
+Array   Comment 
+  1     Vin
+  2     Iin
+  3     Vout
+  4     Iout
+  5     TL_Vin
+  6     TL_Iin
+  7     TL_Vout
+  8     TL_Iout
+  9     TL0_Vin
+ 10     TL0_Iin
+ 11     TL0_Vout
+ 12     TL0_Iout
+ 13     TL0c_Vin
+ 14     TL0c_Iin
+ 15     TL0c_Vout
+ 16     TL0c_Iout
+Out[16]: 0
+
+In [17]: closepff(1)
+Out[17]: 1
+
+In [18]: showpff()
+
+                         DIRECTORY of Active PFF Files
++-------+------------------------------------------------------+----+---------+
+|     # | File Name                                            | St | Entries |
++-------+------------------------------------------------------+----+---------+
++-------+------------------------------------------------------+----+---------+
+Out[18]: 0
+
+In [19]: quit
