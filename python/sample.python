@@ -1,0 +1,139 @@
+# $Id$
+# 
+# Copyright (2014) David Seidel.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+# This script finds all the modules, packages, and extension modules in the
+# Hermes Python directory tree constructs "make" dependencies for generating
+# HTML documentation
+#
+# SAMPLE PYTHON SESSION USING PFMPL
+
+Fedora16 1010$ python
+Python 2.7.3 (default, Jul 24 2012, 11:41:40) 
+[GCC 4.6.3 20120306 (Red Hat 4.6.3-2)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from pfmpl import *
+>>> from pylab import *
+>>> isinteractive()
+False
+>>> ion()
+>>> isinteractive()
+True
+>>> openpff('qshis.pff')
+1
+>>> re(1,'')
+16
+>>> whelp(1,17)
+WDF Arrays with Valid Data are Listed:
+Array   Comment 
+  1     Vin
+  2     Iin
+  3     Vout
+  4     Iout
+  5     TL_Vin
+  6     TL_Iin
+  7     TL_Vout
+  8     TL_Iout
+  9     TL0_Vin
+ 10     TL0_Iin
+ 11     TL0_Vout
+ 12     TL0_Iout
+ 13     TL0c_Vin
+ 14     TL0c_Iin
+ 15     TL0c_Vout
+ 16     TL0c_Iout
+0
+>>> cha(range(1,17),mdt=1.e9,xlab='time (ns)')
+16
+>>> plo([1,3])
+0
+>>> showpff()
+
+                         DIRECTORY of Active PFF Files
++-------+------------------------------------------------------+----+---------+
+|     # | File Name                                            | St | Entries |
++-------+------------------------------------------------------+----+---------+
+| ->  1 | qshis.pff                                            | RW |     16  |
++-------+------------------------------------------------------+----+---------+
+0
+>>> plo()
+Plot plot one or more waveform (WDF) arrays.
+
+Usage:
+  plo([wdf], [count], [xrange=list], [yrange=list], [title=str], \
+      [xlabel=str], [ylabel=str], [overlay=bool],  [nogrid=bool], \
+      [wait=bool],  [legend=value],  [color=value],  [line=value], \
+      [lw=int], [charsize=int], [left=bool], [right=bool], \
+      [unset=bool], [setdefault=bool], [showdefault=bool] )
+
+Arguments:
+  wdf:          Integer index, or list of integer indices, of WDF arrays
+                to be plotted.Optional ONLY if SETDEFAULT, SHOWDEFAULT, or
+                UNSET have been specified
+  count:        Number of consecutively indexed WDF arrays to be plotted,
+                starting with WDF. If COUNT is specified, WDF must be an
+                integer.
+  xrange*:      Horizontal (x) range of plot
+  yrange*:      Vertical (y) range of plot
+  xlabel*:      Horizontal (x) axis label for output plot
+  ylabel*:      Vertical (y) axis label for output plot
+  title*:       Title for plot
+  overlay*:     If True, multiple WDF arrays will be plotted on a single
+                axes. If False, each requested WDF array will be plotted
+                in its own axes. (DEFAULT:True)
+  nogrid*:      If True, plots will be plotted on the same axes as the last
+                plot command, if possible. (DEFAULT:False)
+  wait*:        If True, user will need to hit the "ENTER" key between plots.
+                (DEFAULT:False)
+  legend*:      Location of plot legend. If None, no legend is used. Other
+                legal values are the legal values of the LOC keyword of the the
+                mathplotlib.axes.Axes.legend method. (DEFAULT:0 or 'best')
+  color*:       An integer, string, or list of integers and/or strings. Strings
+                are interpreted as names of matplotlib colors. Integers
+                are mapped (modulo 8) to 'k' (black), 'r' (red), 'g' (green),
+                'b' (blue), 'c' (cyan), 'm' (magenta), 'y' (yellow), and
+                'orange'.
+  line*:        An integer, string, or list of integers and/or strings. Strings
+                are interpreted as names of matplotlib line types. Integers
+                are mapped (modulo 4) to '-' (solid), ':' (dotted), '--'
+                (dashed), and '-.' (dash_dot).
+  lw*:          Line weight, in pixels
+  charsize*:    Character size, in points
+  left:         If True, requested plots will have only a left axis.
+  right:        If True, and the previous plot command set the LEFT keyword,
+                then the requested plots will be scaled to an independent right
+                axis.
+  setdefault:   If set, provided option values will be made default
+  showtdefault: If set, current default option values will be printed
+  unset:        If set, default option values will be reset to original values
+
+Note: The default values of the keywords denoted with '*' above, can be modified
+      using the SETDEFAULT keyword.
+
+Return value: If error encountered, returns None. Otherwise, 0 is returned
+0
+>>> closepff(0)
+1
+>>> showpff()
+
+                         DIRECTORY of Active PFF Files
++-------+------------------------------------------------------+----+---------+
+|     # | File Name                                            | St | Entries |
++-------+------------------------------------------------------+----+---------+
++-------+------------------------------------------------------+----+---------+
+0
+>>> ^D  ### use ctrl-D to exit python
