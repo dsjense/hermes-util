@@ -1,0 +1,578 @@
+!     $Id$
+!     
+!     Copyright (2014) David Seidel.
+!     
+!     Hermes is free software: you can redistribute it and/or modify
+!     it under the terms of the GNU Lesser General Public License as
+!     published by the Free Software Foundation, either version 3 of
+!     the License, or (at your option) any later version.
+!     
+!     Hermes is distributed in the hope that it will be useful, but
+!     WITHOUT ANY WARRANTY; without even the implied warranty of
+!     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!     GNU Lesser General Public License for more details.
+!     
+!     You should have received a copy of the GNU Lesser General
+!     Public License along with Hermes.  If not, see
+!     <http://www.gnu.org/licenses/>.
+!
+@ccModule
+Module providing access to the Hermes Utilities PFFC Library.
+-------------------------------------------------------------
+
+This module was developed for the private use of the pff module, and
+is not intended to be used directly by a user or other application.
+
+@ccGetTypes
+Queries module to find supported PFF dataset types.
+
+Usage:
+  get_type_names()
+
+Arguments: None
+
+Return value: A dictionary containing the string names associated with
+              all valid PFF raw dataset types
+
+@ccGetCtypes
+Queries module to find byte-lengths of PFF arithmetic types.
+
+Usage:
+  get_ctype_sizes()
+
+Arguments: None
+
+Return value: A dictionary containing the byte lengths associated with
+              integers ('i'), longs ('l'), floats ('f'), and doubles ('d')
+
+@ccOpen
+Opens a PFF file
+
+Usage:
+  open( file, mode="r" )
+
+Arguments:
+  file:  String containing name of file to be opened.
+  mode:  Mode in which file is to be opened. Valid values are:
+           "r"  for read-only access (default)
+           "w"  for write-only access
+           "rw" for read-write access  dataset
+
+Return value: Integer ID index associated with file
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error on error opening file or invalid "mode" value
+
+@ccShow
+Print list of open PFF files to stdout.
+
+Usage:
+  filelist( range=(1,-1), width=80 )
+
+Arguments:
+  range: Tuple containing first and last file ID index to be listed.
+         If second index is <= 0, highest index in use is used. If not
+         supplied, all open files are listed.
+  width:  Maximum width of listing, in characters
+
+Return value:  0, indicates success, or
+               otherwise, some other error occurred
+
+Throws: TypeError for improper type or number of arguments
+
+@ccFPrec
+Utility to query and/or set PFF floating-point precision.
+
+Usage:
+  fp_precision( file=0, value=-1 )
+
+Arguments:
+  file:  Integer. If positive, index of file to be queried/set
+                  If 0, current active file is to be queried/set
+                  If -1, current default state is to be queried/set
+                  If <-1, current default state and state for all open
+                     files are to be queried/set
+  value: Value to set precision. Valid values are:
+           -1,  query mode only (default)
+            0,  set precision to REDUCED
+            1,  set precision to FULL
+            2,  set precision to ORDINATE-FULL
+    
+Return value:
+  A buffer containing packed integer array. This buffer contains the
+  data needed to build a two-dimensional [2,*] numpy.ndarray
+  containing the current state (before changes by this function) of
+  the floating-point precision settings. The function pff.buf2nparray
+  is used to convert the buffer to this array. Note these are the
+  values BEFORE any settings are changed. For "file" = -1 or larger,
+  the array's shape is [2,1] -- [0,0] is the file ID (or 0 for the
+  default setting), and [1,0] is the precison setting (0,1, or 2, see
+  "value" above). For "file" = -2 or smaller, the returned array's
+  shape is [2,n+1], where n is the number of open files, and it
+  returns the default precision, as well as the precision setting for
+  each open file.
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error for other various error conditions
+
+@ccDir
+Print list of datasets in an open PFF file to stdout.
+
+Usage:
+  dslist(file=0, range=(1,-1), match=0, width=80)
+
+Arguments:
+  file:  If positive integer, index of file for which to list datasets
+         If 0, datasets of current active file are listed
+  range: Tuple containing first and last dataset indices to be
+         listed. If second index is <= 0, highest index in the file is
+         used. If not supplied, all datasets are listed.
+  match: String used to match the titles of the datasets to be listed.
+         Limited wildcarding is supported. The following characters
+         have special meaning when encountered in the search string:
+
+           "*" is matched by 0 to n characters
+           "?" is matched by exactly 1 character
+           "^" as a first character anchors the match to the beginning
+               of the comment substring
+           "$" as a final character anchors the match to the end of
+               the comment substring
+           "\" escapes "*" and "?" to be used literally anywhere in
+               the search string and escapes "^" (and "$") at the
+               beginning only (and end only) of the search string to
+               force "^" (or "$") to be interpreted literally
+  width:  Maximum width of listing, in characters
+
+Return value: None
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if requested file is not open
+
+@ccGetMatch
+
+Returns integer array of dataset indicies whose dataset comment
+contains the supplied string, subject to the supplied matching
+options. Note that limited wildcarding is supported. The following
+characters have special meaning when encountered in the search string:
+   "*" is matched by 0 to n characters
+   "?" is matched by exactly 1 character
+   "^" as a first character anchors the match to the beginning of the
+       comment substring
+   "$" as a final character anchors the match to the end of the
+       comment substring
+   "\" escapes "*" and "?" to be used literally anywhere in the search
+       string and escapes "^" (and "$") at the beginning only (and end
+       only) of the search string to force "^" (or "$") to be
+       interpreted literally
+
+Usage:
+  getmatch(string, file=0, range=(1,-1), exactcase=0, match=1, width=80)
+
+Arguments:
+  string:    String to search for.
+  file:      Index of file whose datasets are to be searched. If 0, the
+             current active file is used.
+  range:     Tuple containing first and last dataset indices to be
+             searched. If second index is <= 0, highest index in the
+             file is used. If not supplied, all datasets are searched.
+  exactcase: If non-zero, exact case matching is required.
+  match:     If non-zero (default), indices of datasets whose comments
+             match are returned, if zero, datasets whose comments do
+             NOT match are returned.
+  width:     Maximum width of listing, in characters.
+
+Return value:
+  A buffer containing packed integer array (or list). The
+  pff.buf2nparray function can be used to convert the returned buffer
+  into a numpy.ndarray integer array.
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if requested file is not open
+
+@ccAdvDsp
+Increments the current dataset pointer of a PFF file by one. Pointer
+will not be incremented beyond last dataset for a file in READ-ONLY
+mode, and not more than one beyond the last dataset for a file in
+READ-WRITE mode.
+
+Usage:
+  advance_ds_pointer( file=0 )
+
+Arguments:
+  file: Index of file whose datasets are to be searched. If 0, the
+        current active file is used.
+
+Return value: index of file's dataset pointer (AFTER being changed)
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if requested file is not open or is WRITE-ONLY
+
+@ccClose
+Closes a PFF file.
+
+Usage:
+  close( id=0 )
+
+Arguments:
+  id:  If positive, integer ID index of file to be closed. Otherwise,
+       all open files are closed.
+
+Return value: Number of files closed
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if requested file is not open
+
+@ccSetFile
+Sets the current active PFF file.
+
+Usage:
+  setcurfile( id )
+
+Arguments:
+  id:  Integer ID index of file to become the active file.
+
+Return value: None
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if requested file is not open
+
+@ccGetFName
+Returns the name of the file associated with the provided file index.
+
+Usage:
+  getfilename( id=0 )
+
+Arguments:
+
+  id: If positive, integer index of file. Otherwise, current active
+      file is used.
+
+Return value: String containing name of file
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if requested file is not open
+
+@ccGetHdr
+Returns the directory information for a specified dataset in a
+specified file.
+
+Usage:
+  readhdr(ds=0, id=0)
+
+Arguments:
+  ds: Index of dataset for which to obtain directory information
+  id: If positive, integer index of file containing
+      dataset. Otherwise, the current active file is used.
+
+Return value:
+
+  A dictionary containing the values associated with the following
+  named items of direcory information:
+    'handle', 'rawtype', 'apptype' 'nblk', 'sdim', 'adim', 'title',
+    'typename', and 'rfu'
+  The first six items have integer values, 'adim' and 'title' are
+  strings, and 'rfu' is a packed buffer containing data for an integer
+  array.  The pff.buf2nparray function can be used to convert the
+  returned buffer into a numpy.ndarray integer array. Note that
+  'handle' is an integer handle to a PFF dataset currently in memory
+  and can be used in other pff_ext functions to access information
+  from the dataset.
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if requested file is not open or if
+           requested dataset cannot be accessed
+
+@ccRelHdl
+Releases the handle and deletes the corresponding dataset from memory.
+Handles are obtained from the 'handle' member of the dictionary
+returned by the readhdr function.
+
+Usage:
+  releaseDSHandle(handle)
+
+Arguments:
+  handle: Integer handle to be released
+
+Return value: None
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if supplied handle is invalid
+
+@ccGetLbls
+Retrieves an array of string labels from a dataset. Array returned in
+a packed string buffer. The pff.bld_label_array function can be used
+to convert the returned buffer into a numpy.ndarray string array.
+
+Usage:
+  get_labels(handle, labeltype)
+
+Arguments:
+  handle:    Integer handle of dataset to be queried.
+  labeltype: String describing the type of labels requested. Valid
+             values (not all label types are valid for every dataset
+             type) are:
+               'S', for spatial labels,
+               'A', for attribute labels,
+               'B', for block labels.
+
+Return value: Packed string buffer containing requested array, or
+              None, if dataset does not contain labels
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if supplied label type is illegal or dataset
+            is of unknown type.
+
+@ccGetNumAry
+Retrieves an array of numeric (integer, long, or float) data from a
+dataset.  The array is returned in a packed data buffer, which can be
+converted to a a numpy.ndarray of the appropriate type using the
+pff.buf2nparray function.
+
+Usage:
+  get_num_arrays(handle, datatype, block=0, shift=0)
+
+Arguments:
+  handle:   Integer handle of dataset to be queried.
+
+  datatype: String describing the type of data requested. Valid values
+            are:
+               for block datasets, 'spare','nx', 'x', or 'data'
+               for vertex datasets, 'spare', 'x', or 'data'
+               for IFL datasets, 'iarray', 'farray', or 'flist'
+  block:    Index of block for which the data is requested. If the
+            dataset type does not support blocks, its value is
+            ignored.
+  shift:    Data offset parameter. It is used with various
+            combinations of "datatype" and the type of the dataset:
+              datatype='data', attribute offset (0 to dimd-1)
+              datatype='x' for nonuniform datasets, coordinate offset
+                 (0 to dims-1)
+            Its value is ignored for all other cases.
+
+Return value: Packed data buffer containing requested array, or
+              None, if datatype requested is empty.
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if any of the supplied block index, shift index,
+            or datatype is illegal, or the dataset is of unknown type.
+
+@ccWrIFL
+Utility function to write an IFL dataset to a PFF file. The dataset's
+data is packed into 4 tuples, which are passed as arguments to write_ifl.
+It is designed to be wrapped by the pff.IFL_dataset.ds_write method.
+
+Usage:
+  write_ifl(t_header, t_iarray, t_farray, t_flist, id=0)
+
+Arguments:
+  t_header: Tuple containing the dataset's basic header data, of the
+            form (rawtype,apptype,typename,title). The
+            pff.dataset.header_tuple member function can be used to
+            build this tuple.
+  t_iarray: Tuple containing integer array data, of the form ('i',
+            itemsize, stringbuf). (see packaging notes below)
+  t_farray: Tuple containing float array data, of the form ('f',
+            itemsize, stringbuf). (see packaging notes below)
+  t_flist:  Tuple containing float list data, of the form ('f',
+            itemsize, stringbuf). (see packaging notes below)
+
+  id:       If positive, integer index of file to which the dataset is
+            to be written. Otherwise, the current active file is used.
+
+Return value: None
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if the file is not open, or if an error
+            occurs while constructing or writing the dataset.
+
+Note on array packing:
+  The first element of the tuple is a one-character string describing
+  the type of the data. The tuple's second element is the size of a
+  single element of the array in bytes (found in the itemsize
+  attribute of the numpy.ndarray object containing the array). The
+  third element is the actual array data, converted to a string with
+  the numpy.ndarray.tostring member method. If the the array is not
+  present, the tuple's 2nd and 3rd elements should be set to 1 and '',
+  respectively.
+
+@ccWrVtx
+Utility function to write a Vertex dataset to a PFF file. The
+dataset's data is packed into 5 tuples and a string buffer, which are
+passed as arguments to write_vtx. This function is designed to be
+wrapped by the pff.VTX_dataset.ds_write method.
+
+Usage:
+  write_vtx(t_header, t_sup, labelbuf, t_spare, t_x, t_data, id=0)
+
+Arguments:
+  t_header: Tuple containing the dataset's basic header data, of the
+            form (rawtype,apptype,typename,title). The
+            pff.dataset.header_tuple member function can be used to
+            build this tuple.
+  t_sup:    Tuple containing supplemental header data specific to
+            vertex datasets, of the form (sdim,adim,nv).
+  labelbuf: A string buffer which is densely packed with the NULL-
+            terminated grid and data labels for the dataset
+  t_spare:  Tuple containing spare-word array's data, of the form
+            ('i', itemsize, stringbuf). (see packaging notes below)
+  t_x:      Tuple containing grid ordinate (X) data, of the form ('f',
+            itemsize, stringbuf). (see packaging notes below)
+  t_data:   Tuple containing attribute data (DATA), of the form ('f',
+            itemsize, stringbuf). (see packaging notes below)
+  id:       If positive, integer index of file to which the dataset is
+            to be written. Otherwise, the current active file is used.
+
+Return value: None
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if the file is not open, or if an error
+            occurs while constructing or writing the dataset.
+
+Note on array packing:
+  The first element of the tuple is a one-character string describing
+  the type of the data. The tuple's second element is the size of a
+  single element of the array in bytes (found in the itemsize
+  attribute of the numpy.ndarray object containing the array). The
+  third element is the actual array data, converted to a string with
+  the numpy.ndarray.tostring member method. If the the array is not
+  present, the tuple's 2nd and 3rd elements should be set to 1 and '',
+  respectively.
+
+@ccBldUorN
+Utility function to initialize construction of a uniform or nonuniform
+block grid dataset for eventual writing to a PFF file. The dataset's
+header information is passed to this function in two tuples. The
+provided data is stored internally, ultimately used when the file
+finally written (via a call to write_multiblkds). This function is
+designed to be called by the pff.blkgrid_dataset.ds_write method.
+
+Usage:
+  bld_multiblkds(t_header, t_sup)
+
+Arguments:
+  t_header: Tuple containing the dataset's basic header data, of the
+            form (rawtype,apptype,typename,title). The
+            pff.dataset.header_tuple member function can be used to
+            build this tuple.
+  t_sup:    Tuple containing supplemental header data specific to
+            multi- grid datasets, of the form (sdim,adim,nblk).
+
+Return value: None
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if an illegal dataset raw type is provided.
+
+@ccFillUorN
+Utility function to provide data for a single block during the
+construction of a uniform or nonuniform block grid dataset (following
+an initial call to a bld_multiblkds) for eventual writing to a PFF
+file. The block's data is packed into 4 tuples and a string buffer,
+which are passed as arguments to to fill_multiblkds. The provided data
+is stored internally, ultimately used when the file finally written
+(via a call to write_multiblkds).  This function is designed to be
+called by the pff.blkgrid_dataset.ds_write method.
+
+Usage:
+  fill_multiblkds(labelbuf, t_spare, t_nx, t_x, t_data)
+
+Arguments:
+  labelbuf: A string buffer which is densely packed with the NULL-
+            terminated grid, data, and block labels for the block
+  t_spare:  Tuple containing spare-word array's data, of the form
+            ('i', itemsize, stringbuf). (see packaging notes below)
+  t_nx:     Tuple containing grid size (NX) data, of the form ('i',
+            itemsize, stringbuf). (see packaging notes below)
+  t_x:      Tuple containing grid ordinate (X) data, of the form ('f',
+            itemsize, stringbuf). (see packaging notes below). This
+            tuple is constructed using the xblk_tuple virtual method
+            of the pff.blkgrid class
+  t_data:   Tuple containing attribute data (DATA), of the form ('f',
+            itemsize, stringbuf). (see packaging notes below)
+
+Return value: None
+
+Note on array packing:
+  The first element of the tuple is a one-character string describing
+  the type of the data. The tuple's second element is the size of a
+  single element of the array in bytes (found in the itemsize
+  attribute of the numpy.ndarray object containing the array). The
+  third element is the actual array data, converted to a string with
+  the numpy.ndarray.tostring member method. If the the array is not
+  present, the tuple's 2nd and 3rd elements should be set to 1 and '',
+  respectively.
+
+Throws: TypeError for improper type or number of arguments
+
+@ccWrUorN
+Utility function to finish writing a uniform or nonuniform block grid
+dataset to a PFF file. A call to this function should be preceded by a
+single call to bld_multiblkds, and a call to fill_multiblkds for each
+block in the dataset. This function is designed to be called by the
+pff.blkgrid_dataset.ds_write method.
+
+Usage:
+  write_multiblkds(id=0)
+
+Arguments:
+  id: If positive, integer index of file to which the dataset is to be
+      written. Otherwise, the current active file is used.
+
+Return value: None
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if the file is not open, or if an error
+            occurs while writing the dataset.
+
+@ccScanList
+Utility function that scans a supplied list of strings for the string
+"findstring", subject to the supplied matching options. Note that
+limited wildcarding is supported. The following characters have
+special meaning when encountered in the search string:
+
+   "*" is matched by 0 to n characters
+   "?" is matched by exactly 1 character
+   "^" as a first character anchors the match to the beginning of the
+       comment substring
+   "$" as a final character anchors the match to the end of the
+       comment substring
+   "\" escapes "*" and "?" to be used literally anywhere in the search
+       string and escapes "^" (and "$") at the beginning only (and end
+       only) of the search string to force "^" (or "$") to be
+       interpreted literally
+This function is designed to be wrapped by the pff.scanlist method.
+
+Usage:
+  scanlist(nlist, list, findstring, exactcase=0, match=1)
+
+Arguments:
+  nlist:      Number of strings in string list.
+  list:       A string buffer which is densely packed with "nlist"
+              NULL- terminated list of strings to be searched
+  findstring: String to search for.
+  exactcase:  If non-zero, exact case matching is required.
+  match:      If non-zero (default), indices of strings that match are
+              returned, if zero, indices of strings that do NOT match
+              are returned.
+
+Return value:
+  A buffer containing a packed integer array (or list) of the indicies
+  of the list of strings that meet the matching criteria. The
+  pff.buf2nparray (or buf2list) function can be used to convert the
+  returned buffer into a numpy.ndarray integer array (or list of
+  integers).
+
+Throws: TypeError for improper type or number of arguments
+
+@ccHAK
+Utility function to pause until the user hits a key on his keyboard.
+Note that this does not seem to play well with matplotlib.
+
+Usage:
+  hak(prompt='Hit any key: ')
+
+Arguments:
+  prompt: prompt string written to terminal
+
+Return value: Integer value of character hit.
+
+Throws: TypeError for improper type or number of arguments
