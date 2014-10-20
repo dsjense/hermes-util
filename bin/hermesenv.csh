@@ -211,6 +211,30 @@ if ( $?MPI_ROOT != 0 ) then
     endif
   endif
 endif
+
+# Add Hermes python modules to PYTHONPATH
+#
+which python >& /dev/null
+if ( $status == 0 && -d $HERMES_ROOT/python ) then
+  set pbase = $HERMES_ROOT/python
+  set pver = `python -V |& awk '{split($2,a,".");print a[1] "." a[2]}'`
+  if ( $?PYTHONPATH == 0 ) then
+    setenv PYTHONPATH $pbase/modules:$pbase/extensions/$HERMES_SYS_TYPE-$pver
+  else
+    set pypath = $PYTHONPATH
+    set mods = 0
+    foreach p ($pbase/extensions/$HERMES_SYS_TYPE-$pver $pbase/modules)
+      echo "\:$pypath\:" | grep "\:$p\:" > /dev/null
+      if ( $status != 0) then
+        set pypath = $p\:$pypath
+        set mods = 1
+      endif
+    end
+    if ( $mods != 0 ) then
+      setenv PYTHONPATH $pypath
+    endif
+  endif
+endif
 #
 #  IDL/PFIDL environmental variables
 #

@@ -213,6 +213,24 @@ if [ -n "$MPI_ROOT" -a -d "$MPI_ROOT" ]; then
   fi
 fi
 
+# Add Hermes python modules to PYTHONPATH
+#
+which python >/dev/null 2>&1
+if [ $? -eq 0 -a -d $HERMES_ROOT/python ]; then
+  pbase=$HERMES_ROOT/python
+  pver=`python -V 2>&1| awk '{split($2,a,".");print a[1] "." a[2]}'`
+  if [ -z "$PYTHONPATH" ]; then
+     PYTHONPATH=$pbase/modules:$pbase/extensions/$HERMES_SYS_TYPE-$pver
+  else
+    for p in $pbase/extensions/$HERMES_SYS_TYPE-$pver $pbase/modules; do
+      if ! echo ":$PYTHONPATH:" | grep ":$p:" >/dev/null; then
+        PYTHONPATH=$p:$PYTHONPATH
+      fi
+    done
+  fi
+  export PYTHONPATH
+fi
+
 #
 #  IDL/PFIDL environmental variables (needed for Mercury w/ IDL-graphics)
 #
