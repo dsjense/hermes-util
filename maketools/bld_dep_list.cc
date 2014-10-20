@@ -72,7 +72,8 @@ void usage(const char *cmd, int status)
             "[-Vsubst_macro ...] [-a] [-P]\n");
   fprintf(f,"       [-E|-W|-l|-L lib_name] [-e errorlog] "
             "[-S '# delimiter_string']\n");
-  fprintf(f,"       [-p target_prefix] [product|-] [platform]\n\n");
+  fprintf(f,"       [-p target_prefix[:target_suffix]] [product|-] "
+            "[platform]\n\n");
   std::exit(status);
 }
 
@@ -96,6 +97,7 @@ int main(int argc, char *argv[])
   list<string> MDargs;
   string err_file = "";
   string prefix = "";
+  string psuf = "";
   bool prefix_override = false;
   string extradep = "";
   bool extradep_override = false;
@@ -146,8 +148,16 @@ int main(int argc, char *argv[])
       }
       break;
     case 'p':
-      prefix_override = true;
-      prefix = optarg;
+      {
+        prefix_override = true;
+        tmpstr = optarg;
+        string::size_type idx = tmpstr.find(':');
+        if ( idx == string::npos ) prefix = tmpstr;
+        else {
+          prefix = tmpstr.substr(0,idx);
+          psuf = tmpstr.substr(idx+1);
+        }
+      }
       break;
     case 'X':
       extradep_override = true;
@@ -315,6 +325,7 @@ int main(int argc, char *argv[])
       if ( !prefix_override ) prefix = "$(" + LIBname + ")(";
       suffix += ")";
     }
+    if ( !psuf.empty() ) suffix = psuf;
     suffix += blank;
     if ( !prefix.empty() ) MDargs.push_back("-p" + prefix);
     if ( !suffix.empty() ) MDargs.push_back("-o" + suffix);
