@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+# $Id$
+# 
+# Copyright (2014) David Seidel.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+# This script finds all the modules, packages, and extension modules in the
+# Hermes Python directory tree constructs "make" dependencies for generating
+# HTML documentation
+#
+
+import os, sys
+from glob import glob
+import re
+
+def unique(seq):
+   # Not order preserving
+   keys = {}
+   for e in seq:
+       keys[e] = 1
+   return keys.keys()
+
+def rmwalk(arg,dname,names):
+    global DIRLIST
+    DIRLIST.append(dname)
+    for i in names:
+        f = os.path.join(dname,i)
+        if os.path.isfile(f): os.unlink(f)
+
+re1 = re.compile('^makeopts\.')
+re2 = re.compile('\..*$')
+re3 = re.compile('~$')
+
+mko = os.path.join(os.getenv('HERMES_ROOT'),'etc','makeopts.*')
+
+baselist = map(os.path.basename, glob(mko))
+tlist = [ re3.sub('',re2.sub('',re1.sub('',i))) for i in baselist ]
+
+typelist = unique([ i for i in tlist if i != '' ])
+
+for s in typelist:
+    glist = glob(s+'-*')
+    for d in glist:
+        DIRLIST = []
+        if os.path.isdir(d):
+            os.path.walk(d,rmwalk,None)
+        clist = [ len(d.split(os.sep)) for d in DIRLIST ]
+        llen = len(clist)
+        for c in range(max(clist),0,-1):
+            dlst = [ DIRLIST[i] for i in range(llen) if clist[i] == c ]
+            for rdir in dlst: os.rmdir(rdir)
+    if len(glist): print 'Build Directory',s,'removed'
+                     
