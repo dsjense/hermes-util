@@ -80,6 +80,153 @@ Return value:  0, indicates success, or
 
 Throws: TypeError for improper type or number of arguments
 
+@ccI2f 
+Function to decode a floating point number from three 15-bit unsigned
+integers.
+
+If the number to be decoded is greater than the largest value that can
+be stored in a 32-bit float (overflow), a power-of-10 integer offset
+is also returned if OFFSET is non-zero. In the case of underflow, a
+negative power-of-10 offset be returned if KEEP is non-zero. If either
+OFFSET or KEEP are non-zero, this integer offset is always returned.
+
+Usage:
+  u_i2f( t_ival, keep=0, offset=0 )
+
+Arguments:
+  t_ival: Tuple containing integer array data, of the form ('i',
+          itemsize, stringbuf). (see packaging notes below)
+  keep:   If non-zero, a negative power-of-ten integer offset value
+          is returned for an underflowing decoded float. Note the
+          non-zero KEEP implies non-zero OFFSET.
+  offset: If non-zero, a power-of-ten integer offset will additionally
+          be returned. It will be non-zero only if the decoded float
+          overflows, or if the decoded float underflows AND KEEP is
+          non-zero.
+
+Return value: If successful, and KEEP and OFFSET are both zero, the
+              decoded float value is returned as a numpy.float32
+              value.  If either KEEP or OFFSET are non-zero, a tuple
+              containing the decoded float value and an integer
+              power-of-ten offset are returned.  On error, an exception
+              is raised.
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if encoded integers are Larger than 15-bits,
+          or the float value overflows when either OFFSET or KEEP is
+          non-zero.
+
+Note on array packing:
+  The first element of the tuple is a one-character string describing
+  the type of the data. The tuple's second element is the size of a
+  single element of the array in bytes (found in the itemsize
+  attribute of the numpy.ndarray object containing the array). The
+  third element is the actual array data, converted to a string with
+  the numpy.ndarray.tostring member method. If the the array is not
+  present, the tuple's 2nd and 3rd elements should be set to 1 and '',
+  respectively.
+
+@ccI2d 
+Function to decode a double from five 15-bit unsigned integers.
+
+Usage:
+  u_i2d( t_ival )
+
+Arguments:
+  t_ival: Tuple containing integer array data, of the form ('i',
+          itemsize, stringbuf). (see packaging notes below)
+
+Return value: If successful, the decoded double value is returned. On
+              error, an exception is raised.
+
+Throws: TypeError for improper type or number of arguments, 
+        pff_ext.PFF_Error if encoded integers are Larger than 15-bits.
+
+Note on array packing:
+  The first element of the tuple is a one-character string describing
+  the type of the data. The tuple's second element is the size of a
+  single element of the array in bytes (found in the itemsize
+  attribute of the numpy.ndarray object containing the array). The
+  third element is the actual array data, converted to a string with
+  the numpy.ndarray.tostring member method. If the the array is not
+  present, the tuple's 2nd and 3rd elements should be set to 1 and '',
+  respectively.
+
+@ccI2l 
+Function to decode a long int from five 15-bit unsigned integers.
+
+Usage:
+  u_i2l( t_ival )
+
+Arguments:
+  t_ival: Tuple containing integer array data, of the form ('i',
+          itemsize, stringbuf). (see packaging notes below)
+
+Return value: If successful, the decoded long int value is returned. On
+              error, an exception is raised.
+
+Throws: TypeError for improper type or number of arguments, 
+        pff_ext.PFF_Error if encoded integers are larger than 15-bits.
+
+Note on array packing:
+  The first element of the tuple is a one-character string describing
+  the type of the data. The tuple's second element is the size of a
+  single element of the array in bytes (found in the itemsize
+  attribute of the numpy.ndarray object containing the array). The
+  third element is the actual array data, converted to a string with
+  the numpy.ndarray.tostring member method. If the the array is not
+  present, the tuple's 2nd and 3rd elements should be set to 1 and '',
+  respectively.
+
+@ccF2i 
+Function to encode a floating point number as three 15-bit unsigned
+integers.
+
+Usage:
+  u_f2i( xval, offset=0 )
+
+Arguments:
+  xval:   The numpy.float32 scalar value to be encoded.
+  offset: power-of-ten multiplier of XVAL to specify the floating 
+          number to be encoded.
+
+Return value: Packed data buffer containing encoded integer array.
+              On error, an exception is raised.
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if float value is out-of-range (overflow).
+
+@ccD2i 
+Function to encode a floating point number as five 15-bit unsigned
+integers.
+
+Usage:
+  u_d2i( dval )
+
+Arguments:
+  dval:   The numpy.double value to be encoded.
+
+Return value: Packed data buffer containing encoded integer array.
+              On error, an exception is raised.
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if double value is out-of-range (overflow).
+
+@ccL2i 
+Function to encode a long int as five 15-bit unsigned integers.
+
+Usage:
+  u_l2i( lval )
+
+Arguments:
+  lval:   The long value to be encoded.
+
+Return value: Packed data buffer containing encoded integer array.
+              On error, an exception is raised.
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if long int value is out-of-range (overflow).
+
 @ccFPrec
 Utility to query and/or set PFF floating-point precision.
 

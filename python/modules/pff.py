@@ -115,6 +115,184 @@ def dir(id=0, range=(1,-1), match="",width=80):
         print "Error:", e
         return None
 
+def i2f(ival, keep=False, offset=False):
+    '''Function to decode a floating point number from three 15-bit unsigned
+integers.
+
+If the number to be decoded is greater than the largest value that can
+be stored in a 32-bit float (overflow), a power-of-10 integer offset
+is also returned if OFFSET is true. In the case of underflow, a
+negative power-of-10 offset will be returned if KEEP is true. If either
+OFFSET or KEEP are true, this integer offset is always returned.
+
+Usage:
+  i2f( ival, keep=0, offset=0 )
+
+Arguments:
+  ival:   A list or array of at least 3 integer values that can
+          be represented as 15-bit integers (in the range 0-32767,
+          inclusive).
+  keep:   If true, a negative power-of-ten integer offset value
+          is returned for an underflowing decoded float. Note that
+          KEEP being true implies that OFFSET is also true.
+  offset: If true, a power-of-ten integer offset will additionally
+          be returned. It will be non-zero only if the decoded float
+          overflows, or if the decoded float underflows AND KEEP is
+          true.
+
+Return value: If successful, and KEEP and OFFSET are not true, the
+              decoded float value is returned. If either KEEP or
+              OFFSET are true, a tuple containing the decoded float
+              value and an integer power-of-ten offset are returned.
+              On error, None is returned.'''
+    err = 0
+    try:
+        iv = np.asarray(ival,dtype=PFFnp_int)
+        if len(iv) < 3: raise ValueError
+    except ValueError,e:
+        print 'Invalid type supplied for argument ival'
+        return None
+    k = 0 ; o = 0
+    if keep: k = 1
+    if offset: o = 1
+    ia = ( 'i', iv.itemsize, iv.tostring())
+    try:
+        return pex.u_i2f(ia[:3],k,o)
+    except pex.PFF_Error, e:
+        print "Error:", e
+        return None
+    
+def i2d(ival):
+    '''Function to decode a double from five 15-bit unsigned integers.
+
+Usage:
+  i2d( ival )
+
+Arguments:
+  ival:   A list or array of at least 5 integer values that can
+          be represented as 15-bit integers (in the range 0-32767,
+          inclusive).
+
+Return value: If successful, the decoded double value is returned. On
+              error, None is returned.'''
+
+    err = 0
+    try:
+        iv = np.asarray(ival,dtype=PFFnp_int)
+        if len(iv) < 5: raise ValueError
+    except ValueError,e:
+        print 'Invalid type supplied for argument ival'
+        return None
+    ia = ( 'i', iv.itemsize, iv[:5].tostring())
+    try:
+        return pex.u_i2d(ia)
+    except pex.PFF_Error, e:
+        print "Error:", e
+        return None
+    
+def i2l(ival):
+    '''Function to decode a long int from three 15-bit unsigned integers.
+
+Usage:
+  i2l( ival )
+
+Arguments:
+  ival:   A list or array of at least 3 integer values that can
+          be represented as 15-bit integers (in the range 0-32767,
+          inclusive).
+
+Return value: If successful, the decoded long (numpy.long) value is
+              returned. On error, None is returned.'''
+
+    err = 0
+    try:
+        iv = np.asarray(ival,dtype=PFFnp_int)
+        if len(iv) < 3: raise ValueError
+    except ValueError,e:
+        print 'Invalid type supplied for argument ival'
+        return None
+    ia = ( 'i', iv.itemsize, iv[:3].tostring())
+    try:
+        return np.long(pex.u_i2l(ia))
+    except pex.PFF_Error, e:
+        print "Error:", e
+        return None
+    
+def f2i(fval):
+    '''Function to encode a float as three 15-bit unsigned integers.
+
+Usage:
+  f2i( fval )
+
+Arguments:
+  fval:   The float value to be encoded.
+
+Return value: If successful, the encoded integer array is returned. On
+              error, None is returned.'''
+
+    err = 0
+    try:
+        f = np.float32(fval)
+    except ValueError,e:
+        print 'Invalid type supplied for argument fval'
+        return None
+    try:
+        r = pex.u_f2i(f)
+        return buf2nparray(r)
+    except pex.PFF_Error, e:
+        print "Error:", e
+        return None
+    
+def d2i(dval):
+    '''Function to encode a double as five 15-bit unsigned integers.
+
+Usage:
+  d2i( dval )
+
+Arguments:
+  dval:   The double value to be encoded.
+
+Return value: If successful, the encoded integer array is returned. On
+              error, None is returned.'''
+
+    err = 0
+    try:
+        d = np.double(dval)
+    except ValueError,e:
+        print 'Invalid type supplied for argument dval'
+        return None
+    try:
+        r = pex.u_d2i(d)
+        return buf2nparray(r)
+    except pex.PFF_Error, e:
+        print "Error:", e
+        return None
+    
+def l2i(lval):
+    '''Function to encode a long int as five 15-bit unsigned integers.
+
+Usage:
+  l2i( lval )
+
+Arguments:
+  lval:   The long int value to be encoded.
+
+Return value: If successful, the encoded integer array is returned. On
+              error, None is returned.'''
+
+    err = 0
+    try:
+        l = long(lval)
+    except ValueError,e:
+        print 'Invalid type supplied for argument lval'
+        return None
+    try:
+        r = pex.u_l2i(l)
+        return buf2nparray(r)
+    except pex.PFF_Error, e:
+        print "Error:", e
+        return None
+    
 def pff_precision(value=None, file=None, show=False, default=False, all=False, \
                   ignore=False):
     if show:

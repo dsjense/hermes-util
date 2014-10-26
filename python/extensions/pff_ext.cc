@@ -182,6 +182,194 @@ extern "C" {
     return Py_BuildValue("i",ierr);
   }
 
+  PyObject *pff_util_i2f(PyObject *self, PyObject *args, PyObject *kwargs)
+  {
+    static char arg1[] = "ival";
+    static char arg2[] = "keep";
+    static char arg3[] = "offset";
+    static char *argnames[] = { arg1, arg2, arg3, 0 };
+
+    int ialen = 0, iasz = 0;
+    char cia;
+    char *iabuf = 0;
+    int keep = 0, offset = 0;
+
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"(cis#)|ii", argnames, 
+                                      &cia, &iasz, &iabuf ,&ialen,
+                                      &keep, &offset) ) return 0;
+    int ierr = 0;
+    long ni = ialen/iasz;
+    //cout << cia  << " " << iasz <<" "<< ialen <<" "<< ni << endl;
+         
+    assert(iasz == sizeof(int));
+
+    int *ival = 0;
+    if ( ni ) ival = (int *)iabuf;
+#if 0
+    if ( ni ) {
+      int *ival = (int *)iabuf;
+      for(int i = 0; i<ni; ++i) cout << i << " " << ival[i] << endl;
+    }
+#endif
+    float xval = 0.0;
+    int off10 = 0;
+    int pkeep = PFF::FALSE;
+    if (keep) {
+      pkeep = PFF::TRUE;
+      offset = 1;
+    }
+    PFF::pf_u_i2f(pkeep, ival, &xval, &off10, &ierr);
+    if ( ierr ) {
+      PyErr_SetString(PFF_Error, "Error converting int array to float");
+      return 0;
+    }
+    if ( !offset and off10 != 0 )  {
+      PyErr_SetString(PFF_Error, "Non-zero power-of-10 offset encountered");
+      return 0;
+    }
+    if (offset) return Py_BuildValue("fi",xval,off10);
+    else return Py_BuildValue("f",xval);
+  }
+
+  PyObject *pff_util_i2d(PyObject *self, PyObject *args, PyObject *kwargs)
+  {
+    static char arg1[] = "ival";
+    static char *argnames[] = { arg1, 0 };
+
+    int ialen = 0, iasz = 0;
+    char cia;
+    char *iabuf = 0;
+
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"(cis#)", argnames, 
+                                      &cia, &iasz, &iabuf, &ialen) ) return 0;
+    int ierr = 0;
+    long ni = ialen/iasz;
+    //cout << cia  << " " << iasz <<" "<< ialen <<" "<< ni << endl;
+         
+    assert(iasz == sizeof(int));
+
+    int *ival = 0;
+    if ( ni ) ival = (int *)iabuf;
+#if 0
+    if ( ni ) {
+      int *ival = (int *)iabuf;
+      for(int i = 0; i<ni; ++i) cout << i << " " << ival[i] << endl;
+    }
+#endif
+    double xval = 0.0;
+    PFF::pf_u_i2d(ival, &xval, &ierr);
+    if ( ierr ) {
+      PyErr_SetString(PFF_Error, "Error converting int array to float");
+      return 0;
+    }
+    return Py_BuildValue("d",xval);
+  }
+
+  PyObject *pff_util_i2l(PyObject *self, PyObject *args, PyObject *kwargs)
+  {
+    static char arg1[] = "ival";
+    static char *argnames[] = { arg1, 0 };
+
+    int ialen = 0, iasz = 0;
+    char cia;
+    char *iabuf = 0;
+
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"(cis#)", argnames, 
+                                      &cia, &iasz, &iabuf, &ialen) ) return 0;
+    int ierr = 0;
+    long ni = ialen/iasz;
+    //cout << cia  << " " << iasz <<" "<< ialen <<" "<< ni << endl;
+         
+    assert(iasz == sizeof(int));
+
+    int *ival = 0;
+    if ( ni ) ival = (int *)iabuf;
+#if 0
+    if ( ni ) {
+      int *ival = (int *)iabuf;
+      for(int i = 0; i<ni; ++i) cout << i << " " << ival[i] << endl;
+    }
+#endif
+    long lval = 0;
+    PFF::pf_u_i2l(ival, &lval, &ierr);
+    if ( ierr ) {
+      PyErr_SetString(PFF_Error, "Error converting int array to long int");
+      return 0;
+    }
+    return Py_BuildValue("l",lval);
+  }
+
+  PyObject *pff_util_f2i(PyObject *self, PyObject *args, PyObject *kwargs)
+  {
+    static char arg1[] = "xval";
+    static char arg2[] = "offset";
+    static char *argnames[] = { arg1, arg2, 0 };
+
+    float xval = 0.0;
+    int offset = 0;
+
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"f|i", argnames, 
+                                      &xval, &offset) ) return 0;
+    int ierr = 0;
+
+    int ival[3];
+    PFF::pf_u_f2i(xval, offset, ival, &ierr);
+    if ( ierr ) {
+      PyErr_SetString(PFF_Error, "Error converting float to int array");
+      return 0;
+    }
+    int size = sizeof(int);
+    PyObject *r = Py_BuildValue("[ciis#]",
+                                 'i', size, 3, (char *) ival, size*3);
+    return r;
+  }
+
+  PyObject *pff_util_d2i(PyObject *self, PyObject *args, PyObject *kwargs)
+  {
+    static char arg1[] = "dval";
+    static char *argnames[] = { arg1, 0 };
+
+    double dval = 0.0;
+
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"d", argnames, 
+                                      &dval) ) return 0;
+    int ierr = 0;
+
+    int ival[5];
+    PFF::pf_u_d2i(dval, ival, &ierr);
+    if ( ierr ) {
+      PyErr_SetString(PFF_Error, "Error converting double to int array");
+      return 0;
+    }
+    int size = sizeof(int);
+    PyObject *r = Py_BuildValue("[ciis#]",
+                                 'i', size, 5, (char *) ival, size*5);
+    return r;
+  }
+
+  PyObject *pff_util_l2i(PyObject *self, PyObject *args, PyObject *kwargs)
+  {
+    static char arg1[] = "lval";
+    static char *argnames[] = { arg1, 0 };
+
+    long lval = 0.0;
+
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"l", argnames, 
+                                      &lval) ) return 0;
+    int ierr = 0;
+
+    int ival[3];
+    PFF::pf_u_l2i(lval, ival, &ierr);
+    if ( ierr ) {
+      PyErr_SetString(PFF_Error, "Error converting long int to int array");
+      return 0;
+    }
+    int size = sizeof(int);
+    PyObject *r = Py_BuildValue("[ciis#]",
+                                 'i', size, 3, (char *) ival, size*3);
+    return r;
+  }
+
   PyObject *pff_fp_precision(PyObject *self, PyObject *args, PyObject *kwargs)
   {
     static char arg1[] = "file";
@@ -1516,6 +1704,18 @@ static PyMethodDef pff_extmethods[] = {
   { "setcurfile", (PyCFunction) set_pff_file, METH_VARARGS, ccSetFile },
   { "filelist", (PyCFunction) pff_file_list, METH_VARARGS | METH_KEYWORDS,
     ccShow },
+  { "u_i2f", (PyCFunction) pff_util_i2f, METH_VARARGS | METH_KEYWORDS,
+    ccI2f },
+  { "u_i2d", (PyCFunction) pff_util_i2d, METH_VARARGS | METH_KEYWORDS,
+    ccI2d },
+  { "u_i2l", (PyCFunction) pff_util_i2l, METH_VARARGS | METH_KEYWORDS,
+    ccI2l },
+  { "u_f2i", (PyCFunction) pff_util_f2i, METH_VARARGS | METH_KEYWORDS,
+    ccF2i },
+  { "u_d2i", (PyCFunction) pff_util_d2i, METH_VARARGS | METH_KEYWORDS,
+    ccD2i },
+  { "u_l2i", (PyCFunction) pff_util_l2i, METH_VARARGS | METH_KEYWORDS,
+    ccL2i },
   { "fp_precision", (PyCFunction) pff_fp_precision,
     METH_VARARGS | METH_KEYWORDS, ccFPrec },
   { "getmatch", (PyCFunction) pff_get_match, METH_VARARGS | METH_KEYWORDS,
