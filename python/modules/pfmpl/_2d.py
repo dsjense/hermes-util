@@ -1429,6 +1429,12 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
             ": previous plot status unknown -- overplot option not allowed"
         return None
 
+    if ds.rawname == 'NI3':
+        ds = ds.clone()  # don't change data's type in the original dataset!!!
+        data = []
+        for d in ds.data:
+            data.append(np.array(d,dtype=pff.PFFnp_float,order='F'))
+        ds.data = data
     minargs = 1
     adim = ds.adim  ;  sdim = ds.sdim
     degen = np.where(ds.nx[0] == 1)[0]
