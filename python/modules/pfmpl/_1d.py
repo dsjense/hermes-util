@@ -28,7 +28,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines
 import copy as cpy
-
 import utils
 
 __doc__ = \
@@ -2157,6 +2156,136 @@ def wint(wd1, wd2=None, **kwargs):
         dt = 'a' + str(len(ylabel))
         ds.dlabels = np.reshape(np.array([ylabel],dtype=(dt)), (1,1))
 
+
+__all__.append('fctn')
+
+def fctn(wd1,fstr,*args,**kwargs):
+    '''Apply a NUMPY function to the data in a WDF array.
+
+Usage:
+  fctn(wdf,fstr,[wdout])
+
+Arguments:
+  wdf:    Integer index of WDF array to which function will be applied.
+  wdout:  Integer index of WDF array to receive array modification. If not
+          supplied, the result will be stored in WDF.
+  fstr:   String containing name of NUMPY function. Function must take
+          one numeric array argument and return a numeric array with
+          the same shape.  For example, FSTR='exp' will invoke the
+          numpy.exp function on the data in WDF. Other examples of
+          legal numpy functions are: sin, cos, arcsin, arccos, sinh,
+          log, and log10. For more information, consult the NumPy
+          Reference Manual.    
+
+Keyword arguments \'clabel\', \'xlabel\', and \'ylabel\' are also supported'''
+
+    attr_map = { 'clabel':'title','xlabel':'glabels', 'ylabel':'dlabels' }
+    kwvalid = attr_map.keys()
+    okay = True
+    try:
+        i = dir(np).index(fstr)
+        exec  'if type(np.'+fstr+') is not np.ufunc: okay = False'
+    except ValueError:
+        okay = False
+    if not okay:
+        print "\"" + fstr + "\" is not a valid function"
+        return None
+    argc = len(args)
+    wdout = None
+    if argc == 1:
+        if type(args[0]) is not types.IntType:  okay = False
+        else: wdout = args[0]
+    elif argc > 1: okay = False
+
+    print wd1,wdout,okay,fstr
+
+    ##print wdout
+
+    check = [wd1]
+    vlist = utils.parsewsl(_wdflist,check,valid=True)
+    ##print vlist
+    clen = len(check)  ;  vlen = len(vlist)
+    if vlen != clen:
+        bad = ''
+        if vlen == 0:
+            bad = str(check[0])
+            if clen > 1: bad += (' ' + str(check[1]))
+        else:
+            if vlist[0] == check[0]: bad = str(check[1])
+            else: bad = str(check[0])
+        print "The following WDF arrays are not valid: " + bad
+        return None
+
+    keys = kwargs.keys()
+    okay = True
+    attr_set = []
+
+    ##print "keys:",keys
+
+    for k in keys:
+        mat = utils.findbestmatch(kwvalid,k)
+        lmat = len(mat)
+        if lmat != 1:
+            okay = False
+            if lmat == 0:
+                print "Could not match supplied keyword \"" + k + "\""
+                print "Valid keywords:",str(kwvalid)
+            else:
+                print "Could not uniquely match supplied keyword \"" + k + "\""
+                print "It potentially matches valid keywords",str(mat)
+        else:
+            mat = mat[0]
+            val = kwargs[k]
+            if type(val) is not types.StringType:
+                okay = False
+                print  "Supplied value for", mat, "must be a string"
+            else:
+                sval = repr(val)
+                if  mat == 'xlabel' or mat == 'ylabel':
+                    dt = 'a' + str(len(val))
+                    ts = attr_map[mat][:4]
+                    scmd = ts + " = np.reshape(np.array([" + sval + \
+                           "],dtype=(dt)),(1,1))"
+                    exec scmd
+                    sval = ts
+            if okay:
+                scmd = "dso." + attr_map[mat] + " = " + sval 
+                attr_set.append(scmd)
+
+    print "attr_set:", attr_set
+    print glab
+
+    ##return None
+
+    dssave = None
+    if not okay:
+        return None
+
+    if wdout is not None:
+        if _wdflist.has_key(wdout):  dssave = w2i(wdout,copy=False)
+        xfr(wd1,wdout)
+    else:
+        wdout = wd1
+
+    dso = w2i(wdout,copy=False)
+    reset = False
+    try:
+        exec 'dso.data[0] = np.'+fstr+'(dso.data[0])'
+    except ValueError,e:
+        print "\"" + fstr + "\" is not an allowed function"
+        reset = True
+        
+    if reset:
+        if dssave is not None:
+            _wdflist[wdout] = dssave
+        else:
+            _wdflist[wdout] = dso
+        return None
+
+    for s in attr_set:  exec s
+
+    ##print "bop returning", wdout
+    return wdout
 
 __all__.append('add')
 
