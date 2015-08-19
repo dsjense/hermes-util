@@ -104,6 +104,7 @@ c                      4,   # grid points in floating array not equal
 c                           to number of points in "nx" array
 c                      5,   # vector points in floating array not equal
 c                           to "nvp"
+c                      6,   Internal PFF error loading array dimensions
 c
 c ----------------------------------------------------------------------
 c
@@ -232,11 +233,16 @@ c
 c ..... Current Dataset version (vds = 1)
 c       <LONG>s are used instead of <INT>s for axis dimensions
 c
-      do i=1,m
-        call pfusio (fid, RE, 3, buf, ierr)
-        call pfui2l ( buf, nx(i), ierr)
-      end do
+        do i=1,m
+          call pfusio (fid, RE, 3, buf, ierr)
+          call pfui2l ( buf, nx(i), ierr)
+        end do
 c
+      endif
+c
+      if (ierr .NE. 0) then
+        ierr = 6
+        return
       endif
 c
 c ... Compute total # spatial grid points, and # of vector points
@@ -249,19 +255,23 @@ c
         nvp  = nvp * nx(i)
   100 continue
 c
-c ... return if any array dimension sizes are exceeded
+c ... Read spare word integer array: but postpone processing of the error
+c     code returned by prfia until after the array dimension checks
+c
+      call pfria ( fid, sprdim, nspare, ispare, ierr )
+c
+c ... return if any array dimension sizes are exceeded,
+c     including the spare word array
 c
       if( m.GT.mdim    .OR. n.GT.ndim    .OR.
-     1    tnxg.GT.xdim .OR. nvp.GT.vdim) then
+     1    tnxg.GT.xdim .OR. nvp.GT.vdim .OR. nspare.GT.sprdim) then
         ierr = 2
         call pfserr ( PFMODU, ierr, fid,
      &                          'Insufficient array dimensions' )
         goto 999
       endif
 c
-c ... Read spare word integer array
-c
-      call pfria ( fid, sprdim, nspare, ispare, ierr )
+c ... Abort on other errors reading the spare word array
 c
       if (ierr .NE. 0) then
         ierr = 3
