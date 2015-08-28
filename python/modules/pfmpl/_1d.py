@@ -1115,7 +1115,7 @@ Usage:
   plo([wdf], [count], [xrange=list], [yrange=list], [title=str], \\
       [xlabel=str], [ylabel=str], [overlay=bool],  [nogrid=bool], \\
       [wait=bool],  [legend=value],  [color=value],  [line=value], \\
-      [lw=int], [charsize=int], [left=bool], [right=bool], \\
+      [lw=int], [charsize=int], [left=bool], [right=bool], [histogram=value], \\
       [unset=bool], [setdefault=bool], [showdefault=bool] )
 
 Arguments:
@@ -1155,6 +1155,29 @@ Arguments:
   right:        If True, and the previous plot command set the LEFT keyword,
                 then the requested plots will be scaled to an independent right
                 axis.
+  histogram:    A list containing one element for each WDF array to be
+                plotted. If it has fewer elements, it is extended by
+                successively appending the last element until it has
+                enough elements. If not a list, its value will be used
+                for every array to be plotted. If the element is a
+                Python FloatType variable, or it otherwise evaluates
+                to `True', the array will be plotted as a histogram,
+                with each supplied abscissa value assumed to be the
+                midpoint of a histogram bin. With this assumption, the
+                array of bin bounds is uniquely determined if the
+                lowest bin boundary (X0) is also known. If an element
+                of HISTOGRAM is a floating point value, that value is
+                used for the lowest bin boundary for the corresponding
+                array. If not, the dataset's spare word array is
+                searched for the `X0' key, and if it exists, it is
+                used to decode the value of the lowest bin boundary.
+                If X0 is not available from either of these sources,
+                or the supplied value does not produce a consistent,
+                monotonic array of bin boundaries, the internal bin
+                boundaries are assumed to be midway between the
+                supplied abscissa values, and the outer boundaries are
+                obtained by mirror symmetry about the supplied
+                abscissa's extrema.
   setdefault:   If set, provided option values will be made default
   showtdefault: If set, current default option values will be printed
   unset:        If set, default option values will be reset to original values
@@ -1168,7 +1191,7 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
     argnames = [ 'wdf', 'count' ]
     optvals = [ None, None ]
     kwdefs = { 'unset':False, 'showdefault':False, 'setdefault':False, \
-               'left':False, 'right':False, 'use_fig':None }
+               'left':False, 'right':False, 'use_fig':None, 'histogram':None }
                ##, '':, '':, '':, '':, '':, '':, 
     kwdefs.update(_plopts_cur) ## append settable option defaults
     ##print kwdefs
@@ -1250,6 +1273,27 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
             if left: leftright = 'L'
             else: leftright = 'R'
 
+    typ = type(histogram)
+    if typ is not types.ListType and typ is not types.TupleType:
+        histogram = [histogram]
+    nhist = len(histogram)
+    add = histogram[-1]
+    for i in range(nhist,nplts):   histogram.append(add)
+    xhist = []
+    for i,w in enumerate(plist):
+        x0 = None
+        if type(histogram[i]) is types.FloatType:
+            x0 = histogram[i]
+            histogram[i] = True
+        if histogram[i]:
+            xh = getX(w)
+            if x0 is None:
+                sx0 = w2i(w).findSpare('X0',3)
+                if sx0 is not None: x0 = pff.i2f(sx0)
+            xf = utils.XfFromXh(xh,x0)
+        else: xf = None
+        xhist.append(xf)
+
     if not okay:   return None
 
     f = plt.gcf()
@@ -1260,9 +1304,10 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
         if (not right and xrange is None) or yrange is None:
             tlist = plist
             if not overlay: tlist = plist[0:1]
-            for w in tlist:
+            for i,w in enumerate(tlist):
                 if not right and xrange is None:
-                    mnx = getXRange(w)
+                    if histogram[i]: mnx = (xhist[i][0], xhist[i][-1])
+                    else: mnx = getXRange(w)
                     if xmin is None:
                         xmin, xmax = mnx
                     else:
@@ -1333,7 +1378,8 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
                 else: hak()
             f,ax = plots.adv_frame()
             if xrange is None:
-                xmin,xmax = getXRange(w)
+                if histogram[i]: xmin,xmax = (xhist[i][0], xhist[i][-1])
+                else: xmin,xmax = getXRange(w)
                 xr = utils.nice_bounds(xmin,xmax)[0:2]
             if yrange is None:
                 ymin,ymax = getYRange(w)
@@ -1346,7 +1392,20 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
             plots.set_frame_props(ax,lw,charsize,right)
         ls = plots.get_property(iplt,lmap)
         c = plots.get_property(iplt,cmap)
-        ax.plot(getX(w),getY(w),label=getLabel(w),c=c,ls=ls,**pextra)
+        if histogram[i]:
+            xf = xhist[i]
+            yh = getY(w)
+            npt = 2*yh.size
+            yy = np.empty((npt,),dtype=np.single)
+            for i in range(npt):  yy[i] = yh[i/2]
+            ##yy = np.fromiter((yh[i/2] for i in range(npt)),dtype=np.single)
+            xx = yy.copy()
+            xx[0],xx[-1] = (xf[0],xf[-1])
+            for i in range(2,npt):  xx[i-1] = xf[i/2]
+            ##xx[1:-1] = np.fromiter((xf[i/2] for i in range(2,npt)),
+            ##                       dtype=np.single)
+        else:   xx, yy = ( getX(w), getY(w) )
+        ax.plot(xx,yy,label=getLabel(w),c=c,ls=ls,**pextra)
         reset = not overlay
         iplt += 1
 
@@ -1685,10 +1744,10 @@ different form, it can be used to copy a waveform dataset into a WDF array.
 
 Usage:
   i2w(x, y, [wdf], [clabel=str], [tlabel=str], [file=str], [xlabel=str], \\
-      [ylabel=str], [copy=True|False] )
+      [ylabel=str], [spare=iarray], [copy=True|False] )
     or
   i2w(ds, wdf, [clabel=str], [tlabel=str], [file=str], [xlabel=str], \\
-      [ylabel=str], [copy=True|False])
+      [ylabel=str], [spare=iarray], [copy=True|False])
 
 Arguments:
   x:      list or numpy array containing abscissa (x) values.
@@ -1699,6 +1758,7 @@ Arguments:
   tlabel: Type label for output dataset.
   xlabel: Abscissa (x) axis label for output dataset.
   ylabel: Ordinate (y) axis label for output dataset.
+  spare:  Integer spare word array
   file:   Filename associated with output dataset.
   copy:   Case 1: X and Y are specified --
              If COPY is specified, the PFF dataset object produced will be
@@ -1720,7 +1780,7 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
     argnames = [ 'a1', 'a2', 'a3' ]
     optvals = [ None ]
     kwdefs = { 'file':None, 'clabel':None, 'tlabel':None, 'xlabel':None, \
-               'ylabel':None, 'copy':None }
+               'ylabel':None, 'spare':None, 'copy':None }
                ##, '':, '':, '':, '':, '':, '':, 
 
     res = utils.process_args(args, kwargs, DN, argnames, kwdefs, optvals, \
@@ -1730,6 +1790,7 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
         print nl[res] + i2w.__doc__  ;  return None
 
     rcpy = res['copy']  ;  del res['copy']
+    tspare = res['spare']  ;  del res['spare']
     for k in argnames:
         exec k + " = res[k]"  ;  del res[k]
     for k in res.keys():
@@ -1769,12 +1830,24 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
             name = 'Y'
     if wdf is not None and type(wdf) is not types.IntType:
         print DN + ": WDF must be an integer"  ;  okay = None
+
+    if tspare is None:
+        spare = None
+    else:
+        try:
+            spare = np.asarray(tspare,dtype=np.intc)
+        except ValueError:
+            print DN + \
+              ": Spare array must be a 1D NUMPY.NDARRAY object of integer type"
+            okay = False
+
     keys = res.keys()
-    if res.has_key('ylabel'):
-        print 'ylabel',res['ylabel'],repr(type(res['ylabel']))
+    ##if res.has_key('ylabel'):
+    ##    print 'ylabel',res['ylabel'],repr(type(res['ylabel']))
     for k in keys:
         # Right now, all settable keywords are strings
-        if type(res[k]) is not types.StringType:
+        if type(res[k]) is not types.StringType and \
+           type(res[k]) is not np.string_:
             print DN + ":",k.upper(),"must be a string"  ;  okay = False
     if not okay:
         print "\n" + i2w.__doc__  ;  return None
@@ -1792,7 +1865,7 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
     yy = y  ;  nx = len(x)  ;  ny = len(y)
     if type(y) == types.ListType or y.dtype is not pff.PFFnp_float:
         yy = np.array(y,dtype=pff.PFFnp_float)
-    dict = {'data': [yy], 'apptype':3, 'adim':1, 'sdim':1, 'spare':[None], \
+    dict = {'data': [yy], 'apptype':3, 'adim':1, 'sdim':1, 'spare':[spare], \
             'nblk':1, 'nx':[np.array([ny],dtype=pff.PFFnp_long)], \
             'blabels':np.array(['']), 'rfu':None}
 
