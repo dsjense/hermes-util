@@ -25,6 +25,13 @@
     C_Groups @(#)
 -----------------------------------------------------------------------------
 */
+/*! \file namell.c
+ *  \brief File containing tools for maintaining linked lists of memory bin
+ *         allocation data.
+ *
+ *  \addtogroup PrivateInterface
+ *    \{
+ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -41,44 +48,194 @@
 #define  check_name  HU_F77_FUNC_WITH_UNDERSCORES(  check_name ,  CHECK_NAME  )
 #endif
 
-#define     UP     -3
-#define     DOWN   -2
-#define     FIRST  -1
-#define     LAST    0
+#if defined(__STDC__) || defined(__cplusplus)
+/*! \brief Enumeration of possible locations on the linked list
+ *    \li \b UP, previous link relative to current link
+ *    \li \b DOWN, next ink relative to current link
+ *    \li \b FIRST, first link on list
+ *    \li \b LAST, last link on list
+ *  \note These MUST be consistent with similar parameters defined in stak.inc
+ */
+  enum { UP=-3, DOWN, FIRST, LAST };
+/*! \brief maximum # of memory bins that can be allocated
+ *  \note This MUST be consistent with parameter \b NBINS defined in stak.inc
+ */
+  enum { MAX_BINS=100 };
+/*! \brief number of integer words required to store boundary lengths bounding
+ *         array data locations
+ */
+  enum { BNDWRDS=sizeof(void *)/sizeof(int) };
+#else
+  #define     UP     -3
+  #define     DOWN   -2
+  #define     FIRST  -1
+  #define     LAST    0
+  #define     MAX_BINS  100
+  #define BNDWRDS  ( sizeof(void *)/sizeof(int) )
+#endif
 
+/*
 #define     INT     0
 #define     FLT    -1
+*/
 
-#define     MAX_BINS  100
-
-#define BNDWRDS  ( sizeof(void *)/sizeof(int) )
-
+/*! \brief Alias for struct allo_str */
 typedef  struct  allo_str    Allo;
+/*! \brief Alias for struct bin_str */
 typedef  struct  bin_str     Bin;
 
+/*! \brief structure containing data related to an single allocation in a
+ *         memory bin
+ */
 struct  allo_str  {
+  /*! pointer to data for next allocation */
   Allo   *next;
+  /*! pointer to data for previous allocation */
   Allo   *prev;
-  long    index, type;
-  size_t  loc, len;
+  /*! index of this allocation (1 indicates first allocation for bin) */
+  long    index;
+  /*! variable type (see enumeration of types in stkenum.inc) */
+  long    type;
+  /*! allocation's offset (in integer words) in the memory bin */
+  size_t  loc;
+  /*! allocation's length (in integer words) */
+  size_t  len;
+  /*! Supplied name associated with allocation */
   char   *name;
 };
 
+/*! \brief structure containing data related to the linked list associated with
+ *         a memory bin
+ */
 struct  bin_str  {
+  /*! pointer to the data associated with the first allocation for this bin */
   Allo   *first;
+  /*! pointer to the data associated with the last allocation for this bin */
   Allo   *last ;
+  /*! pointer to the data associated with the current allocation for this bin */
   Allo   *current;
+  /*! # of guard words used for this memory bin */
   long    guard;
 };
 
 #ifdef __STDC__
+/*! \brief Initializes the linked list structure for the specified bin.
+ *
+ *  \param[in] bin   A pointer to the bin number to be initialized
+ *                   (1-\b MAX_BINS).
+ *  \param[in] guard A pointer to the number of guard words used for this bin
+ *                   (in units of integer words).
+ *  \returns
+ *   \li  0, Successful completion
+ *   \li  1, Bin out of range
+ *  \note All function arguments are pointers so that this function can be
+ *        called directly from Fortran.
+ */
 int name_init(int *bin, int *guard );
+/*! \brief Adds a new allocation data block the linked list for the specified
+ *         bin.
+ *
+ *  \param[in] bin   A pointer to the bin number of the allocation
+ *                   (1-\b MAX_BINS).
+ *  \param[in] loc   A pointer to the integer-word offset of the allocation.
+ *  \param[in] len   A pointer to the integer-word length of the allocation.
+ *  \param[in] type  A pointer to the allocation's type (see enumeration of
+ *                   types in stkenum.inc).
+ *  \param[in] name  String containing the name assigned to the allocation.
+ *  \returns
+ *   \li  0, Successful completion
+ *   \li  1, Bin out of range
+ *   \li  2, Error allocating memory for allocation data block
+ *   \li  3, Error allocating memory for allocation name string
+
+ *  \note All function arguments are pointers so that this function can be
+ *        called directly from Fortran.
+ */
 int add_name(int *bin, size_t *loc, size_t *len, int *type, char *name );
+/*! \brief Retrieves the information from the specified allocation data block in
+ *         the linked list for the specified bin.
+ *
+ *  \param[in]  bin   A pointer to the bin number of the requested allocation
+ *                    (1-\b MAX_BINS).
+ *  \param[in]  index A pointer to the index of the requested allocation
+ *                    (1 is first).
+ *  \param[out] loc   A pointer to the integer-word offset of the allocation.
+ *  \param[out] len   A pointer to the integer-word length of the allocation.
+ *  \param[out] type  A pointer to the allocation's type (see enumeration of
+ *                    types in stkenum.inc).
+ *  \param[out] name  String returning the name assigned to the allocation.
+ *  \returns
+ *   \li  0, Successful completion
+ *   \li  1, Bin out of range
+ *   \li  2, Index out of range
+
+ *  \note All function arguments are pointers so that this function can be
+ *        called directly from Fortran.
+ */
 int get_name(int *bin, int *index, size_t *loc, size_t *len, int *type,
              char *name );
+/*! \brief Removes the LAST allocation data block in the linked list for the
+ *         specified bin.
+ *
+ *  \param[in]  bin   A pointer to the bin number of the requested removal
+ *                    (1-\b MAX_BINS).
+ *  \returns
+ *   \li  0, Successful completion
+ *   \li  1, Bin out of range
+ *   \li  2, Bin is empty (no allocation data blocks)
+
+ *  \note The function argument is a pointer so that this function can be
+ *        called directly from Fortran.
+ */
 int remove_name(int *bin );
+/*! \brief Changes the length attribute of the LAST allocation data block in
+ *         the linked list for the specified bin.
+ *
+ *  \param[in] bin   A pointer to the bin number to be initialized
+ *                   (1-\b MAX_BINS).
+ *  \param[in] len   A pointer to the new integer-word length of the allocation.
+ *  \returns
+ *   \li  0, Successful completion
+ *   \li  1, Bin out of range
+ *   \li  2, Bin is empty (no allocation data blocks)
+ *  \note All function arguments are pointers so that this function can be
+ *        called directly from Fortran.
+ */
 int grow_name(int *bin, size_t *len );
+/*! \brief Removes ALL allocation data blocks in the linked list for the
+ *         specified bin.
+ *
+ *  \param[in]  bin   A pointer to the bin number that is to be cleared
+ *                    (1-\b MAX_BINS).
+ *  \returns
+ *   \li  0, Successful completion
+ *   \li  1, Bin out of range
+ *  \note The function argument is a pointer so that this function can be
+ *        called directly from Fortran.
+ */
 int clear_name(int *bin );
+/*! \brief Using the bin's guard word count and each allocation's offset and
+ *         length, checks for consistency of memory layout.
+ *
+ *  \param[in]  bin   A pointer to the bin number that is to be checked
+ *                    (1-\b MAX_BINS).
+ *  \param[in]  cnt   A pointer to the number of allocations that have been
+ *                    made for the bin
+ *  \param[in]  next  A pointer to the integer-word offset to the first unused
+ *                    work in the bin
+ *  \returns
+ *   \li  0, Successful completion
+ *   \li <0, Negative of the index of the allocation whose offset is
+ *           inconsistent with the lengths of its and all previous allocations
+ *   \li  1, Index of last allocation data block does not match the number of
+ *           allocations (supplied by \e cnt)
+ *   \li  2, Offset to next available word of of bin is inconsistent with the
+ *           lengths of all previous allocations (supplied by \e next)
+ *   \li  3, Both error conditions 1 and 2 occurred
+ *   \li  4, Bin out of range
+ *  \note All function arguments are pointers so that this function can be
+ *        called directly from Fortran.
+ */
 int check_name(int *bin, int *cnt, size_t *next);
 #else
 int name_init();
@@ -90,8 +247,8 @@ int clear_name();
 int check_name(bin, cnt, next);
 #endif
 
-
-Bin   Bin_Info[MAX_BINS];
+/*! \brief Array information blocks for each memory bin */
+static Bin   Bin_Info[MAX_BINS];
 
 #ifdef __STDC__
 int name_init(int *bin, int *guard )
@@ -250,6 +407,8 @@ size_t *len;
 
   pbin = Bin_Info + *bin - 1;
 
+  if ( pbin->last == NULL ) return 2;
+
   pbin->last->len = *len;
 
   return 0;
@@ -291,7 +450,7 @@ size_t *next;
   int rval = 0;
   int ng = 0;
 
-  if ( *bin > MAX_BINS || *bin < 1 ) return 1;
+  if ( *bin > MAX_BINS || *bin < 1 ) return 4;
 
   pbin = Bin_Info + *bin - 1;
 
@@ -300,12 +459,13 @@ size_t *next;
   ng = (pbin->guard - 1)/BNDWRDS + 1;
   while ( al != NULL ) {
     lst_indx = al->index;
-    if ( al->loc != loc ) return lst_indx;
+    if ( al->loc != loc ) return -lst_indx;
     loc += al->len + BNDWRDS*( (*cnt != lst_indx) ? (ng + 2) : 1 );
     al = al->next;
   }
-  if ( *cnt != lst_indx ) rval -= 1;
-  if ( *next != loc ) rval -= 2;
+  if ( *cnt != lst_indx ) rval += 1;
+  if ( *next != loc ) rval += 2;
 
-  return 0;
+  return rval;
 }
+/*! \} */
