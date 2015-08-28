@@ -84,6 +84,12 @@ in this Software without prior written authorization from The Open Group.
 #include "ev_macros.h"
 #include <errno.h>
 #include <string.h>
+#include <setjmp.h>
+
+/* Calling program can set MKDEP_JMP_BUF to initiate a longjmp back in case
+   of a fatal error (note that it's a POINTER) */
+jmp_buf *MKDEP_JMP_BUF = 0;
+extern jmp_buf *MKDEP_JMP_BUF;
 
 #if 0  /* defined(_MSC_VER) */
 #include <stdio.h>
@@ -125,10 +131,12 @@ int myrename(char *from, char *to)
 # define STAT_STRUCT _stat
 # define STAT_FUNCT _stat
 # define O_RDONLY _O_RDONLY
+static const char file_sep = '\\';
 #else
 # define STAT_STRUCT stat
 # define STAT_FUNCT stat
 # include <unistd.h>
+static const char file_sep = '/';
 #endif
 
 #ifdef X_POSIX_C_SOURCE
@@ -219,6 +227,8 @@ boolean         list_extra_deps = FALSE;
 boolean 	warn_multiple = FALSE;
 boolean         write_backup = TRUE;
 FILE           *fdout;
+static char    *vPath = NULL;
+
 
 static void setfile_cmdinc(struct filepointer *filep, long count, char **list);
 static void redirect(char *line, char *makefile);
@@ -248,6 +258,29 @@ catch (int sig)
 #endif
 struct sigaction sig_act;
 #endif /* USGISH */
+
+char *stripVpath(char *fulpath);
+
+char *stripVpath(char *fulpath)
+{
+  int slen;
+  char *rval, *loc, *srch;
+
+  if (!vPath) return fulpath;
+  loc = strrchr(fulpath,file_sep);
+  if (!loc) return fulpath;
+  slen = (loc-fulpath);
+  srch = (char *) malloc(slen+3);
+  if (!srch) return fulpath;
+  srch[0] = ':';
+  strncpy(srch+1,fulpath,slen);
+  srch[slen+1] = ':';
+  srch[slen+2] = '\0';
+  rval = fulpath;
+  if (strstr(vPath,srch)) rval = loc+1;
+  free(srch);
+  return rval;
+}
 
 int
 mkdep(int argc, char *argv[])
@@ -440,11 +473,21 @@ mkdep(int argc, char *argv[])
 			break;
 		case 'v':
 			if (endmarker) break;
-			verbose = TRUE;
+                        if (strcmp(argv[0]+2,"path")==0) {
+                          argv++;
+                          argc--;
+                          vPath = (char *) malloc(strlen(argv[0])+3);
+                          vPath[0] = ':';
+                          strcpy(vPath+1,argv[0]);
+                          strcat(vPath,":");
+                        }
+                        else {
+                          verbose = TRUE;
 #ifdef DEBUG
-			if (argv[0][2])
-				_debugmask = atoi(argv[0]+2);
+                          if (argv[0][2])
+                            _debugmask = atoi(argv[0]+2);
 #endif
+                        }
 			break;
 		case 's':
 			if (endmarker) break;
@@ -644,7 +687,7 @@ mkdep(int argc, char *argv[])
 
 		find_includes(filecontent, ip, ip, 0, FALSE);
 		freefile(filecontent);
-		recursive_pr_include(ip, ip->i_file, base_name(*fp));
+                recursive_pr_include(ip,ip->m_file,base_name(stripVpath(*fp)));
 		inc_clean();
 	}
 	if (printed)
@@ -985,7 +1028,8 @@ fatalerr(char *msg, ...)
 	va_start(args, msg);
 	vfprintf(stderr, msg, args);
 	va_end(args);
-	exit (1);
+        if (MKDEP_JMP_BUF) longjmp(*MKDEP_JMP_BUF,1);
+	else exit (1);
 }
 
 void
