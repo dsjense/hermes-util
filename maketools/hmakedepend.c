@@ -21,9 +21,34 @@
    
 */
 
+#include <stdio.h>
+#include <string.h>
+#include <setjmp.h>
 #include "mkdep.h"
+#include "hmakedepend_usage.h"
+
+extern jmp_buf *MKDEP_JMP_BUF;
 
 int main(int argc, char *argv[])
 {
-  return mkdep(argc,argv);
+  int i, rval;
+  jmp_buf jBuf;
+  
+  for(i=1;i<argc;++i) if (strcmp(argv[i],"-h")==0) {
+    hmakedepend_usage(stdout,0);
+    return 0;
+  }
+  /* set a non-local jump to handle errors from fatalerr */
+  /* set MKDEP_JMP_BUF so that fatalerr knows where to jump */
+  MKDEP_JMP_BUF = &jBuf;
+  if ( !setjmp(jBuf) ) {
+    /* gets here after setjmp call */
+    rval = mkdep(argc,argv);
+    printf("rval: %d\n",rval);
+  }
+  else rval = 1; /* gets here after fatalerr's longjmp call */
+
+
+  if (rval) hmakedepend_usage(stderr,1);
+  return rval;
 }
