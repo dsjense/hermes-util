@@ -83,6 +83,7 @@ int *ierr;
 {
   static char    *module    = "PF_BLD_HEADER";
   PFFhead        *head      =  NULL;
+  char blank[] = "";
   char *p;
 
   /* Check to see if the error flag is set already */
@@ -104,7 +105,6 @@ int *ierr;
     head->nwords_rfu = 0;
     head->rfu        = NULL;
 
-    char blank[] = "";
     if ( new_strs )   {
       if ( title == NULL )  title = blank;
       if ( ( p = (char *) malloc ( strlen(title) + 1 ) )  ==  NULL )  {
