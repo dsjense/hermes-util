@@ -33,6 +33,7 @@
 #    HERMES_GLOBAL      'hermes_root'/bin/hermesenv.[sh|csh]
 #
 PRODUCT = stak
+DOCTITLE = StakInterfaceSpecifications
 PLATFORM = $(HERMES_SYS_TYPE)
 MAKEFILE = GNUmakefile
 DEBUG =
@@ -57,6 +58,8 @@ ifeq ($(strip $(findstring :$(PLATFORM):,$(HU_SYS_LOCAL))),)
   GOOD2GO=no
   ERR_MSG=Need to use system from following list: $(subst :, ,$(HU_SYS_LOCAL))
 endif
+
+INCDEP_EXTS = $(subst -i,-e,$(BLD_INC_EXTS))
 
 ifneq ($(strip $(DEBUG)),)
   FFLAGS_OD = $(FFLAGS_DBG)
@@ -86,6 +89,7 @@ PRODNAME=$(PRODUCT)
 
 MACRO_LIST_FILE = $(PRODNAME)_macro_list
 DEP_LIST_FILE = $(PRODNAME)_dep_list
+INCDEP_LIST_FILE = $(PRODNAME)_incdeps_list
 
 CFLAGS = $(CFLAGS_ALL) $(CFLAGS_OD) $(CFLAGS_SHR) $(CFLAGS_ANSI)
 FFLAGS = $(FFLAGS_ALL) $(FFLAGS_OD) $(FFLAGS_SHR)
@@ -124,9 +128,12 @@ endif
 ifneq ($(strip $(wildcard $(MACRO_LIST_FILE))),)
   include $(MACRO_LIST_FILE)
 endif
+ifneq ($(strip $(wildcard $(INCDEP_LIST_FILE))),)
+  include $(INCDEP_LIST_FILE)
+endif
 
 .PHONY : first target DEBUG dbg SHARED shared PIC pic $(HERMES_ARCH_LIST)
-.PHONY : help bld_macro_list depend nmakedepend
+.PHONY : help bld_macro_list depend nmakedepend gendocs html pff
 #
 #--------------------------- Target Section -----------------------------
 #
@@ -174,6 +181,9 @@ help :
 	@echo "                       $(HERMES_ARCH_LIST)"
 	@echo "  make depend        Updates dependency files"
 	@echo "  make nmakedepend   Updates NMAKE-compatable dependency files (WIN32)"
+	@echo "  make gendocs       Generates HTML and PDF documentation"
+	@echo "  make html          Generates HTML documentation"
+	@echo "  make pdf           Generates PDF documentation"
 	@echo ""
 	@echo "By adding the macro definitions \"DEBUG=1\", \"PIC=1\", and/or \"SHARED=1\" to the"
 	@echo "first five options above, the corresponding library permutation will be built."
@@ -193,11 +203,27 @@ $(DEP_LIST_FILE) : $(SRCS) $(INCS)
 	@bld_dep_list $(DEP_INCDIRS) $(FPPFLAGS) $(CPPFLAGS) $(BLD_SRC_EXTS) \
 	              $(LGRPFLAGS) -l -e0 $(PRODNAME)
 
+$(INCDEP_LIST_FILE) : $(DEP_LIST_FILE)
+	findIncDeps $(INCDEP_EXTS) $(DEP_LIST_FILE) $(INCDEP_LIST_FILE)
+
 nmakedepend :
 	@bld_macro_list $(BLD_SRC_EXTS) $(BLD_INC_EXTS) $(LGRPFLAGS) -W \
-	      -SSRCS -IINCS $(PRODNAME) .nmake
+	                -SSRCS -IINCS $(PRODNAME) .nmake
 	@bld_dep_list $(DEP_INCDIRS) $(FPPFLAGS) $(CPPFLAGS) $(BLD_SRC_EXTS) \
 	              $(LGRPFLAGS) -W -e0 $(PRODNAME) .nmake
+
+gendocs:  html pdf $(INCDEP_LIST_FILE)
+
+html: html/index.html
+
+pdf: latex/$(DOCTITLE).pdf
+
+html/index.html : $(SRCS) $(INC_DEPS) mainpage.dox
+	doxygen $(PRODUCT).doxy
+
+latex/$(DOCTITLE).pdf : $(SRCS) $(INC_DEPS) mainpage.dox
+	make html
+	cd latex; make pdf; mv refman.pdf $(DOCTITLE).pdf
 
 $(LIBRARY) : $(OBJS)
 	@echo $(LIBRARY) is now up-to-date
