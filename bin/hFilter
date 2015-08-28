@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+# $Id$
+# 
+# Copyright (2014) David Seidel.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+
+# Simple Doxygen filter that converts a Fortran .h file (one that contains
+# only Fortran comment lines starting with '[cC]' (or leading ' *!') and
+# preprocessor lines) by replacing leading comment characters with '//'.
+# This allows the file to be properly processed as C++ code by Doxygen.
+
+import sys, os, re
+
+f = open(sys.argv[1],'r')
+lst = f.readlines()
+type = 'c'
+cre = re.compile(r'(c| *!)',re.I)
+for i,line in enumerate(lst):
+    if line.find("/*") >= 0: break
+    m = cre.match(line)
+    if m is not None:
+        type = 'f'
+        lst[i] = line.replace(line[:m.end()],'//',1)
+
+sys.stdout.writelines(lst)
