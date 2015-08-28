@@ -72,15 +72,23 @@ ifneq ($(strip $(wildcard $(MACRO_LIST_FILE))),)
   include $(MACRO_LIST_FILE)
 endif
 
+USAGE_TARGETS = $(addsuffix .h,$(basename $(wildcard *_usage.gen)))
+
 # These are the targets needed to generate "macro" and "dependency" files
-BOOTSTRAP_TARGETS = bld_dep_list bld_macro_list
+FIRST_BOOTSTRAP_TARGET = txt2cwriter
+BOOTSTRAP_TARGETS = $(FIRST_BOOTSTRAP_TARGET) bld_dep_list bld_macro_list
+
+ifeq ($(strip $(wildcard $(DEST)/$(FIRST_BOOTSTRAP_TARGET))),)
+  CPPFLAGS += -DBOOTSTRAP
+endif
 
 # "function" variable to test if the file "name" does NOT exist
 FindFile = $(if $(findstring $(name),$(wildcard $(name))),no,yes)
 
 # If either are missing, or the macro_list_file is missing,
 # need to run in Bootstrap mode to build them first.
-NEEDED_FILES = $(addprefix $(DEST)/,$(BOOTSTRAP_TARGETS)) $(MACRO_LIST_FILE)
+NEEDED_FILES = $(addprefix $(DEST)/, $(BOOTSTRAP_TARGETS)) \
+               $(MACRO_LIST_FILE) $(USAGE_TARGETS)
 NEED_BOOTSTRAP = $(findstring yes,$(foreach name,$(NEEDED_FILES),$(FindFile)))
 
 ifeq ($(strip $(NEED_BOOTSTRAP)),yes)
@@ -93,6 +101,9 @@ ifeq ($(strip $(NEED_BOOTSTRAP)),yes)
 	$(LIBCPP)(l_group.o) $(LIBCPP)(line_dumper.o)
   TARGETS = $(BOOTSTRAP_TARGETS)
 endif
+
+%.h : %.gen
+	txt2cwriter -s $< $@
 
 (%.o) : %.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $<
@@ -120,7 +131,8 @@ ifeq ($(strip $(NEED_BOOTSTRAP)),yes)
 .PHONY : bootstrap
 bootstrap:
 	@echo "\"Entering BootStrap mode\""
-	$(MAKE) $(LIBDIR) $(DEST) targets depend
+	$(MAKE) clean $(LIBDIR) $(DEST) $(FIRST_BOOTSTRAP_TARGET) \
+	        $(USAGE_TARGETS) targets depend
 	$(MAKE) targets
 endif
 
@@ -157,7 +169,8 @@ $(LIBDIR) $(DEST) :
 	@if [ ! -d $@ ]; then mkdir -p $@; fi
 
 clean :
-	rm -f $(LIBRARY) $(LIBCPP) *.bak $(TEST_TARGETS)
+	rm -f $(LIBRARY) $(LIBCPP) *.bak $(TEST_TARGETS) $(USAGE_TARGETS) \
+	      $(MACRO_LIST_FILE) $(DEP_LIST_FILE)
 	cd $(DEST); rm -f $(TARGETS)
 
 cleandbg :
@@ -188,8 +201,11 @@ $(MACRO_LIST_FILE) build_macro_list :
 	@bld_macro_list -mtest -nwinrtl -sc -scc -OTEST_TARGETS -Ead \
 	                $(PRODNAME)
 
-ifneq ($(strip $(NEED_BOOTSTRAP)),yes)
+ifeq ($(strip $(NEED_BOOTSTRAP)),yes)
+$(DEP_LIST_FILE) :
+else
 $(DEP_LIST_FILE) : $(SRCS) $(INCS)
+endif
 	@bld_dep_list -mhermes -nwinrtl -sc -S'# LIBRARY dependencies' -lP \
 	              -e0 $(PRODNAME)
 	@bld_dep_list -mhermes -nwinrtl -scc -S'# LIBCPP dependencies' \
@@ -221,7 +237,6 @@ nmakedepend :
 	              $(DEP_INCDIRS) $(CPPFLAGS) -e0 $(PRODNAME) .nmake
 	@bld_dep_list -mtest -sc -scc -S"# Test dependencies" -W -a \
 	              $(DEP_INCDIRS) $(CPPFLAGS) -e0 $(PRODNAME) .nmake
-endif
 
 cleandep:
 	@rm -f $(MACRO_LIST_FILE) $(DEP_LIST_FILE)
