@@ -24,6 +24,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cstdlib>
 #include <cstring>
 
@@ -39,6 +40,13 @@ using std::endl;
 using std::string;
 using std::ostream;
 
+#ifdef BOOTSTRAP
+// dummy usage function since txt2cwriter needed to make txt2cwriter_usage.h
+void txt2cwriter_usage(std::ostream &o, int mode) { }
+#else
+# include "txt2cwriter_usage.h"
+#endif
+
 static void usage(const string &cmd, int status)
 {
   ostream *o = &cout;
@@ -50,16 +58,29 @@ static void usage(const string &cmd, int status)
   exit(status);
 }
 
+static int read_comparator(char *endptr, const string &compsymbs, int dflt)
+{
+  int ct = dflt;
+  string::size_type idx;
+  if ( *endptr ) {
+    if((idx=compsymbs.find(*endptr)) != string::npos) {
+      ct = idx;
+      // if '<' or '>', look for '<=' or '>='
+      if ( ct<2 && *(++endptr) && *endptr == '=' ) ct = 5 - ct;
+    }
+  }
+  return ct;
+}
+
 int main(int argc, char *argv[])
 {
   const string cxx_exts = ":C:cc:cp:cpp::cxx:CPP:c++:";
   const string f_exts = ":F:f:F90:f90:";
   const string compsymbs = "<>=!";
   const string whtspc = " \t";
-  string comps[5];
+  string comps[6];
   char cmmnt = '!';  // '!' is default comment character
   int  width = 78;   // 78 is default line width for output code
-  int c;
   int error = 0;
   bool cpp_ok = true;
   bool short_mode = false;
@@ -71,13 +92,20 @@ int main(int argc, char *argv[])
   string cmd = argv[0];
   string::size_type idx = cmd.rfind('/');
   if ( idx != string::npos ) cmd.erase(0,idx+1);
+  argv[0] = (char *) cmd.c_str(); // use base name for getopt messages
 
+  int c = -1;
+  for(int i=1;i<argc;++i) {
+    if (strcmp(argv[i],"-h")==0) { c = 1; break; }
+    if (strcmp(argv[i],"--help")==0) { c = 0; break; }
+  }
+  if (c >= 0) {
+    txt2cwriter_usage(cout,c);
+    return 0;
+  }
   // check for valid options
   while ( (c=getopt(argc, argv, "hsc:p:w:")) != -1 ) {
     switch (c) {
-    case 'h':
-      usage(cmd,0);
-      break;
     case 's':
       short_mode = true;
       break;
@@ -108,26 +136,63 @@ int main(int argc, char *argv[])
   argv += optind;
   argc -= optind;
 
-  if ( error || argc != 2 ) usage(cmd,1);
+  if ( error || argc != 2 ) {
+    if (argc != 2) cerr << cmd << ": Two arguments required" << endl;
+    txt2cwriter_usage(cout,2);
+    exit(1);
+  }
 
   string txtfile = argv[0];  // input text file
   string cfile = argv[1];    // output C or C++ source file
 
-  output_modes out_mode = C_MODE;  // C output mode is default
+  // open input file
+  std::ifstream inp(argv[0],std::ios::in);
+  if ( ! inp ) {
+    cerr << cmd << ": cannot open input file \"" << txtfile << "\"" << endl;
+    exit(1);
+  }
 
-  // Look for extension of output file name, and see if it matches a C++ ext.
-  // take function name from file prefix
+  // Scan beginning comment lines, looking for EXTENSION directive of the form
+  //    "! EXTENSION: C" (assuming default comment character)
+  // The third token (C in the example above) will be used to determine the
+  // language output mode, rather of using the extension from the output
+  // file's  name.
+  string ext = "";
+  string tstr;
+  while ( getline(inp,tstr) ) {
+    string s;
+    if ( tstr[0] == cmmnt ) {
+      std::istringstream t(tstr);
+      t >> s;
+      if (s.size()>1 || t.eof()) continue;
+      t >> s;
+      if ( s != "EXTENSION:" || t.eof()) continue;
+      t >> s;
+      ext = ":" + s + ":";
+      break;
+    }
+    else break;
+  }
+  inp.seekg(0);
+
   idx = cfile.rfind('.');
   string funct_name = cfile;
   if ( idx != string::npos ) {
-    string ext = ":" + cfile.substr(idx+1) + ":";
+    // Look for extension of output file name, and see if it matches a C++ ext.
+    if ( ext.empty() ) ext = ":" + cfile.substr(idx+1) + ":";
+    // take function name from file prefix
+    funct_name.erase(idx);
+  }
+  // If we have a extension value, use it to determine the language output mode
+  output_modes out_mode = C_MODE;  // C output mode is default
+  if ( !ext.empty() ) {
     if ( cxx_exts.find(ext) != string::npos ) out_mode = CXX_MODE;
     else if ( f_exts.find(ext) != string::npos ) {
       out_mode = F_MODE;
       width = std::min(72,width);
       if ( ext.at(1) != 'F' ) cpp_ok = false;
     }
-    funct_name.erase(idx);
+    // else -- C_MODE is default
   }
   // remove directory name for function name, if it has one
   idx = funct_name.rfind('/');
@@ -141,12 +206,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  // open input and output files
-  std::ifstream inp(argv[0],std::ios::in);
-  if ( ! inp ) {
-    cerr << cmd << ": cannot open input file \"" << txtfile << "\"" << endl;
-    exit(1);
-  }
+  // open output file
   std::ofstream out(argv[1]);
   if ( ! out ) {
     cerr << cmd << ": cannot open output file \"" << cfile << "\"" << endl;
@@ -194,6 +254,7 @@ int main(int argc, char *argv[])
   comps[2] = "== ";
   comps[3] = "!= ";
   comps[4] = ">= ";
+  comps[5] = "<= ";
   if ( out_mode == C_MODE ) {
     prefix = "  fprintf(o,\"";
     suffix = "\\n\");";
@@ -212,6 +273,7 @@ int main(int argc, char *argv[])
     comps[2] = ".EQ. ";
     comps[3] = ".NE. ";
     comps[4] = ".GE. ";
+    comps[5] = ".LE. ";
   }
   else {
     prefix = "  o << \"";
@@ -241,11 +303,9 @@ int main(int argc, char *argv[])
       if ( short_mode && buf[1] == '#' ) {
         if ( strncmp(buf+2,"start",5) == 0 ) {
           int mode = std::strtol(buf+7,&endptr,10);
-          string comp = comps[0];
-          int ct = 0;
           while ( whtspc.find(*endptr) != string::npos ) endptr++;
-          if ( *endptr && (ct=compsymbs.find(*endptr)) != string::npos )
-            comp = comps[ct];
+          int ct = read_comparator(endptr, compsymbs, 0);
+          string comp = comps[ct];
           out << start_if << comp << mode << start_suf << endl;
           nest++;
         }
@@ -256,11 +316,9 @@ int main(int argc, char *argv[])
         }
         else {
           int mode = std::strtol(buf+2,&endptr,10);
-          string comp = comps[4];
-          int ct = 0;
           while ( whtspc.find(*endptr) != string::npos ) endptr++;
-          if ( *endptr && (ct=compsymbs.find(*endptr)) != string::npos )
-            comp = comps[ct];
+          int ct = read_comparator(endptr, compsymbs, 4);
+          string comp = comps[ct];
           out << short_if << comp << mode << short_suf << endl;
         }
       }
