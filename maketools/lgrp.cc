@@ -20,7 +20,7 @@
 //  <http://www.gnu.org/licenses/>.
 //  
 
-#include <cstdio>
+#include <iostream>
 #ifdef WIN32sys
 # include "winrtl.h"
 #else
@@ -30,8 +30,11 @@
 
 using std::string;
 using std::list;
-using std::printf;
-using std::fprintf;
+using std::cout;
+using std::cerr;
+using std::endl;
+
+#include "lgrp_usage.h"
 
 int main(int argc, char *argv[])
 {
@@ -40,39 +43,46 @@ int main(int argc, char *argv[])
   int error = 0;
   bool check = false;
 
-  while ( (c=getopt(argc, argv, "m:n:")) != -1 ) {
+  while ( (c=getopt(argc, argv, "hm:n:N:k:")) != -1 ) {
     switch (c) {
+    case 'h':
+      lgrp_usage(cout,0);
+      std::exit(0);
+      break;
     case 'm':
       lgrp.AddMatch(optarg);
       check = true;
-      // printf ("option m %s\n", optarg);
       break;
 
-    case 'n':
-      lgrp.AddNomatch(optarg);
+    case 'n': case 'N':
+      if (c == 'N') lgrp.AddNomatch(optarg,true);
+      else lgrp.AddNomatch(optarg);
       check = true;
-      // printf ("option n %s\n", optarg);
       break;
  
+    case 'k':
+      lgrp.SetKeyString(optarg);
+      break;
+
     case '?':
       error = 1;
       break;
 
     default:
       error = 1;
-      fprintf (stderr,"?? getopt returned character code 0%o ??\n", c);
+      cerr << "?? getopt returned character code 0" << std::oct << c 
+           << std::dec << " ??" << endl;
     }    
   }
 
   if ( error ) {
-    fprintf(stderr,
-            "Usage: %s [-m match ...] [-n nomatch ...] filelist\n",argv[0]);
-    return 1;
+    lgrp_usage(cerr,1);
+    std::exit(1);
   }
 
   for(int i=optind; i<argc; ++i) {
     if ( check ) {
-      if ( lgrp.CheckFile(string(argv[i])) ) printf("%s\n", argv[i]);
+      if ( lgrp.CheckFile(string(argv[i])) ) cout << argv[i] << endl;
     }
     else lgrp.List(string(argv[i]));
   }
