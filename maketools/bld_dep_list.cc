@@ -37,10 +37,12 @@
 # define STAT_FUNCT _stat
 # define S_ISREG(mode)	 ( (mode) & _S_IFREG )
 # include "winrtl.h"
+static const char file_sep = '\\';
 #else
 # define STAT_STRUCT stat
 # define STAT_FUNCT stat
 # include <unistd.h>
+static const char file_sep = '/';
 #endif
 
 #ifdef WIN32sys
@@ -62,20 +64,7 @@ extern "C" char	*base_name(const char *file);
 
 #include "mkdep.h"
 
-void usage(const char *cmd, int status)
-{
-  FILE *f = stdout;
-  if ( status ) f = stderr;
-  fprintf(f,"Usage: %s [-h] [-m match ...] [-n nomatch ...] -s "
-            "src_ext [...]\n", cmd);
-  fprintf(f,"       [-Dname[=val] ...] [-Iinc_directory ...] "
-            "[-Vsubst_macro ...] [-a] [-P]\n");
-  fprintf(f,"       [-E|-W|-l|-L lib_name] [-e errorlog] "
-            "[-S '# delimiter_string']\n");
-  fprintf(f,"       [-p target_prefix[:target_suffix]] [product|-] "
-            "[platform]\n\n");
-  std::exit(status);
-}
+#include "bld_dep_list_usage.h"
 
 int main(int argc, char *argv[])
 {
@@ -101,28 +90,63 @@ int main(int argc, char *argv[])
   bool prefix_override = false;
   string extradep = "";
   bool extradep_override = false;
+  bool list_src_dep = false;
+  string vPath = "";
 
   char *cmd = argv[0] + strlen(argv[0]);
   for(--cmd; cmd > argv[0]; --cmd)
     if ( *cmd == path_delim ) { ++cmd; break; }
 
-  while ( (c=getopt(argc, argv, "hm:n:s:D:I:V:L:lEWap:X:Pe:S:")) != -1 ) {
+#ifdef WIN32sys
+  const char optList[] = "hdm:n:N:k:s:v:D:I:V:L:lEWap:X:Pe:S:"
+#else
+  const char optList[] = "hdm:n:N:k:s:v:x:D:I:V:L:lEWap:X:Pe:S:";
+#endif
+  while ( (c=getopt(argc, argv, optList)) != -1 ) {
     switch (c) {
     case 'h':
-      usage(cmd,0);
+      bld_dep_list_usage(std::cout,0);
+      std::exit(0);
+      break;
+    case 'd':
+      list_src_dep = true;
       break;
     case 'm':
       lgrp.AddMatch(optarg);
       lgrp_flgs += string(" -m") + string(optarg);
       break;
-    case 'n':
-      lgrp.AddNomatch(optarg);
-      lgrp_flgs += string(" -n") + string(optarg);
+    case 'n': case 'N':
+      if (c == 'N') lgrp.AddNomatch(optarg,true);
+      else lgrp.AddNomatch(optarg);
+      lgrp_flgs += string(" -") + string(1,c) + string(optarg);
+      break;
+    case 'k':
+      lgrp.SetKeyString(optarg);
       break;
     case 's':
       src_matcher.AddExtension(optarg);
       src_exts += blank + string(optarg);
       ;
+      break;
+    case 'v':
+      {
+        char *vlist  = new char[strlen(optarg)+1];
+        std::strcpy(vlist,optarg);
+        char *tok = strtok(vlist," :");
+        while (tok) {
+          //std::cout << "VPATH token: " << tok << std::endl;
+          char *pc = tok + (strlen(tok)-1);
+          while ( *pc == file_sep ) *pc-- = '\0';
+          src_matcher.AddSearchDir(tok);
+          if(!vPath.empty()) vPath += ':';
+          vPath += tok;
+          tok = strtok(NULL," :");
+        }
+        delete [] vlist;
+      }
+      break;
+    case 'x':
+      src_matcher.AddExcludePattern(optarg);
       break;
     case 'D':
       MDargs.push_back(string("-D") + optarg);
@@ -205,10 +229,17 @@ int main(int argc, char *argv[])
 
   // for(int i=0; i<argc; ++i) printf("ARG%d: %s\n",i,argv[i]);
 
-  if ( error || argc > 2 || src_exts.empty() ) usage(cmd,1);
+  if ( error || argc > 2 || src_exts.empty() ) {
+    bld_dep_list_usage(std::cerr,1);
+    std::exit(1);
+  }
 
   if ( !err_file.empty() ) {
+#ifdef WIN32sys
+    if ( err_file == "0" ) err_file = "nul";
+#else
     if ( err_file == "0" ) err_file = "/dev/null";
+#endif
     if ( freopen(err_file.c_str(), mode.c_str(), stderr) == NULL )
       fprintf(stderr,"Error redirecting stderr\n");
   }
@@ -233,6 +264,9 @@ int main(int argc, char *argv[])
   // cout <<  "product: " << product << endl;
   // cout <<  "platform: " << platform << endl;
   // cout <<  "ofilename: " << ofilename << endl;
+  //src_matcher.printit();
+  //std::cout << "vPath: " << vPath << std::endl;
+
 
   string bldfile = ofilename;
   bool need_cmp = false;
@@ -315,7 +349,6 @@ int main(int argc, char *argv[])
     if ( winflg ) {
       if ( !prefix_override ) prefix = "$(INTDIR)\\";
       suffix += "bj";
-      MDargs.push_back("-S");
       // if ( !extradep_override ) extradep = "$(INTDIR)";
     }
     else if ( eflg ) {
@@ -325,12 +358,16 @@ int main(int argc, char *argv[])
       if ( !prefix_override ) prefix = "$(" + LIBname + ")(";
       suffix += ")";
     }
+    if (list_src_dep || winflg) MDargs.push_back("-S");
     if ( !psuf.empty() ) suffix = psuf;
     suffix += blank;
     if ( !prefix.empty() ) MDargs.push_back("-p" + prefix);
     if ( !suffix.empty() ) MDargs.push_back("-o" + suffix);
     if ( !extradep.empty() ) MDargs.push_back("-X" + extradep);
-
+    if ( !vPath.empty() ) {
+      MDargs.push_back("-vpath");
+      MDargs.push_back(vPath);
+    }
     fclose(wfile);
 
     int nargs = nsrc + MDargs.size() + 2;
