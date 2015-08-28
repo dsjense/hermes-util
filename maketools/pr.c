@@ -185,7 +185,7 @@ recursive_pr_include(struct inclist *head, char *file, char *base)
 	if (head->i_flags & MARKED)
 		return;
 	head->i_flags |= MARKED;
-	if (head->i_file != file)
+        if (head->m_file != file)
 		pr(head, file, base);
         else if ( list_src_dep || list_extra_deps )
 		pr(0, file, base);
