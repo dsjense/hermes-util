@@ -29,16 +29,22 @@
 class L_Group
 {
  public:
+  L_Group();
   void AddMatch(const std::string &mstring);
-  void AddNomatch(const std::string &nstring);
+  void AddNomatch(const std::string &nstring, bool noKey=false);
+  void SetKeyString(const std::string &kstring);
   int CheckFile(const std::string &filename) const; 
   void List(const std::string &filename) const;
+  void printit();
   
  private:
   bool get_grp_string(const std::string &filename, std::string &str) const;
   std::list<std::string> mlist;
   std::list<std::string> nlist;
   const static int bufsiz;
+  bool no_key_okay;
+  std::string key_string;
+  int key_len;
 };
 
 #endif

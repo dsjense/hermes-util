@@ -21,25 +21,56 @@
 //  
 
 #include <algorithm>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "l_group.h"
 
+using std::cout;
+using std::endl;
 using std::string;
 using std::list;
 
 const int L_Group::bufsiz = 256;
+
+L_Group::L_Group()
+{
+  no_key_okay = false;
+  key_string = "C_Groups";
+  key_len = key_string.size();
+}
+
+void L_Group::printit()
+{
+  list<string>::iterator iter;
+  cout << "mList:\n";
+  for(iter=mlist.begin(); iter != mlist.end(); iter++) {
+    cout << " " << (*iter) << "\n";
+  }
+  cout << "nList:\n";
+  for(iter=nlist.begin(); iter != nlist.end(); iter++) {
+    cout << " " << (*iter) << "\n";
+  }
+  cout << "keyString: \"" << key_string << "\"\n";
+  cout << "no_key_okay: " << no_key_okay << endl;
+}
+
+void L_Group::SetKeyString(const std::string &kstring)
+{
+  key_string = kstring;
+  key_len = key_string.size();
+}
 
 void L_Group::AddMatch(const string &mstring)
 {
   mlist.push_back(" " + mstring + " ");
 }
 
-void L_Group::AddNomatch(const string &nstring)
+void L_Group::AddNomatch(const string &nstring, bool noKey)
 {
   nlist.push_back(" " + nstring + " ");
+  if (noKey) no_key_okay = true;
 }
 
 int L_Group::CheckFile(const string &filename) const
@@ -56,45 +87,47 @@ int L_Group::CheckFile(const string &filename) const
     }
     return 1;
   }
+  else if (no_key_okay && mlist.empty()) return 1;
   return 0;
 }
 
 void L_Group::List(const string &filename) const
 {
   string str = "";
-  if ( get_grp_string(filename, str) ) { 
-    printf("%s:%s\n",filename.c_str(), str.c_str());
-  }
+  if ( get_grp_string(filename, str) ) cout << filename << ":" << str << endl;
 }
 
 bool L_Group::get_grp_string(const string &filename, string &str) const
 {
-  char line[bufsiz];
-  FILE *file = fopen(filename.c_str(), "r");
-  if ( ! file ) return false;
   string blank = " ";
-
-  char *mat = 0;
   str = blank;
-  while ( fgets(line, bufsiz, file) ) {
-    mat = strstr(line,"C_Groups");
-    if ( mat ) {
-      mat += 8;
-      if ( mat[0] == '\n' ) break;      
-      int l = strlen(mat);
-      if ( l > 0 )mat[l-1] = ' ';
-      char *tok = strtok(mat," \t\r");
-      if ( ! tok ) break;
-      if ( tok == mat ) continue;
-      do {
-        if ( ! strchr("@%",tok[0]) ) str += string(tok) + blank;
-        tok = strtok(NULL," \t\r");
-      }
-      while ( tok );
-      break;
+  // open input file
+  std::ifstream inp(filename.c_str(),std::ios::in);
+  if ( ! inp ) return false;
+
+  bool rval = false;
+  string tstr, s;
+  string::size_type idx;
+  while ( getline(inp,tstr) ) {
+    if ( (idx=tstr.find(key_string)) == string::npos ) continue;
+    // backup 1 char in case key_string is not a WS-delimited token
+    if (idx > 0) --idx;
+    // make sure there isn't any whitespace at end of string!
+    string::size_type last = tstr.find_last_not_of(" \t");
+    string::size_type len = last - idx + 1;
+    if (idx > 0 || last < tstr.size()-1) tstr = tstr.substr(idx,len);
+    std::istringstream t(tstr);
+    t >> s;
+    if ( s != key_string ) continue; // key_string not WS-delimited
+    // found good key_string, now strip off the keys
+    while (!t.eof()) {
+       t >> s;
+       // skip if it starts  w/ either '@' or '%'
+       if ( s[0] != '@' && s[0] != '%' ) str += s + blank;
     }
+    rval = true;
+    break;
   }
-  fclose(file);
-  if ( mat ) return true;
-  return false;
+  inp.close();
+  return rval;
 }
