@@ -66,6 +66,8 @@ in this Software without prior written authorization from The Open Group.
   char path_delim = '/';
 #endif
 
+char *stripVpath(char *fulpath);
+
 	extern struct	inclist	inclist[ MAXFILES ],
 	*inclistp, *inclistnext;
 extern char	*includedirs[ ],
@@ -233,7 +235,7 @@ newinclude(char *newfile, char *incstring)
 #endif
         ip->i_file = copy(newfile);
 
-        ip->m_file = EV_Subst_Macro(ip->i_file);
+        ip->m_file = EV_Subst_Macro(stripVpath(ip->i_file));
 
 	if (incstring == NULL)
 		ip->i_incstring = ip->i_file;
