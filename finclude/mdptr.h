@@ -24,22 +24,28 @@ c     <http://www.gnu.org/licenses/>.
 c     
 c***********************************************************************
 c
-c ----------------------------------------------------------------------
-c
-c     Machine dependent include file containing pointer type definition
-c
-c     - used to specify the FORTRAN integer type that is large enough 
-c       to hold Cray compatible pointers (addresses).
-c
-c     - used primarily for passing/returning pointers to/from subprograms. 
-c       Pointers appearing in POINTER statements should not be explicitly 
-c       typed.
-c
-c     - typically addresses are 32 bits long but 64 bit addresses
-c       are becoming more common.
-c
-c ----------------------------------------------------------------------
-c
+c/ \file mdptr.h
+c/ \brief File containing macros for Fortran pointer type and \e size_t
+c/        definitions
+c/
+c/  \par HU_PTR_BYTES
+c/ \li Integer number of bytes used to store a pointer
+c/ \li Typically 4 on 32-bit systems and 8 on 64-bit systems
+c/
+c/  \par HU_PTR_TYPE
+c/ \li used to specify the FORTRAN integer type that is large enough 
+c/     to hold Cray compatible pointers (addresses).
+c/ \li used primarily for passing/returning pointers to/from subprograms. 
+c/     Pointers appearing in POINTER statements should not be explicitly 
+c/     typed.
+c/ \li Traditionally, 32 bits was adequate for storing addresses; however
+c/     64-bit addresses are becoming more common.
+c/
+c/  \par HU_SIZE_T
+c/ \li used to specify the FORTRAN integer type that is large enough 
+c/     to file offsets.
+c/ \li must be an integer type with the same size as C's \e size_t type
+c '----------------------------------------------------------------------
 c
 c HU_PTR_BYTES and HU_PTR_TYPE must be defined macros that evaluate to the
 c correct machine dependent types (e.g., HU_PTR_BYTES=4 and
@@ -47,9 +53,6 @@ c HU_PTR_TYPE=INTEGER*4)
 c HU_SIZE_T must be an integer type with the same size as the C size_t type
 c
 c
-
-
-
 # ifndef HU_PTR_BYTES
 C many platforms dont have cpp/fpp error messages
 C just make the compiler barf...

@@ -25,6 +25,13 @@
     C_Groups @(#)
 -----------------------------------------------------------------------------
 */
+/*! \file mdmem.c
+ *  \brief File containing underlying memory allocation functions used by the
+ *         STAK library.
+ *
+ *  \addtogroup PrivateInterface
+ *    \{
+ */
 
 #include <stdlib.h>
 
@@ -39,13 +46,104 @@
 #endif
 
 #ifdef __STDC__
+/*! \brief Function to allocate space for an integer array of specified length.
+ *
+ *  This function is essentially a wrapper for \e malloc (stdlib.h), with units
+ *  of words rather than bytes.
+ *  \param[in] size A pointer to the size of the requested allocation (in units
+ *                  of integer words).
+ *  \return A \e void* pointer to the requested memory. If called from Fortran,
+ *          the returned type is defined by the Hermes macro \b HU_PTR_TYPE.
+ *  \note All function arguments are pointers so that this function can be
+ *        called directly from Fortran.
+ */
 void* mdgmem(int *size);
+/*! \brief function to release allocated memory.
+ *
+ *  \param[in] ptr A \e pointer to the pointer to be released. If called
+ *                  from Fortran, the Fortran type is defined by the Hermes
+ *                   macro \b HU_PTR_TYPE.
+ *  \param[in] ptr A \e pointer to the pointer to be released.
+ * 
+ *  \note
+ *    \li Function argument is a \e pointer to the pointer so that this
+ *        function can be called directly from Fortran.
+ *    \li If the pointer is zero, no action is taken
+ *  \warning
+ *    The supplied pointer \b MUST have originally been allocated by a call to
+ *    \e malloc,  \e calloc, or  \e realloc (stdlib.h). This is the case for
+ *    any pointer returned by functions in the STAK library, \e except \ref
+ *    stkpad).
+ */
 int   mdrmem(void **ptr);
+/*! \brief Function to reallocate space for an integer array with an new length.
+ *
+ *  This function is essentially a wrapper for \e realloc (stdlib.h), with units
+ *  of words rather than bytes.
+ *  \param[in] ptr  A \e pointer to the pointer to be reallocated. If called
+ *                  from Fortran, the Fortran type is defined by the Hermes
+ *                   macro \b HU_PTR_TYPE.
+ *  \param[in] size A pointer to the new size requested (in units
+ *                  of integer words).
+ *  \return A \e void* pointer to the requested memory (in general
+ *          this will be different from the suppled value of \e ptr). If called
+ *          from Fortran, the returned type is defined by the Hermes macro
+ *          \b HU_PTR_TYPE.
+ *  \note All function arguments are pointers so that this function can be
+ *        called directly from Fortran.
+ *  \warning
+ *    The supplied pointer \b MUST have originally been allocated by a call to
+ *    \e malloc,  \e calloc, or  \e realloc (stdlib.h). This is the case for
+ *    any pointer returned by functions in the STAK library, \e except \ref
+ *    stkpad).
+ */
 void* mdgrowmem(void **ptr, int *size);
+/*! \brief Function to allocate space for an integer array of specified length.
+ *
+ *  This function is essentially a wrapper for \e malloc (stdlib.h), with units
+ *  of words rather than bytes. 
+ *  \param[in] size A pointer to the size of the requested allocation (in units
+ *                  of integer words).
+ *  \return A \e void* pointer to the requested memory. If called from Fortran,
+ *          the returned type is defined by the Hermes macro \b HU_PTR_TYPE.
+ *  \note \li All function arguments are pointers so that this function can be
+ *            called directly from Fortran.
+ *        \li This is identical to \ref mdgmem, \e except the supplied \e size
+ *            argument is type <TT>size_t</TT>. If called from Fortran, this
+ *            would be the type defined by the Hermes macro \b HU_SIZE_T.
+ */
+void* mdgmem_st(size_t *size);
+/*! \brief Function to reallocate space for an integer array with an new length.
+ *
+ *  This function is essentially a wrapper for \e realloc (stdlib.h), with units
+ *  of words rather than bytes.
+ *  \param[in] ptr  A \e pointer to the pointer to be reallocated. If called
+ *                  from Fortran, the Fortran type is defined by the Hermes
+ *                   macro \b HU_PTR_TYPE.
+ *  \param[in] size A pointer to the new size requested (in units
+ *                  of integer words).
+ *  \return A \e void* pointer to the requested memory (in general
+ *          this will be different from the suppled value of \e ptr). If called
+ *          from Fortran, the returned type is defined by the Hermes macro
+ *          \b HU_PTR_TYPE.
+ *  \note \li All function arguments are pointers so that this function can be
+ *            called directly from Fortran.
+ *        \li This is identical to \ref mdgrowmem, \e except the supplied \e
+ *            size argument is type <TT>size_t</TT>. If called from Fortran,
+ *            this would be the type defined by the Hermes macro \b HU_SIZE_T.
+ *  \warning
+ *    The supplied pointer \b MUST have originally been allocated by a call to
+ *    \e malloc,  \e calloc, or  \e realloc (stdlib.h). This is the case for
+ *    any pointer returned by functions in the STAK library, \e except \ref
+ *    stkpad).
+ */
+void* mdgrowmem_st(void **ptr, size_t *size);
 #else
 void* mdgmem();
 int   mdrmem();
 void* mdgrowmem();
+void* mdgmem_st();
+void* mdgrowmem_st();
 #endif
 
 /*
@@ -133,3 +231,4 @@ void **ptr;
   *ptr = NULL;
   return 0;
 }
+/*! \} */

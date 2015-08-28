@@ -1,5 +1,3 @@
-      function stkptr ( bin, size, nc, name )
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -24,61 +22,72 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine allocates pointer to an integer, real, or character 
-c     array from a dynamic memory bin.  It works in 3 modes.
-c        1)  If stkinit was called with size=0, it DOES NOT allocate a 
-c            pointer, BUT instead updates a counter to the end of the
-c            memory bin.  Then, after a subsequent call to stkinit, a
-c            pointer is allocated.
-c        2)  If stkinit was called with size>0 (or after a 2nd call to
-c            stkinit with size=0), a pointer is allocated.
-c        3)  If stkinit was called with size<0 (indicating "reset" 
-c            mode), a pointer is allocated, BUT control link words are 
-c            checked for consistency rather than being set.
-c
-c     Return Value:
-c       >0  -  pointer to character, or length of requested space so far
-c              if in mode where pointers are NOT allocated (see 1 above)
-c        0  -  One of the following errors occurred:
-c                  Bin out of range
-c                  Bin has not been initialized
-c                  Request exceeds allocated memory
-c                  control word inconsistency in "reset" mode
-c                  illegal value for "nc"
-c                  size must be > 0 unless in allocation mode
-c                  character allocation not implemented
+c> \file stkptr.F
+c> \brief File containing the functions \ref stkptr and \ref stkptr_ST of
+c>        the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
 c
 c ----------------------------------------------------------------------
 c
-c     Passed variables:
-c
-c     Input:
-c       bin       -  bin from which to allocate pointer
-c       size      -  size (in words) of array to be allocated. (In 
-c                    allocation mode ONLY, size may be non-positive, 
-c                    indicating that all remaining space is to be used
-c                    for this allocation.  In this case, size is also
-c                    used as an output variable, see below).
-c       nc        -  INTPTR (0) for integer arrays,
-c                    FLTPTR (-1) for real arrays,
-c                    I2PTR  (-2) for integer*2 arrays,
-c                    I4PTR  (-3) for integer*4 arrays,
-c                    LOGPTR (-4) for logical arrays,
-c                    L1PTR  (-5) for logical*1 arrays,
-c                    DBLPTR (-6) for double precision arrays,
-c                    R4PTR  (-7) for real*4 arrays,
-c                    R8PTR  (-8) for real*8 arrays,
-c                    PTRPTR (-9) for pointer arrays,
-c                    length (nc>0) of character variable to be allocated
-c       name      -  character string identifier for allocation
-c
-c     Output:
-c       size      -  In allocation mode only, if "size" was input as 
-c                    non-positive, it returns the actual size that was
-c                    allocated to exhaust the entire bin.
-c
-c     NOTE: "size" and "nc" are consistent with allocating space for:
-c           character*(nc) cvar(1:size)
+c> \brief This function allocates pointer to an integer, real, or character 
+c>        array from a dynamic memory bin.
+c>
+c>  It works in 3 modes:
+c>  -# If \ref stkinit was called with size=0, it DOES NOT allocate a pointer,
+c>     BUT instead updates a counter to the end of the memory bin. Then,
+c>     after a subsequent call to \ref stkinit, a pointer is allocated
+c>  -# If \ref stkinit was called with size>0 (or after a 2nd call to
+c>     \ref stkinit with size=0), a pointer is allocated.
+c>  -# If \ref stkinit was called with size<0 (indicating "reset" mode), a
+c>     pointer is allocated, BUT control link words are checked for
+c>     consistency rather than being set.
+c>
+c> \param[in] bin      bin from which to allocate pointer
+c> \param[in,out] size size (in words) of array to be allocated. (In 
+c>                     allocation mode ONLY, size may be non-positive, 
+c>                     indicating that all remaining space is to be used
+c>                     for this allocation.  In this case, size is also
+c>                     used to return the actual size that was allocated to
+c>                     allocated to exhaust the entire bin.
+c> \param[in]     nc
+c>                 \li \b INTPTR (0) for integer arrays,
+c>                 \li \b FLTPTR (-1) for real arrays,
+c>                 \li \b I2PTR  (-2) for integer*2 arrays,
+c>                 \li \b I4PTR  (-3) for integer*4 arrays,
+c>                 \li \b LOGPTR (-4) for for logical arrays,
+c>                 \li \b L1PTR  (-5) for for logical*1 arrays,
+c>                 \li \b DBLPTR (-6) for double precision arrays,
+c>                 \li \b R4PTR  (-7) for real*4 arrays,
+c>                 \li \b R8PTR  (-8) for real*8 arrays,
+c>                 \li \b PTRPTR (-9) for pointer arrays,
+c>                 \li \b length (\e nc>0) for character*(\e nc) variable
+c> \param[in]     name character string identifier for allocation
+c>
+c> \returns If non-zero, \ref stkptr returns a pointer (type \b HU_PTR_tYPE)
+c>          to the allocated array, or length of requested space so far if in
+c>          mode 1 (where pointers are NOT allocated). If zero is returned,
+c>          one of the following errors is indicated: 
+c>            \li  Bin out of range
+c>            \li  Bin has not been initialized
+c>            \li  Request exceeds allocated memory
+c>            \li  control word inconsistency in "reset" mode
+c>            \li  illegal value for "nc"
+c>            \li  size must be > 0 unless in allocation mode
+c>            \li  character allocation not implemented
+c>
+c>  \note
+c>   \li \e size and \e nc are consistent with allocating space for:
+c>              <BR><TT>   character*(nc) cvar(1:size)</TT>
+c>   \li The maximum size array that can be allocated is limited by the maximum
+c>       positive value that can be represented in a default Fortran integer,
+c>       typically 2 <sup>31</sup> - 1. If your hardware and operating system
+c>       support 64-bit addressing, you can allocate larger arrays using the
+c>       \ref stkptr_ST function.
+c>   \sa stkptr_ST
+c>
+      function stkptr ( bin, size, nc, name )
 c
 c ----------------------------------------------------------------------
 c
@@ -88,9 +97,12 @@ c ----------------------------------------------------------------------
 c
 c     Machine dependent include file
 #include "mdptr.h"
+c following defines are related to doxygen
+#define HU_PTR_tYPE  HU_PTR_TYPE
+#define HU_SIZE_t  HU_SIZE_T
 c
 c     Return value
-      HU_PTR_TYPE stkptr
+      HU_PTR_tYPE stkptr
 c
 c     Passed variables
       integer bin, size, nc
@@ -110,7 +122,30 @@ c     Called functions
 c
       return
       end
-
+c
+c> \brief This function allocates pointer to an integer, real, or character 
+c>        array from a dynamic memory bin, and is not limited to 32-bit
+c>        memory allocations on platforms that support it.
+c>
+c>  The interface of this function is exactly the same as the \ref stkptr
+c>  function, except:
+c>    \li The 2nd parameter (\e size) is of type \b HU_SIZE_t, rather
+c>        than type \b integer in \ref stkptr.
+c>
+c>  It works in same 3 modes as described in \ref stkptr.
+c>
+c> \returns Same return values as \ref stkptr
+c>
+c>  \note
+c>   \li \e size and \e nc are consistent with allocating space for:
+c>              <BR><TT>   character*(nc) cvar(1:size)</TT>
+c>   \li The maximum size array that can be allocated is limited by the maximum
+c>       positive value that can be represented by the platform's \b HU_SIZE_t
+c>       type. If your hardware and operating system does not support 64-bit
+c>       addressing, this function is exactly equivalent to the \ref stkptr
+c>       function.
+c>   \sa stkptr
+c
       function stkptr_ST ( bin, size, nc, name )
 c
 c ----------------------------------------------------------------------
@@ -120,11 +155,11 @@ c
 c ----------------------------------------------------------------------
 c
 c     Return value
-      HU_PTR_TYPE stkptr_ST
+      HU_PTR_tYPE stkptr_ST
 c
 c     Passed variables
       integer bin, nc
-      HU_SIZE_T size
+      HU_SIZE_t size
       character name*(*)
 c
 c     Common blocks
@@ -392,3 +427,4 @@ c
      &       '         size w/ current request: ',i20)
 c
       end
+c>  \} END of PublicInterface group

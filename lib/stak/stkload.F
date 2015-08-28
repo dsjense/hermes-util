@@ -1,5 +1,3 @@
-      integer function stkload(ludmp, frmt, bin, lbin)
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -24,43 +22,54 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine loads the contents of a specified set of bins from
-c     a file written by stkdmp.  This routine ONLY reads the data 
-c     written by the second write statement in stkdmp, i.e., it only 
-c     reads the data from the bin.  The calling program must have 
-c     previously read the 1st record containing the bin # and length.
-c
-c     Return values:
-c        0  -  Successful completion
-c       -1  -  Bin out of range
-c       -2  -  Bin/bins has/have not been initialized
-c       -3  -  Insufficient storage in bin
+c> \file stkload.F
+c> \brief File containing integer function \ref stkload of the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
 c
 c ----------------------------------------------------------------------
 c
-c     Passed variables:
+c> \brief This function loads the contents of a specified set of bins from
+c>        a file written by \ref stkdmp.
+c> \note  This routine ONLY reads the data written by the second write
+c>        statement in \ref stkdmp, i.e., it only reads the data from the bin.
+c>        The calling program must have previously read the 1st record
+c>        containing the bin # and other bin setup information, and used that
+c>        information to initialize the bin with a call to \ref stkinit.
+c>
+c> \param[in] ludmp Logical unit of an open file to read info from
+c> \param[in] frmt  character variable containing a valid Fortran format
+c>                  description to read data from file (e.g.,
+c>                  '<TT>(10z10)</TT>', OR, if \e frmt is blank (' '), data
+c>                  is written unformatted.
+c> \param[in] bin   number of bin to be loaded
+c> \param[in] lbin  # of words of data to be read into the bin
+c>
+c> \returns
+c>  \li  0, Successful completion
+c>  \li -1, Bin out of range
+c>  \li -2, Bin/bins has/have not been initialized
+c>  \li -3, Insufficient storage in bin
+c>
+c> \par Example:
+c>    The program \e tstak uses \ref stkload to read data from a file
+c>    written by \ref stkdmp and can be found in the test subdirectory.
+c> \sa stkdmp stkinit
 c
-c     Input:
-c       ludmp     -  Logical unit of an open file to read info from
-c       frmt      -  character variable containing format to read data
-c                    from file (e.g., '(10z10)', OR, if frmt is blank (' ')
-c                    data is written unformatted.
-c       bin       -  number of bin to be loaded
-c       lbin      -  # of words of data to be read into the bin
-c
-c     Output:  NONE
-c
-c ----------------------------------------------------------------------
+      integer function stkload(ludmp, frmt, bin, lbin)
 c
       implicit none
 c
 c ----------------------------------------------------------------------
 c
 #include "mdptr.h"
+c following defines are related to doxygen
+#define HU_SIZE_t  HU_SIZE_T
 c
 c     Passed variables
       integer   ludmp, bin
-      HU_SIZE_T lbin
+      HU_SIZE_t lbin
       character frmt*(*)
 c     Common blocks
 #include "stak.inc"
@@ -126,3 +135,4 @@ c
      &           '  # of data words supplied: ',i10,/,
      &           '  # of words available: ',i10)
       end
+c>  \} END of PublicInterface group

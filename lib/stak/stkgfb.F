@@ -1,5 +1,3 @@
-      integer function stkgfb ( )
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -24,21 +22,28 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This function reserves and returns the number of a memory bin that 
-c     is not currently in use.  RESERVED means that a subsequent call to
-c     this function will not return this bin unless it has been released 
-c     with a call to function stkrbin.
-c
-c     Return Value:
-c       >0  -  bin number of a memory bin that is not currently in use
-c        0  -  no free bins are available
-c       -2  -  Bin/bins has/have not been initialized
+c> \file stkgfb.F
+c> \brief File containing integer function \ref stkgfb of the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
 c
 c ----------------------------------------------------------------------
 c
-c     Passed variables: NONE
-c
+c> \brief This function reserves a memory bin that is not currently in use
+c>        and returns its number.
+c>
+c> RESERVED means that a subsequent call to this function will not return the
+c> same bin unless it has been subsequently released with a call to function
+c> \ref stkrbin.
+c>
+c> \returns
+c>  \li >0, Bin # of a currently unused memory bin that will be reserved
+c>  \li  0, No free bins are available
+c>  \li -2, Bin/bins has/have not been initialized
 c ----------------------------------------------------------------------
+c
+      integer function stkgfb ( )
 c
       implicit none
 c
@@ -82,3 +87,4 @@ c
 c
       return
       end
+c>  \} END of PublicInterface group

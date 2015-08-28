@@ -1,6 +1,3 @@
-      subroutine setbptr(bin,ptr)
-c
-c ----------------------------------------------------------------------
 c     $Id$
 c     
 c     Copyright (2008) Sandia Corporation. Under the terms of
@@ -24,18 +21,24 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine sets the permanent pointer to a memory bin to the 
-c     value of a temporary local pointer.
+c> \file setbptr.F
+c> \brief File containing subroutine \ref setbptr of the STAK library.
+c
+c> \addtogroup PublicInterface
+c>   \{  \}
+c
+c> \addtogroup PrivateInterface
+c>   \{
+c
+c> \brief This routine sets the permanent pointer to a memory bin to the
+c>        value of a temporary local pointer.
+c>
+c> \param[in] bin  Bin number whose pointer is to be set
+c> \param[in] ptr  Local pointer (type \b HU_PTR_tYPE) to which bin pointer is
+c>                 to be set
 c
 c ----------------------------------------------------------------------
-c
-c     Passed variables:
-c
-c     Input:
-c       bin       -  Bin number whose pointer is to be set
-c       ptr       -  Local pointer to which bin pointer is to be set
-c
-c     Output:  NONE
+      subroutine setbptr(bin,ptr)
 c
 c ----------------------------------------------------------------------
 c
@@ -45,10 +48,13 @@ c ----------------------------------------------------------------------
 c
 c     Machine dependent include file
 #include "mdptr.h"
+c following defines are related to doxygen
+#define HU_PTR_tYPE  HU_PTR_TYPE
+#define HU_SIZE_t  HU_SIZE_T
 c
 c     Passed variables
       integer bin
-      HU_PTR_TYPE ptr
+      HU_PTR_tYPE ptr
 c
 c     Common blocks
 #include "stak.inc"
@@ -63,3 +69,4 @@ c
 c
       return
       end
+c>  \} END of Private Interface group

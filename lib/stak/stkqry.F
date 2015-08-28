@@ -1,5 +1,3 @@
-      subroutine stkqry(kmax,n,bin,num,size,last)
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -24,24 +22,27 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine queries the stack management counters, providing 
-c     information on memory usage.
-c
+c> \file stkqry.F
+c> \brief File containing subroutine \ref stkqry of the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
+c>
 c ----------------------------------------------------------------------
 c
-c     Passed variables:
+c> \brief This routine queries the stack management counters, providing 
+c>        information on memory usage.
+c>
+c> \param[in]  kmax  Maximum dimension of bin, size, and last arrays
+c> \param[out] n     Number of bins currently in use
+c> \param[out] bin   Array of bin numbers of the currently-in-use bins
+c> \param[out] num   Array of active allocation counts for in-use bins
+c> \param[out] size  Array of allocated sizes of the currently-in-use bins
+c> \param[out] last  Array of current lengths of the currently-in-use bins
+c>
+c>  \note Returned values of \e size and \e last are in units of integer words.
 c
-c     Input:
-c       kmax      -  maximum dimension of bin, size, and last arrays
-c
-c     Output:
-c       n         -  number of bins currently in use
-c       bin       -  (*) bin numbers of the currently-in-use bins
-c       num       -  (*) # of active allocations for in-use bins
-c       size      -  (*) allocated size of the currently-in-use bins
-c       last      -  (*) current length of the currently-in-use bins
-c
-c ----------------------------------------------------------------------
+      subroutine stkqry(kmax,n,bin,num,size,last)
 c
       implicit none
 c
@@ -49,10 +50,12 @@ c ----------------------------------------------------------------------
 c
 c     Machine dependent include file
 #include "mdptr.h"
+c following defines are related to doxygen
+#define HU_SIZE_t  HU_SIZE_T
 c
 c     Passed variables
       integer kmax, n, bin(1:kmax), num(1:kmax)
-      HU_SIZE_T last(1:kmax), size(1:kmax)
+      HU_SIZE_t last(1:kmax), size(1:kmax)
 c
 c     Common blocks
 #include "stak.inc"
@@ -80,3 +83,4 @@ c
 c
       return
       end
+c>  \} END of PublicInterface group

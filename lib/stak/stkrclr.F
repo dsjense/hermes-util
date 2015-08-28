@@ -1,5 +1,3 @@
-      integer function stkrclr ( bin )
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -24,27 +22,39 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine changes the reset mode of a file to FALSE.  After 
-c     this call, the pointer allocation function (stkptr) can be used 
-c     to extend the memory used from a partially used bin.
-c
-c     Return Value:
-c        0  -  successful completion
-c       >0  -  indicates error in one or more of the releases.  If
-c              releasing more than one bin, bits are set for bins with
-c              errors, bit 1 corresponding to bin 1, ... (e.g., a return
-c              value of 5 indicates an error in releasing bins 1 & 3)
-c       -1  -  Bin out of range
-c       -2  -  Bin/bins has/have not been initialized
-c
+c> \file stkrclr.F
+c> \brief File containing integer function \ref stkrclr of the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
+c>
 c ----------------------------------------------------------------------
 c
-c     Passed variables:
+c> \brief This function changes the reset mode of a memory bin (or all bins) to
+c>        FALSE.
+c>
+c> After this call, the pointer allocation function (\ref stkptr) can be used 
+c> to extend the memory used from a partially used bin.
+c>
+c> \param[in] bin  bin for which the reset flag is to be cleared (if \e bin=0,
+c>                 all allocated bins will be cleared)
+c>
+c> \returns
+c>  \li  0, Successful completion
+c>  \li -1, Bin out of range
+c>  \li -2, Bin/bins has/have not been initialized
+c>
+c> \note
+c>   The reset flag is set by \ref stkinit if its supplied \e size argument is
+c>   negative. This is designed to be used when restoring data to a memory bin
+c>   that was previously written to a "restart" file by \ref stkdmp. The data
+c>   is then restored to the bin using \ref stkload. The original pointers are
+c>   then reallocated using repeated calls to \ref stkptr. A call to \ref
+c>   stkrclr will clear the reset flag so that subsequent calls to \ref stkptr
+c>   can extend the use of the bin if its allocated size has not been entirely
+c>   consumed. 
 c
-c       bin      -  bin for which reset flag is to be cleared (if bin=0, 
-c                   flags for all allocated bins will be cleared)
-c
-c ----------------------------------------------------------------------
+      integer function stkrclr ( bin )
 c
       implicit none
 c
@@ -103,8 +113,10 @@ c ..... only need reset flag if memory was in fact allocated
 c
         if ( biggest(i).gt.0 ) reset(i) = .FALSE.
 c
+c NOTE errtmp is always zero, so stkrclr remains zero
         stkrclr = 2*stkrclr + errtmp
       end do
 c
       return
       end
+c>  \} END of PublicInterface group

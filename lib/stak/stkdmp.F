@@ -1,5 +1,3 @@
-      integer function stkdmp(ludmp, frmt, n, bin)
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -24,30 +22,35 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine dumps the contents of a specified set of bins to
-c     a file, in either formatted or unformatted form.
-c
-c     Return values:
-c        0  -  Successful completion
-c       -1  -  Bin out of range
-c       -2  -  Stack has not been initialized
-c
+c> \file stkdmp.F
+c> \brief File containing integer function \ref stkdmp of the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
+c>
 c ----------------------------------------------------------------------
 c
-c     Passed variables:
-c
-c     Input:
-c       ludmp     -  Logical unit of an open file to write info to
-c       frmt      -  character variable containing format to write data
-c                    to file (e.g., '(10z10)', OR, if frmt is blank (' ')
-c                    data is written unformatted.
-c       n         -  number of bins to be dumped (if 0, all in-use bins
-c                    are dumped)
-c       bin       -  (*) array of bin #'s whose contents are to be dumped
-c
-c     Output:  NONE
-c
+c> \brief This function dumps the contents of a specified set of bins to
+c>        a file, in either formatted or unformatted form.
+c>
+c> \param[in] ludmp Logical unit of an open file to write dump info to
+c> \param[in] frmt  character variable containing a valid Fortran format
+c>                  description to write data to file (e.g., '<TT>(10z10)</TT>',
+c>                  OR, if \e frmt is blank (' ') data is written unformatted.
+c> \param[in] n     number of bins to be dumped (if 0, all in-use bins
+c>                  are dumped)
+c> \param[in] bin   Array of bin #'s whose contents are to be dumped.
+c>
+c> \returns
+c>  \li  0, Successful completion
+c>  \li -1, Bin out of range
+c>  \li -2, Stack has not been initialized
+c>
+c>  \note If supplied value of \e n is zero, the contents of the \e bin array
+c>        are ignored.
 c ----------------------------------------------------------------------
+c
+      integer function stkdmp(ludmp, frmt, n, bin)
 c
       implicit none
 c
@@ -149,3 +152,4 @@ c
      &       '  Guard length = ',i20)
 c
       end
+c>  \} END of PublicInterface group

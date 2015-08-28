@@ -1,5 +1,3 @@
-      integer function stkrbin ( bin )
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -24,27 +22,32 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine releases the memory (if allocated) for an entire 
-c     dynamic memory bin (or all bins).  After being released by this 
-c     routine, a memory bin can be reinitialized with a call to stkinit.
-c
-c     Return Value:
-c        0  -  successful completion
-c       >0  -  indicates error in one or more of the releases.  If
-c              releasing more than one bin, bits are set for bins with
-c              errors, bit 1 corresponding to bin 1, ... (e.g., a return
-c              value of 5 indicates an error in releasing bins 1 & 3)
-c       -1  -  Bin out of range
-c       -2  -  Bin/bins has/have not been initialized
-c
+c> \file stkrbin.F
+c> \brief File containing integer function \ref stkrbin of the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
+c>
 c ----------------------------------------------------------------------
 c
-c     Passed variables:
+c> \brief This function releases the memory (if allocated) for an entire 
+c>        dynamic memory bin (or all bins).
+c>
+c> After being released by this routine, a memory bin can be reinitialized
+c> with a call to \ref stkinit.
+c>
+c> \param[in] bin  bin to be released (if \e bin=0, all allocated bins
+c>                 will be released)
+c> \returns
+c>  \li  0, Successful completion
+c>  \li >0, Indicates an error in one or more of the releases. If checking
+c>          more than one bin, bits are set for bins with errors, bit 1
+c>          corresponding to bin 1, ... (e.g., a return value of 5 indicates
+c>          an error in releasing bins 1 & 3)
+c>  \li -1, Bin out of range
+c>  \li -2, Bin/bins has/have not been initialized
 c
-c       bin       -  bin to be released (if bin=0, all allocated bins
-c                    will be released)
-c
-c ----------------------------------------------------------------------
+      integer function stkrbin ( bin )
 c
       implicit none
 c
@@ -153,3 +156,4 @@ c
   200 format('stkrbin:  bin ',i5,' released')
 c
       end
+c>  \} END of PublicInterface group

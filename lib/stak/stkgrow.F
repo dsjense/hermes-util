@@ -1,5 +1,3 @@
-      function stkgrow ( bin, newbsize, newasize )
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -24,45 +22,59 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine grows (or shinks) a dynamic memory bin.  It is only 
-c     legal for a bin that has been allocated, but from which no more 
-c     than one allocation has been made (count(bin) < 2).  The bin can 
-c     be shrunk ONLY IF no allocations have been made (count(bin = 0).
-c     Note that the count is determined by the number of allocations 
-c     made from the bin via calls to stkptr MINUS the number of 
-c     allocations released from the bin via calls to stkfptr.
-c
-c     Return Value:
-c      >0  -  Successful completion, pointer to only current allocation
-c       0  -  Successful completion (no current allocations from bin)
-c      -1  -  Bin out of range
-c      -2  -  Stack has not been initialized
-c      -3  -  Bin has not been allocated
-c      -4  -  Illegal request for current allocations for this bin
-c      -5  -  Unable to reallocate memory
-c      -6  -  Bin integrity violated
+c> \file stkgrow.F
+c> \brief File containing the function \ref stkgrow of the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
 c
 c ----------------------------------------------------------------------
 c
-c     Passed variables:
+c> \brief This function grows (or shrinks) a dynamic memory bin.
+c>
+c> It is only legal to grow a bin that has been allocated, but from which no
+c> more than one allocation has been made (<TT>count(bin)</TT> < 2). The bin
+c> can be shrunk ONLY IF no allocations have been made (<TT>count(bin)</TT>
+c> = 0).
+c>
+c> \note
+c>  \li Note that the count is determined by the number of allocations made
+c>      made from the bin via calls to \ref stkptr MINUS the number of
+c>      allocations released from the bin via calls to \ref stkfptr.
+c>  \li The \c count array referred to here is defined in stak.inc.
+c>  \li The maximum size bin that can be allocated is limited by the maximum
+c>      positive value that can be represented in a default Fortran integer,
+c>      typically 2 <sup>31</sup> - 1. If your hardware and operating system
+c>      support 64-bit addressing, you can grow a bin's size larger than this
+c>      using the \ref stkgrow_ST function.
+c>
+c> \param[in] bin
+c>      Bin from which to allocate pointer (1-\b NBINS)
+c> \param[in] newbsize
+c>      New size (integer words) to be reallocated. If less than current size,
+c>      no pointers can be currently allocated from the bin (i.e.,
+c>      <TT>count(bin)</TT> = 0).
+c> \param[in,out] newasize
+c>      New size (in words) of 1st array allocated. This is ignored if no arrays
+c>      are currently allocated from this bin. If \e newasize is non-positive,
+c>      then all remaining space is to be used for this 1st array. In this
+c>      case, the size allocated for the array is returned in \e newasize.
+c>
+c> \returns
+c>   \li   0, Successful completion (no current allocations from bin)
+c>   \li  -1, Bin out of range
+c>   \li  -2, Stack has not been initialized
+c>   \li  -3, Bin has not been allocated
+c>   \li  -4, Illegal request for current allocations for this bin
+c>   \li  -5, Unable to reallocate memory
+c>   \li  -6, Bin integrity violated
+c>   \li  otherwise, a pointer (type \b HU_PTR_tYPE) to the one allocated array
+c>            in the bin (it may have been necessary to move the bin in the
+c>            process of growing it).
+c>
+c> \sa stkptr, stkfptr, stkgrow_ST
 c
-c     Input:
-c       bin       -  bin to be grown (or shrunk) (1-NBINS)
-c       newbsize  -  new size (integer words) to be reallocated.  If 
-c                    less than current size, count(bin) must be zero.
-c       newasize  -  new size (in words) of 1st array allocated.  This
-c                    is ignored if no arrays are currently allocated 
-c                    from this bin (count(bin) = 0).  If newasize is 
-c                    non-positive, then all remaining space is to be 
-c                    used for this 1st array.  In this case, size is 
-c                    also used as an output variable, see below.
-c
-c     Output:
-c       newasize  -  If "newasize" was input as non-positive, it returns 
-c                    the actual size that was allocated to exhaust the 
-c                    entire bin (only if count(bin) > 0).
-c
-c ----------------------------------------------------------------------
+      function stkgrow ( bin, newbsize, newasize )
 c
       implicit none
 c
@@ -70,20 +82,23 @@ c ----------------------------------------------------------------------
 c
 c     Machine dependent include file
 #include "mdptr.h"
+c following defines are related to doxygen
+#define HU_PTR_tYPE  HU_PTR_TYPE
+#define HU_SIZE_t  HU_SIZE_T
 c
 c     Return value
 c
-      HU_PTR_TYPE stkgrow
+      HU_PTR_tYPE stkgrow
 c
 c     Passed variables
 c
       integer bin, newbsize, newasize
 c
 c     Local variables
-      HU_SIZE_T newbsize_st, newasize_st
+      HU_SIZE_t newbsize_st, newasize_st
 c
 c     Called functions
-      HU_PTR_TYPE stkgrow_ST
+      HU_PTR_tYPE stkgrow_ST
 
       newbsize_st =  newbsize
       newasize_st =  newasize
@@ -94,17 +109,29 @@ c     Called functions
 c
       return
       end
-
+c
+c> \brief This function grows (or shrinks) a dynamic memory bin, and is not
+c>        limited to 32-bit memory allocations on platforms that support it.
+c>
+c>  The interface of this function is exactly the same as the \ref stkgrow
+c>  function, except:
+c>    \li The 2nd and 3rd parameters are of type \b HU_SIZE_t, rather
+c>        than type \b integer (\e size) in \ref stkgrow.
+c>
+c> \returns Same return values as \ref stkgrow
+c>
+c> \sa stkptr, stkfptr, stkgrow
+c
       function stkgrow_ST ( bin, newbsize, newasize )
 c
 c     Return value
 c
-      HU_PTR_TYPE stkgrow_ST
+      HU_PTR_tYPE stkgrow_ST
 c
 c     Passed variables
 c
       integer bin
-      HU_SIZE_T newbsize, newasize
+      HU_SIZE_t newbsize, newasize
 c
 c     Common blocks
 c
@@ -278,3 +305,4 @@ c
      &       '          resized to ',i20,' words')
 c
       end
+c>  \} END of PublicInterface group

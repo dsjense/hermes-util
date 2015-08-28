@@ -1,7 +1,5 @@
-      integer function stkinit ( bin, size, zero, nguard, namesave,
-     &                           lualloc, luerr )
-c
-c ----------------------------------------------------------------------
+c     ------------------------------------------------------------------
+c     ----
 c     $Id$
 c     
 c     Copyright (2008) Sandia Corporation. Under the terms of
@@ -25,63 +23,79 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine initializes a dynamic memory bin.  It works in 3 
-c     modes.
-c        1)  If size=0, it initializes the counters and will process 
-c            calls to the pointer allocation routine (stkptr)
-c            to compute the total space required for the bin.
-c            If stkinit is then called again (w/ size=0), it will 
-c            dynamically allocate the computed space and initialize the 
-c            counters.  Then the same calls to the pointer allocation 
-c            routines can be make to actually allocate the pointers.
-c        2)  If size>0, then the dynamic memory bin is allocated w/ 
-c            "size" integer words and the counters are initialized.
-c        3)  If size<0, then the dynamic memory bin is allocated w/ 
-c            -"size" integer words and the counters are initialized.  
-c            However, the bin is put in "reset" mode, which means that 
-c            as pointers are subsequently instantiated, the control link 
-c            words in the memory bin are not set, but instead checked 
-c            for consistency.  This mode is designed for reinstantiating 
-c            pointers in a memory bin that has been repopulated by 
-c            loading it with data that was previously dumped from that 
-c            bin to a file.
-c
-c     The first time this routine is called, some initial stuff is done.
-c
-c     The number of available bins is set by the parameter NBINS (see
-c     stak.inc) AND code in routines getbptr and setbptr MUST be 
-c     modified to explicitly reflect the maximum number of available 
-c     bins.
-c
-c     Return Value:
-c       0  -  Successful completion
-c       1  -  Bin out of range
-c       2  -  Bin has already been allocated
-c       3  -  Unable to allocate memory
-c       4  -  error initializing linked list of names
-c
+c> \file stkinit.F
+c> \brief File containing integer functions \ref stkinit and \ref stkinit_ST of
+c>        the STAK library.
+c>
+c> \addtogroup PublicInterface Fortran-callable Application (Public) Interface
+c>
+c> \brief Although not absolutely guaranteed, it is the intent that
+c>        the functions in the STAK library's application layer
+c>        will not change in terms of their functionality or interface
+c>        specification. Any changes in future versions can be
+c>        expected be upward compatible with earlier versions.
+c>   \{
+c>
 c ----------------------------------------------------------------------
 c
-c     Passed variables:
-c
-c       bin       -  bin to be initialized (1-NBINS) (if bin=0, only 
-c                    first-time stack initialization is performed)
-c       size      -  size (integer words) to be allocated. If zero, uses
-c                    2-pass system to compute, then allocate, needed 
-c                    space (see 1 above).  If size<0, -size words are 
-c                    allocated and the bin is put in "reset" mode.
-c       zero      -  logical flag indicating whether to initialize 
-c                    allocated space to zero
-c       nguard    -  # of guard words separating allocations for this 
-c                    bin
-c       namesave  -  logical flag indicating that a linked list of names 
-c                    and other info is to be maintained for this bin
-c       lualloc   -  If .ge. MINLU, unit # to be used for diagnostic 
-c                    messages concerning allocation and deallocation for
-c                    this bin
-c       luerr     -  If .ge. MINLU, unit # to be used for error messages
-c                    (ignored on ALL but first call to this routine)
-c
+c> \brief This function initializes a dynamic memory bin.
+c>
+c>  It works in 3 modes:
+c>  -# If size=0, it initializes the counters and will process 
+c>     calls to the pointer allocation routine (\ref stkptr) to compute the
+c>     total space required for the bin. If \ref stkinit is then called again
+c>     (w/ size=0), it will dynamically allocate the computed space and
+c>     initialize the  counters.  Then the same calls to the pointer
+c>     allocation routines can be make to actually allocate the pointers.
+c>  -# If size>0, then the dynamic memory bin is allocated w/ "size"
+c>     integer words and the counters are initialized.
+c>  -# If size<0, then the dynamic memory bin is allocated w/ "size"
+c>     integer words and the counters are initialized. However, the bin
+c>     is put in "reset" mode, which means that as pointers are subsequently
+c>     instantiated, the control link words in the memory bin are not set,
+c>     but instead checked for consistency. This mode is designed for
+c>     reinstantiating pointers in a memory bin that has been repopulated 
+c>     by loading it with data that was previously dumped from that bin to
+c>     a file.
+c>
+c> \param[in] bin       bin to be initialized (1-\b NBINS) (if bin=0, only 
+c>                      first-time stack initialization is performed)
+c> \param[in] size      size (integer words) to be allocated. If zero, uses
+c>                      2-pass system to compute, then allocate, needed 
+c>                      space (see 1 above).  If size<0, -size words are 
+c>                      allocated and the bin is put in "reset" mode.
+c> \param[in] zero      logical flag indicating whether to initialize 
+c>                      allocated space to zero
+c> \param[in] nguard    # of guard words separating allocations for this bin
+c> \param[in] namesave  logical flag indicating that a linked list of names 
+c>                      and other info is to be maintained for this bin
+c> \param[in] lualloc   If .ge. MINLU, unit # to be used for diagnostic 
+c>                      messages concerning allocation and deallocation for
+c>                      this bin
+c> \param[in] luerr     If .ge. MINLU, unit # to be used for error messages
+c>                      (ignored on ALL but first call to this routine)
+c>
+c> \returns
+c>  \li  0, Successful completion
+c>  \li  1, Bin out of range
+c>  \li  2, Bin has already been allocated
+c>  \li  3, Unable to allocate memory
+c>  \li  4, error initializing linked list of names
+c>
+c>  \note
+c>   \li The first time this routine is called, some initial stuff is done.
+c>   \li The parameter MINLU is defined in stkenum.inc.
+c>   \li The number of available bins is set by the parameter \b NBINS (see
+c>       stak.inc).
+c>   \li The maximum size bin that can be allocated is limited by the maximum
+c>       positive value that can be represented in a default Fortran integer,
+c>       typically 2 <sup>31</sup> - 1. If your hardware and operating system
+c>       support 64-bit addressing, you can allocate larger blocks using the
+c>       \ref stkinit_ST function.
+c>   \sa stkinit_ST
+c>
+      integer function stkinit ( bin, size, zero, nguard, namesave,
+     &                           lualloc, luerr )
 c ----------------------------------------------------------------------
 c
       implicit none
@@ -90,6 +104,9 @@ c ----------------------------------------------------------------------
 c
 c     Machine dependent include file
 #include "mdptr.h"
+c following defines are related to doxygen
+#define HU_PTR_tYPE  HU_PTR_TYPE
+#define HU_SIZE_t  HU_SIZE_T
 c
 c     Passed variables
       integer bin, size, nguard, lualloc, luerr
@@ -109,6 +126,30 @@ c     Called functions
       return
       end
 c
+c> \brief This function initializes a dynamic memory bin, and is not limited
+c>        to 32-bit memory allocations on platforms that support it.
+c>
+c>  The interface of this function is exactly the same as the \ref stkinit
+c>  function, except:
+c>    \li The 2nd parameter is of type \b HU_SIZE_t, rather
+c>        than type \b integer (\e size) in \ref stkinit.
+c>
+c>  It works in same 3 modes as described in \ref stkinit.
+c>
+c> \returns Same return values as \ref stkinit
+c>
+c>  \note
+c>   \li The first time this routine is called, some initial stuff is done.
+c>   \li The parameter MINLU is defined in stkenum.inc.
+c>   \li The number of available bins is set by the parameter NBINS (see
+c>       stak.inc).
+c>   \li The maximum size bin that can be allocated is limited by the maximum
+c>       positive value that can be represented by the platform's \b HU_SIZE_t
+c>       type. If your hardware and operating system does not support 64-bit
+c>       addressing, this function is exactly equivalent to the \ref stkinit
+c>       function.
+c>   \sa stkinit
+c>
       integer function stkinit_ST ( bin, size, zero, nguard, namesave,
      &                              lualloc, luerr )
 c
@@ -120,7 +161,7 @@ c ----------------------------------------------------------------------
 c
 c     Passed variables
       integer bin, nguard, lualloc, luerr
-      HU_SIZE_T size
+      HU_SIZE_t size
       logical zero, namesave
 c
 c     Common blocks
@@ -279,3 +320,4 @@ c
   200 format('stkinit:  bin ',i5,' allocated with ',i10,' words')
 c
       end
+c>  \} END of PublicInterface group

@@ -1,5 +1,3 @@
-      integer function stkchk ( bin )
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -24,31 +22,38 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine performs a check of the dynamically allocated memory 
-c     bin (or bins), looking for overwrites of the control or guard words 
-c     in the bin.
-c
-c     Return Value:
-c        0  -  successful completion
-c       >0  -  indicates detected corruption of one or more of the 
-c              bins.  If checking more than one bin, bits are set for 
-c              corrupted bins, bit 1 corresponding to bin 1, ... (e.g., 
-c              a return value of 5 indicates corruption of bins 1 & 3)
-c       -1  -  Bin out of range
-c       -2  -  Bin/bins has/have not been initialized
-c
+c> \file stkchk.F
+c> \brief File containing integer functions \ref stkchk and \ref addr2hex
+c>        of the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
+c>
 c ----------------------------------------------------------------------
 c
-c     Passed variables:
-c
-c       bin       -  bin to be checked (if bin=0, all allocated bins
-c                    will be checked)
-c
-c ----------------------------------------------------------------------
+c> \brief This function performs a check of the dynamically allocated memory 
+c>        bin (or bins), looking for overwrites of the control or guard words 
+c>        in the bin.
+c>
+c> \param[in] bin   bin to be checked (if bin=0, all allocated bins will be
+c>                  checked)
+c>
+c> \returns
+c>  \li  0, Successful completion
+c>  \li >0, Indicates detected corruption of one or more of the  bins. If
+c>          checking more than one bin, bits are set for corrupted bins, bit 1
+c>          corresponding to bin 1, ... (e.g., a return value of 5 indicates
+c>          corruption of bins 1 & 3)
+c>  \li -1, Bin out of range
+c>  \li -2, Bin/bins has/have not been initialized
+c>
+c>  \note If an error is detected, diagnostic/debugging information is written
+c>        to the Fortran unit specified by the \e luerr variable provided in
+c>        the first call to \ref stkinit, if \e luerr > MINLU (see stkenum.inc).
+c>
+      integer function stkchk ( bin )
 c
       implicit none
-c
-c ----------------------------------------------------------------------
 c
 c     Machine dependent include file
 #include "mdptr.h"
@@ -392,7 +397,22 @@ c
      &       '           block offset: ',i20)
 c
       end
+c>  \}
+c  END of PublicInterface group
 
+c> \addtogroup PrivateInterface
+c>   \{
+c
+c> \brief This function converts a Fortran pointer address to a string
+c>        containing a hexadecimal representation of that address.
+c>
+c> The returned string is stripped of leading and trailing blanks, as well
+c> as any leading zeros. It is \b not prefixed with '0x'.
+c>
+c> \param[in]  addr    pointer address
+c> \param[out] hstrng  string containing hexadecimal representation of address
+c>
+c> \returns Length of returned string
       integer function addr2hex(addr,hstrng)
 
       HU_PTR_TYPE addr
@@ -425,3 +445,4 @@ c
 
       return
       end
+c>  \} END of PublicInterface group

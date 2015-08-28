@@ -1,5 +1,3 @@
-      integer function stkfptr ( bin, nptrs )
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -24,25 +22,31 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine releases the memory (if allocated) for the last "nptr"
-c     pointers returned by the pointer allocation routine (stkptr).
-c     NOTE:  Pointers in the same bin are released in the OPPOSITE 
-c            order in which they were allocated.
-c
-c     Return Value:
-c        0  -  successful completion
-c        1  -  Bin out of range
-c        2  -  stack has not been initialized
-c        3  -  Pointer could not be freed
-c
+c> \file stkfptr.F
+c> \brief File containing integer function \ref stkfptr of the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
+c>
 c ----------------------------------------------------------------------
 c
-c     Passed variables:
+c> \brief This function releases the memory (if allocated) for the last \e nptr
+c>        pointers returned by the pointer allocation routine \ref stkptr for
+c>        \e bin.
+c>
+c> \param[in] bin   Bin for which pointers will be released.
+c> \param[in] nptrs # of pointers to be released from bin
+c>
+c> \returns
+c>  \li  0, Successful completion
+c>  \li  1, Bin out of range
+c>  \li  2, Stack has not been initialized
+c>  \li  3, Pointer could not be freed
+c>
+c>  \note Pointers in the same bin are released in the OPPOSITE order in which
+c>        they were allocated.
 c
-c       bin       -  bin for which pointers will be released
-c       nptrs     -  # of pointers to be released from bin
-c
-c ----------------------------------------------------------------------
+      integer function stkfptr ( bin, nptrs )
 c
       implicit none
 c
@@ -234,3 +238,4 @@ c
   310 format('stkfptr:  variable ',i5,' released from bin ',i5)
 c
       end
+c>  \} END of PublicInterface group

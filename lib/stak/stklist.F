@@ -1,5 +1,3 @@
-      integer function stklist ( bin, lu )
-c
 c ----------------------------------------------------------------------
 c     $Id$
 c     
@@ -23,6 +21,29 @@ c     <http://www.gnu.org/licenses/>.
 c     
 C_Groups @(#)
 c ----------------------------------------------------------------------
+c
+c> \file stklist.F
+c> \brief File containing integer function \ref stklist of the STAK library.
+c>
+c> \addtogroup PublicInterface
+c>   \{
+c
+c ----------------------------------------------------------------------
+c
+c> \brief This function lists allocation names and info for the requested
+c>        bin.
+c> \note  If name-saving is not turned on (see \e namesave argument of
+c>        \ref stkinit), only limited bin info is listed.
+c>
+c> \param[in] bin  bin to list (if bin=0, all allocated bins will be listed) 
+c> \param[in] lu   Fortran unit number of an open file to write the list to
+c>
+c> \returns
+c>  \li  0, Successful completion
+c>  \li  1, Bin out of range
+c>  \li  2, Bin/bins has/have not been initialized
+c
+      integer function stklist ( bin, lu )
 c
 c     This function lists allocation names and info for the requested 
 c     bin.  If name-saving is not turned on (namesave option of stkinit),
@@ -136,3 +157,4 @@ c
  101  format('  Name',t36,'Type',t53,'Offset',t68,'Length')
   200 format('Bin ',i5,' allocated with ',i10,' words')
       end
+c>  \} END of PublicInterface group

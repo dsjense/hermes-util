@@ -1,7 +1,3 @@
-#include "mdptr.h"
-      HU_PTR_TYPE function getbptr(bin)
-c
-c ----------------------------------------------------------------------
 c     $Id$
 c     
 c     Copyright (2008) Sandia Corporation. Under the terms of
@@ -25,25 +21,43 @@ c
 C_Groups @(#)
 c ----------------------------------------------------------------------
 c
-c     This routine returns a local pointer to the permanent pointer to a 
-c     specific memory bin.
+c> \file getbptr.F
+c> \brief File containing function \ref getbptr of the STAK library.
 c
-c     Return Value:  value of permanent pointer to memory bin "bin"
+c> \addtogroup PublicInterface
+c>   \{  \}
+c
+c> \addtogroup PrivateInterface Documentation of Non-Public, Utility Functions
+c> \brief The utility functions used in the STAK's Non-Public layer
+c>        are intended for use by the STAK library itself and their use by
+c>        application code should be avoided, since neither their
+c>        functionality, calling interface, or even their continued
+c>        existence in future versions of the library are guaranteed.
+c>   \{
+c
+c> \brief This function returns a local pointer to the permanent pointer to a 
+c>        specific memory bin.
+c>
+c> \param[in] bin  Bin number whose pointer is to be returned
+c>
+c> \returns Returns the value of the permanent pointer (type \b HU_PTR_tYPE)
+c>          to memory bin \e bin
 c
 c ----------------------------------------------------------------------
-c
-c     Passed variables:
-c
-c     Input:
-c       bin       -  Bin number whose pointer is to be returned
-c
-c     Output:  NONE
+#include "mdptr.h"
+c following defines are related to doxygen
+#define HU_PTR_tYPE  HU_PTR_TYPE
+#define HU_SIZE_t  HU_SIZE_T
+      function getbptr(bin)
 c
 c ----------------------------------------------------------------------
 c
       implicit none
 c
 c ----------------------------------------------------------------------
+c
+c     Return value
+      HU_PTR_tYPE getbptr
 c
 c     Passed variables
       integer bin
@@ -61,3 +75,4 @@ c
 c
       return
       end
+c>  \} END of Private Interface group
