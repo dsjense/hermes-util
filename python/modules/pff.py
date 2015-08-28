@@ -293,6 +293,159 @@ Return value: If successful, the encoded integer array is returned. On
         print "Error:", e
         return None
     
+def c2i(str):
+    '''Function to encode a string as an array of  unsigned 16-bit integers.
+
+Usage:
+  c2i( str )
+
+Arguments:
+  str:   The string value to be encoded.
+
+Return value: If successful, the encoded integer array is returned. On
+              error, None is returned.'''
+
+    err = 0
+    tstr = type(str)
+    if tstr != types.StringType and tstr != np.string_:
+        print 'Invalid type supplied for argument str'
+        return None
+    clen = len(str)  ;  wlen = (clen+1)/2
+    ia = np.empty(wlen,dtype=np.intc)
+    for i,j in enumerate(range(1,clen,2)):
+        ia[i] = 256*ord(str[j-1]) + ord(str[j])
+    if clen % 2:  ia[-1] = 256*ord(str[-1]) + ord(' ')
+    return ia
+    
+def i2c(ia):
+    '''Function to decode a string from an array of unsigned 16-bit integers.
+
+Usage:
+  i2c( ia )
+
+Arguments:
+  ia:   The integer array containing the encoded string.
+
+Return value: If successful, string is returned. On error, None is returned.'''
+
+    err = 0
+    try:
+        d = np.asarray(ia,dtype=np.intc)
+        if d.ndim != 1 or d.max() > 65535 or d.min() < 0: raise ValueError
+    except ValueError:
+        print "i2c: DATA must be a 1D NUMPY.NDARRAY object of integer*2 type"
+        return None
+    wlen = len(d)
+    str = ''
+    c1 = np.bitwise_and(d,255)
+    c0 = np.bitwise_and(np.right_shift(d,8),255)
+    for i in range(wlen):
+        str += (chr(c0[i]) + chr(c1[i]))
+    return str.strip()
+
+def joinSpare(imap):
+    '''Function to take a python dictionary of key/value pairs and encode
+it into and integer*2 array. Each supplied key is a python string, and
+each value is an integer*2 array.
+
+Keys are encoded by converting them in 2-byte integers, 2 per word,
+followed by ": " encoded in a single 2-byte integer, followed by the
+associated integer array. Multiple key/value pairs are separated by
+"; ", encoded in a single 2-byte integer.
+
+Usage:
+  joinSpare(imap)
+
+Arguments:
+  imap:  Python of python dictionary of key/value pairs
+
+Return value: If successful, the encoded integer array is returned. On
+              error, None is returned.
+
+See also: findSpare()'''
+
+    s = np.array([],dtype=np.intc)
+    if type(imap) is not types.DictType:
+        print "joinSpare: Argument must be Dictionary"
+        return None
+    first = True
+    colon = c2i(':')
+    semi = c2i(';')
+    for k in imap.keys():
+        if not first: s = np.concatenate((s,semi))
+        try:
+            d = np.asarray(imap[k],dtype=np.intc)
+            if d.ndim != 1: raise ValueError
+            if d.size and (d.max() > 65535 or d.min() < 0): raise ValueError
+            sk = c2i(k.strip())
+            if sk is None: return None
+        except ValueError:
+            print "joinSpare: imap[" + k + \
+                  "] must be a 1D array of integer*2 values"
+            return None
+        print s,sk,colon,d
+        s = np.concatenate((s,sk,colon,d))
+        first = False
+    return s
+
+def findSpare(spare,key,size=0):
+    '''Function to find and return the integer*2 array associated with 
+the string `key' in an encoded array previously constructed by the
+`joinSpare()' method.
+
+Keys are encoded in the `spare' array as 2-byte integers, 2 per word,
+followed by ": " encoded in a single 2-byte integer, followed by the
+associated integer array. Multiple key/value pairs are separated by
+"; ", encoded in a single 2-byte integer.
+
+Usage:
+  findSpare(spare,key,size=0)
+
+Arguments:
+  spare:  Array of 2-byte integers previously construct with the
+          `joinSpare()` function.
+  key:    Python string containing the key associated with the requested
+          array.
+  size:   If greater than zero, the size of the array to be returned.
+          Otherwise, the array is assumed to be terminated by the next
+          "; " encoded integer that occurs in the `spare' array, or if
+          one is not found, the end of the `spare' array
+
+Return value: If successful, the 2-byte integer array associated with
+              the supplied key is returned. On error, None is
+              returned.
+
+See also: joinSpare()'''
+
+    if spare is None: return None
+    try:
+        s = np.asarray(spare,dtype=np.intc)
+    except ValueError:
+        print "findSpare: 'spare' must be a 1D array of integer*2 values"
+        return None
+    if type(key) is not types.StringType:
+        print "findSpare: 'key' must be string" ; return None
+    if spare.size == 0: return None
+    colons = np.where(s == c2i(':'))[0]
+    if colons.size == 0: return None
+    semis = np.where(s == c2i(';'))[0]
+    cs = i2c(s)
+    extra = ''
+    key = key.strip()
+    if len(key) % 2: extra = ' '
+    srch = key + extra + ': '
+    lfind = cs.find(srch)
+    if lfind < 0 or lfind%2: return None
+    ioff = (lfind + len(srch))/2
+    last = s.size
+    if size == 0:
+        nextsemi = np.where(semis > ioff)[0]
+        if nextsemi.size > 0: last = semis[nextsemi[0]]
+    elif size + ioff <= last: last = ioff + size
+    else:  print \
+       "FindSpare: requested 'size' is not available, array will be truncated"
+    return s[ioff:last]
+    
 def pff_precision(value=None, file=None, show=False, default=False, all=False, \
                   ignore=False):
     if show:
@@ -394,6 +547,9 @@ def buf2nparray(rlist,dims=0):
 def buf2list(rlist):
     return buf2nparray(rlist).tolist()
 
+def getLastSliceBlkMap():
+    return _lastSliceBlkMap
+
 class dataset:
     "Abstraction of a general PFF dataset"
 
@@ -461,6 +617,10 @@ class dataset:
             pff_precision(reset[1,0],id)
 
         return 0
+
+    def findSpare(self,key,size=0,block=0):
+        if not self.__dict__.has_key('spare'): return None
+        return findSpare(self.spare,key,size)
         
 class IFL_dataset(dataset):
     "Abstraction of a PFF IFL dataset"
@@ -850,6 +1010,7 @@ class blkgrid_dataset(dataset):
 
 
     def get_slice(self,xval,comp='all',coord=None,block='all',quiet=False):
+        global _lastSliceBlkMap
         t = type(block)
         oneblk = False
         nblk = self.nblk
@@ -886,24 +1047,44 @@ class blkgrid_dataset(dataset):
                 brange = range(blkid,blkid+1)
                 bdellist  = range(blkid) + range(blkid+1,nblk)
 
-            for blk in brange:
-                f1, indx = self.find_blk_intercept(xval, crdid, blk)
+            blkMap = cpy.deepcopy(brange)
+            try:
+                xv = np.asarray(xval,dtype=np.single)
+                if xv.ndim == 1:
+                    if xv.size != len(brange): raise ValueError
+                elif xv.ndim > 1: raise ValueError
+                else:
+                    xv = [ xval for b in brange ]
+                xv = list(xv)
+            except ValueError:
+                print "Illegal XVAL specification"
+                return None
+
+            xvdel = []
+            for i,blk in enumerate(brange):
+                f1, indx = self.find_blk_intercept(xv[i], crdid, blk)
 
                 #print blk, f1, indx, x[indx:indx+2]
                 
                 if indx < 0:
                     sl = None
                     bdellist.append(blk)
+                    xvdel.append(i)
                     ##print '2:',blk,bdellist
                 else:
                     sl = self.get_slice_from_index(indx,f1,cmpid,crdid,blk)
                     blist.append(sl)
             
+            while xvdel:
+                i = xvdel.pop()
+                del blkMap[i]
+                del xv[i]
             bdellist.sort()
             #print '3:',bdellist
             newblks = nblk - len(bdellist)
             #print len(blist), bdellist, newblks
             assert(newblks == len(blist))
+            assert(newblks == len(xv))
             if newblks == 0:
                 if not quiet: print "No slice found based on input criteria"
                 return None
@@ -922,19 +1103,21 @@ class blkgrid_dataset(dataset):
                 new.del_blk_grid(blk)
             del new.data
             new.data = blist
-            new.set_slice_grid(crdid,xval)
+            new.set_slice_grid(crdid,xv)
             if newblks < nblk:
                 g_range = new.g_range
                 g_range[newblks,:,0] = g_range[:newblks,:,0].min(axis=0)
                 g_range[newblks,:,1] = g_range[:newblks,:,1].max(axis=0)
-            new.g_range[:,crdid,:] = xval
+            new.g_range[:newblks,crdid,:] = np.reshape(xv,(newblks,1))
+            new.g_range[newblks,crdid,0] = min(xv)
+            new.g_range[newblks,crdid,1] = max(xv)
 
             if new.rawtype == NV3 and new.adim == 1: new.rawtype = NF3;
+            _lastSliceBlkMap = blkMap
             return new
 
         except PFF_Error, e:
             print "Error:", e.value
-
 
     def scalarize(self,comp='mag',block='all',quiet=False):
         t = type(block)
@@ -943,7 +1126,7 @@ class blkgrid_dataset(dataset):
         if self.adim < 2:
             if not quiet:
                 print "PFF.SCALARIZE: Dataset already scalar - returning self"
-                return self.clone()
+            return self.clone()
         ##print 'SCALARIZE:',comp
         if t == types.StringType and block.lower() == "all":
             brange = range(nblk)
@@ -1138,7 +1321,11 @@ class blkgrid_dataset(dataset):
         except pex.PFF_Error, e:
             if ignore: raise
             else: print "Error:", e
-        
+
+    def findSpare(self,key,size=0,block=0):
+        if not self.__dict__.has_key('spare'): return None
+        return findSpare(self.spare[block],key,size)
+               
 class NUNF_dataset(blkgrid_dataset):
     "Abstraction of a PFF nonuniform grid multiblock dataset"
 
@@ -1243,7 +1430,7 @@ class NUNF_dataset(blkgrid_dataset):
             nxb = self.nx[i]
             xb = self.x[i]
             dt = xb[crdid].dtype
-            xb[crdid] = xval * np.ones((1,),dtype=dt,order='F')
+            xb[crdid] = xval[i] * np.ones((1,),dtype=dt,order='F')
             nxb[crdid] = 1
 
     def make_uniform(self,coord='all',block='all',quiet=False):
@@ -1569,7 +1756,7 @@ class UNF_dataset(blkgrid_dataset):
         nblk = self.nblk
         for i in range(nblk):
             self.nx[i][crdid] = 1
-            self.x0[i][crdid] = xval
+            self.x0[i][crdid] = xval[i]
             # dx value doesn't matter, so just leave as is
 
     def xblk_tuple(self, blk = 0):
@@ -1592,6 +1779,8 @@ PFFctype_sizes = pex.get_ctype_sizes()
 PFFnp_int = np.dtype('i' + str(PFFctype_sizes['i']))
 PFFnp_long = np.dtype('l' + str(PFFctype_sizes['l']))
 PFFnp_float = np.dtype('f' + str(PFFctype_sizes['f']))
+
+_lastSliceBlkMap = None
 
 GridEpsilonFactor = 5.0e-5
 
