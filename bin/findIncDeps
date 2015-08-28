@@ -1,0 +1,124 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------------
+# findIncDeps
+# 
+# Copyright (2015) David Seidel.
+# 
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+# 
+# Hermes is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General
+# Public License along with Hermes.  If not, see
+# <http://www.gnu.org/licenses/>.
+# 
+# -----------------------------------------------------------------------------
+
+import sys
+
+#FIXME
+def usage(cmd,short=0,f=sys.stdout):
+    if short <= 1:
+        print >>f, \
+"""Utility to extract a list of dependent files from a file containing make
+dependencies 
+"""
+
+    print >>f, "Usage:",cmd, \
+               """-i ext [-e ext ...] [-n macroName] input_file output_file
+
+ Options:
+  -h, --help      Prints this usage information and exits.
+  -n macroName    Name of make macro that is set to the dependent file list.
+  -e ext          Specifies a file extension for dependent files.  
+"""
+    if short > 0: return
+    # longer '--help' documentation would go here
+
+import fmkdep,glob,time
+import fpp,lgroup
+
+if __name__ == '__main__':
+
+    import os, getopt, re
+    
+    cmd = os.path.basename(sys.argv[0])
+    try:
+	opts, args = getopt.getopt(sys.argv[1:],
+                                   "ahn:e:",
+				   ["name=","ext=","append", "help"])
+    except getopt.GetoptError,e:
+	print >>sys.stderr,"ERROR: invalid commandline options:",e
+	usage(cmd,2,sys.stderr)
+	sys.exit(1)
+
+    macroName = "INC_DEPS"
+    extList = []
+    omode = 'w'
+    for o, a in opts:
+	if o in ("-h","--help"):
+            hMode = 1
+            if o == "--help": hMode = 0
+            usage(cmd,hMode)
+            sys.exit(0)
+	elif o in ("-a","--append"):
+	    omode = 'a'
+	elif o in ("-n","--name"):
+	    macroName = a
+	elif o in ("-e","--ext"):
+	    extList.append(a)
+
+    if len(args) != 2 or len(extList) == 0:
+	print >>sys.stderr,'ERROR: Invalid command' ; usage(cmd,2,sys.stderr)
+	sys.exit(1)
+
+    try:
+        fin = open(args[0],'r')
+    except IOError,e:
+        print >>sys.stderr,cmd + ':',e
+        sys.exit(1)
+
+    buf = fin.read()
+    fin.close()
+
+    found = {}
+    for ext in extList:
+        cre = re.compile(r'\S+\.'+ext+r'(?=( |$))',re.M)
+        m=cre.search(buf)
+        while m is not None:
+            key = buf[m.start():m.end()]
+            if found.has_key(key): found[key] += 1
+            else: found[key] = 1
+            m = cre.search(buf,m.end())
+
+    files = found.keys()
+    files.sort()
+
+    try:
+        fout = open(args[1],omode)
+    except IOError,e:
+        print >>sys.stderr,cmd + ':',e
+        sys.exit(1)
+    
+    if omode == 'a': print >>fout, ""
+    print >>fout, '# Include Dependencies found in', args[0]
+    print >>fout, '# Extensions:',
+    for ext in extList: print >>fout, " "+ext,
+    print >>fout, "\n"
+    line = macroName + ' ='
+    noff = len(macroName)
+    for f in files:
+        if len(line) + len(f) < 75: line += ( ' ' + f)
+        else:
+            print >>fout, line + ' \\'
+            line = '   '
+            for i in range(noff): line += ' '
+            line += f
+    print >>fout, line
+    fout.close()
