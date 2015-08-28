@@ -815,6 +815,206 @@ Return value: None is returned'''
 
     return None
          
+__all__.append('arr2str')
+def arr2str(*args,**kwargs):
+    '''Convert a multi-dimensional array and its associated grid arrays to a
+pff NGD dataset and/or STRUCTURE array.
+
+Usage:
+  arr2str(data, grid, [struct], [spare=iarray], [clabel=str], [tlabel=str], \\
+      [xlabel=str|list], [vlabel=str|list], [apptype=int] [file=str], [copy=True|False] )
+
+Arguments:
+  data:    Multi-dimensional array of floating point values
+  grid:    List of NUMPY arrays containing grid values for each spatial
+           dimension. GRID must have at least 2 elements, i.e., the number of
+           spatial coordinate dimensions must be greater than 1.
+  struct:  If supplied, the produced dataset is placed in this STRUCTURE index.
+  spare:   Integer spare word array
+  clabel:  Comment label for output dataset.
+  tlabel:  Type label for output dataset.
+  xlabel:  Array of strings to be used as dataset spatial coordinate labels
+           for each spatial dimension in the GRID array.
+  vlabel:  Array of strings to be used as dataset attribute labels for each
+           attribute in the DATA array. If there is only one attribute, VLABEL
+           can also be a single string.
+  apptype: Dataset application type (default=0)
+  file:    Filename associated with output dataset.
+  copy:    If COPY is specified, the PFF dataset object produced will be
+           returned. If COPY is True, a copy will be returned, if False,
+           a reference to the STRUCTURE array's dataset will be returned. If
+           STRUCT is not specified, the dataset is returned unconditionally.
+
+Notes: If any GRID[i] has only 2 elements and NP = DATA.SHAPE[i] is not
+       equal to 2, GRID[i] is interpreted as the ordered pair (X0,DX),
+       which is used to build a uniform grid array of length NP.  The
+       spatial dimensionality of the dataset (SDIM) is assumed to be
+       equal to the number of elements in the GRID array. If the
+       number of dimensions in the DATA array (NDIM) is equal to SDIM,
+       the dataset will have only one attribute (ADIM). If
+       NDIM=SDIM+1, ADIM will be the size of the last dimension of the
+       DATA array, i.e., ADIM = DATA.SHAPE[SDIM]. Also, the length of
+       each element of the GRID list must match the corresponding
+       dimension size of the DATA array, i.e., len(GRID[i]) =
+       DATA.SHAPE[i] for 0 <= i < SDIM.
+
+Return value: If COPY is specified, or STRUCT is not, the PFF dataset
+              object produced (or copy of) is returned. Otherwise,
+              None is returned'''
+
+    DN = 'ARR2STR'
+    argnames = [ 'data', 'grid', 'struct' ]
+    optvals = [ None ]
+    kwdefs = { 'file':None, 'clabel':None, 'tlabel':None, 'xlabel':None, \
+               'vlabel':None, 'copy':None, 'spare':None, 'apptype':0 }
+               ##, '':, '':, '':, '':, '':, '':, 
+
+    res = utils.process_args(args, kwargs, DN, argnames, kwdefs, optvals, \
+                                  extra=False)
+    if res == 0 or res == 1:
+        nl = [ "", "\n" ]  ;  nr = [ 0,None ]
+        print nl[res] + arr2str.__doc__  ;  return None
+
+    # pop all the positional arguments from the key/value list
+    for k in argnames:
+        exec k + " = res[k]"  ;  del res[k]
+
+    # next, pop any key/value pairs that have a non-string value
+    rcpy = res['copy']  ;  del res['copy']
+    tspare = res['spare']  ;  del res['spare']
+    apptype = res['apptype']  ;  del res['apptype']
+
+    # now pop any pairs with a value of None
+    for k in res.keys():
+        if res[k] is None: del res[k]
+    keys = res.keys()
+    ##keys.sort()
+    ##for k in keys:   print k, res[k]
+
+    okay = True
+   
+    gtypeMsg = \
+        ": GRID must be a list of 1D NUMPY.NDARRAY object of numeric type"
+    if type(grid) is not types.ListType:
+        print DN + gtypeMsg
+        okay = False
+    else:
+        sdim = len(grid)
+    try:
+        d = np.asarray(data,dtype=np.single,order='F')
+        dshp = np.array(d.shape,dtype=np.int64)
+        ndim = len(dshp)
+    except ValueError:
+        print DN + ": DATA must be a NUMPY.NDARRAY object of numeric type"
+        okay = False
+    adim = 1
+    if ndim == sdim + 1: adim = dshp[-1]
+    elif ndim != sdim:
+        print DN + ": DATA and GRID do not have consistant dimensions",ndim,sdim
+        okay = False
+    if okay:
+        tokay = True
+        grd = cpy.deepcopy(grid)
+        for i,xt in enumerate(grd):
+            try:
+                x = np.asarray(xt,dtype=np.single)
+                grd[i] = x
+            except ValueError:
+                tokay = False
+            if tokay:
+                if x.ndim != 1: tokay = False
+            if not tokay:
+                print DN + gtypeMsg
+            else:
+                nx = len(x)
+                if nx != dshp[i]:
+                    if nx == 2:
+                        x0 = x[0] ; dx = x[1]  ; ny = dshp[i]
+                        xnew = np.asarray(np.linspace(x0,x0+(ny-1)*dx,dshp[i]),
+                                          np.single)
+                        grd[i] = xnew
+                    else:
+                        print DN + \
+                        ": GRID in coord.",i+1,"is not consistent:",nx,dshp[i]
+                        tokay = False
+        if not tokay: okay = False
+    if okay:
+        if sdim < 2:
+            print DN + ": DATA is 1D, use I2W instead"
+            okay = False
+    if struct is not None:
+        if type(struct) is not types.IntType:
+            print DN + ": Supplied structure number (" + str(struct) + \
+                   ") must be an integer"  ;  okay = False
+
+    if tspare is None:
+        spare = None
+    else:
+        try:
+            spare = np.asarray(tspare,dtype=np.intc)
+        except ValueError:
+            print DN + \
+              ": Spare array must be a 1D NUMPY.NDARRAY object of integer type"
+            okay = False
+   
+    lablen = {'vlabel':adim, 'xlabel':sdim}
+    labmap = {}
+    for k in keys:
+        # Right now, all keywords are strings, except possibly [vx]label
+        if k != 'vlabel' and k != 'xlabel':
+            if type(res[k]) is not types.StringType:
+                print DN + ":",k.upper(),"must be a string"  ;  okay = False
+        else:
+            s = (1,lablen[k])
+            try:
+                labs = np.asarray(res[k],dtype=np.str_).reshape(s)
+                labmap[k] = labs
+            except ValueError:
+                print DN + ":",k.upper(),"has improper shape" ;okay = False
+                    
+    if not okay:
+        print "\n" + arr2str.__doc__  ;  return None
+
+    ##print d.shape, grd, struct
+    ##if ds is None:   print x,y
+    ##print res
+
+    dict = {'data':[d], 'apptype':apptype, 'adim':adim, 'sdim':sdim, 'nblk':1, \
+            'spare':[spare], 'x':[grd], 'typekey':'N', 'rawname':'NGD', \
+            'rawtype':pff.NGD, 'nx':[dshp[:sdim]], 'blabels':np.array(['']), \
+            'rfu':None}
+
+    dict['g_range'] = np.empty((2,sdim,2),dtype=np.single)
+    dict['g_eps'] = np.empty((2,sdim),dtype=np.single)
+    for k in keys:
+        if k == 'clabel':
+            dict['title'] = res[k]
+        elif k == 'tlabel':
+            dict['typename'] = res[k]
+        elif k == 'file':
+            dict['file'] = res[k]
+        elif k == 'xlabel':
+            dict['glabels'] = labmap[k]
+        elif k == 'vlabel':
+            dict['dlabels'] = labmap[k]
+
+    if not dict.has_key('title'): dict['title'] = ''
+    if not dict.has_key('typename'): dict['typename'] = ''
+    if not dict.has_key('file'): dict['file'] = ''
+    if not dict.has_key('glabels'):  dict['glabels'] = \
+            np.fromiter(('' for i in range(sdim)),dtype='|S1').reshape(1,sdim)
+    if not dict.has_key('dlabels'):  dict['dlabels'] = \
+            np.fromiter(('' for i in range(adim)),dtype='|S1').reshape(1,adim)
+
+    ds = pff.NUNF_dataset(new=dict)
+    ds.fill_grid_range()
+    if struct is None:  return ds
+    else:
+        _struclist[struct] = ds
+        if rcpy is None:  return None
+        if rcpy:  return cpy.deepcopy(ds)
+        else:  return ds
+
 
 ###################### 
 
@@ -1290,10 +1490,11 @@ Usage:
           [block=int|list], [multiply=float], [levels=list], [cntour=int], \\
           [cmap=str|cmap], [nlevel=int], [c_color=color|list], \\
           [cbar=str|list], [cbtitle=str], [return_slice=bool], \\
-          [setdefault=bool], [showdefault=bool], [unset=bool], \\
-          [xline=float|list], [yline=float|list], [hline=float|list], \\
-          [vline=float|list], [pline=bool], [out=int], [xintegrate=bool|int], \\
-          [yintegrate=bool|int], [reverse=bool], [start=int] )
+          [histogram=list|value], [setdefault=bool], [showdefault=bool], \\
+          [unset=bool], [xline=float|list], [yline=float|list], \\
+          [hline=float|list], [vline=float|list], [pline=bool], [out=int], \\
+          [xintegrate=bool|int], [yintegrate=bool|int], [reverse=bool], \\
+          [start=int] )
 
 Arguments:
   ds:           PFF dataset containing field data, or structure index of
@@ -1327,12 +1528,24 @@ Arguments:
                   3: filled contours
   nlevel:       Number of contour levels (cn=1 or 3 only)
   c_colors:     Contour color or list of contour colors (cn=1 or 3 only)
-  cmap:         Mathplotlib color map to be used.
+  cmap:         Matplotlib color map to be used.
   cbar:         If set, color bar is to be plotted. Valid values are:
                   'h' or 'v', indicating horizontal or vertical placement
                   [x0,y0,dx,dy], indicating overlay position on plot axes, in
                      axes-normalized units.
   cbtitle:      Title for color bar
+  histogram:    A list or scalar value indicating whether or not to plot data
+                as a histogram, with the abscissa arrays interpreted
+                as the midpoints of the histogram bins. If HISTOGRAM
+                is a 2 element list (or array) of floating point
+                values, they are interpreted as the lower bin
+                boundaries of each of the two plot axes
+                coordinates. If a scalar value is provided and
+                evaluates as True, the data will be interpreted as a
+                histogram, and the lower bin boundaries will be set by
+                the `X0' key in the dataset's spare word array, if it
+                has one, or as a last resort, will be computed using a
+                safe (but possibly inaccurate) algorithm.
   setdefault:   If set, provided option values will be made default
   showtdefault: If set, current default option values will be printed
   unset:        If set, default option values will be reset to original values
@@ -1370,7 +1583,7 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
                'xline':None, 'yline':None, 'hline':None, 'vline':None, \
                'out':None, 'xintegrate':0, 'yintegrate':0, 'start':None, \
                'reverse':None, 'showdefault':False, 'setdefault':False, \
-               'unset':False, 'use_fig':None }
+               'unset':False, 'use_fig':None, 'histogram':None }
                ##, '':, '':, '':, '':, '':, '':, 
 
     kwdefs.update(_pfdopts_cur) ## append settable option defaults
@@ -1591,12 +1804,76 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
             print DN + ": XINTEGRATE and YINTEGRATE cannot both be specified"
             okay = False
             
+    nblk = ds.nblk
+    nublk = nblk
+    if block == 'all':
+        tblock = np.arange(nblk,dtype=np.intc)
+    else:
+        try:
+            tblock = np.asarray(block,dtype=np.intc)
+            ndim,nbtmp = (tblock.ndim,tblock.size)
+            if ndim == 0: tblock.reshape((1,))
+            elif ndim > 1: raise ValueError
+            if tblock.min() < 0 or tblock.max() >=nblk or \
+               nbtmp != np.unique(tblock).size: raise ValueError
+            nublk = nbtmp
+        except ValueError:
+            print DN + ": Illegal value for BLOCK keyword"
+            okay = False
+    lstBlkMap = range(nublk)
+    rect_plot = False
+    if histogram is not None:
+        try:
+            x0hist = np.asarray(histogram,dtype=np.single)
+            ndim,shp = (x0hist.ndim, x0hist.shape)
+            if ndim == 0: raise ValueError, 0
+            if ndim > 2 or shp[-1] != sdim: raise ValueError, 1
+            if nublk > 1 and ndim != 2: raise ValueError, 1
+            if ndim == 2 and shp[0] != nublk: raise ValueError, 1
+            if ndim == 1: x0hist = x0hist.reshape((1,sdim))
+            histogram = True
+        except ValueError, e:
+            x0hist = []
+            t = type(histogram)
+            if e.message == 1 or t == types.ListType or t == types.TupleType:
+                print  DN + ": Supplied HISTOGRAM value must be a scalar " + \
+                       "or ("+str(nublk)+" x "+str(sdim)+") array of floats"
+                okay = False
+            else:
+                if histogram:
+                    histogram = True
+                    sz = 3*sdim
+                    for b in range(nublk):
+                        bxh = [ None for i in range(sdim) ]
+                        sx0 = ds.findSpare('X0',sz,b)
+                        if sx0 is not None:
+                            for i in range(sdim):
+                                bxh[i] = pff.i2f(sx0[3*i:3*i+3])
+                        x0hist.append(bxh)
+                    x0hist = np.asarray(x0hist,dtype=np.single)
+                
+                else: histogram = None
+
+        if okay and histogram:
+            if not xintegrate and not yintegrate: rect_plot = True
+            xfhist = []
+            for b in range(nublk):
+                x0 = x0hist[b]
+                bx = []
+                for i in range(sdim):
+                    xh = ds.x[b][i]
+                    bx.append(utils.XfFromXh(xh,x0[i]))
+                xfhist.append(bx)
+            
+            ##print xfhist
+        ##print okay, histogram, x0hist
+        ##return
+
     if not okay:
         print "\n" + plotfld.__doc__  ;  return None
 
     ##print comp, slcomp, cmpid, kvals, vals, kwextra, okay
 
-    nblk = ds.nblk
     sh = 0
     if transpose: sh = 1
     if sdim_act > 2:
@@ -1622,10 +1899,28 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             normid = kvals[0] - 1
         ##print vals, kvals, slcomp
         ##print ds.nblk, ds.data[0].shape
-        sl = ds.get_slice(vals[0],comp=slcomp,coord=kvals[0],block=block)
+        if histogram:
+            zntcpt = _getHistogramIntercept(ds,xfhist,kvals[0]-1,vals[0],
+                                            block=block)
+        else: zntcpt = vals[0]
+        sl = ds.get_slice(zntcpt,comp=slcomp,coord=kvals[0],block=block)
         if sl is None:
             print DN + ": Error slicing dataset"
             return None
+        if histogram:
+            lstBlkMap = pff.getLastSliceBlkMap()
+            used =  [ 0 for i in range(nublk) ]
+            for x in lstBlkMap:  used[x] += 1
+            dellist = [ i for i in range(nublk) if used[i] == 0 ]
+            if len(dellist): 
+                ##print 'xfhist before:',len(xfhist),len(x0hist),sl.nblk,lstBlkMap
+                x0l = list(x0hist)
+                while dellist:
+                    x = dellist.pop()
+                    del xfhist[x]
+                    del x0l[x]
+                x0hist = np.array(x0l)
+                ##print 'xfhist:',len(xfhist), len(x0hist), xfhist, x0hist
     elif sdim > 2:
         normid = degen[0]
         x1 = (normid+1+sh) % sdim
@@ -1643,28 +1938,56 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             ##print DN + ": Not implemented yet"
             ##return None
     else:
-        ##x1 = sh
-        ##x2 = 1 - sh
-        ##sl = ds
-        ##vals = [ 0.0 ]
-        print DN + ": Not implemented for sdim < 3"
-        return None
+        x1 = sh
+        x2 = 1 - sh
+        normid = -1
+        if type(cmpid) is types.ListType: tcomp = comp
+        else: tcomp = slcomp
+        ##print cmpid,slcomp,tcomp
+        sl = ds.scalarize(comp=tcomp,block=block,quiet=True)
+        cmpid = 0
+        vals = [ 0.0 ]
+        ##print DN + ": Not implemented for sdim < 3"
+        ##return None
 
     ##print normid,x1,x2,vals,kvals,slcomp
-    ##print sl.data[0].shape,sl.nx,sl.x[0][2]
+    ##print sl.data[0].shape,sl.nx
     
     imtrans = x1 < x2
     ##print "imtrans:", imtrans
 
     nbsl = sl.nblk
 
+    if histogram:
+        pspare = pff.joinSpare({'X0':[]})
+        slfg = sl.clone()
+        x = slfg.x
+        for i,n in enumerate(slfg.nx):
+            w = np.where(n>1)[0]
+            n[w] += 1
+            xb = x[i]
+            xf = xfhist[i]
+            for c in w:
+                xb[c] = xf[c]
+        slfg.fill_grid_range()
+    else: slfg = sl
+
     grm = sl.g_range[nbsl,:,:]
     if cntour == 2:
         xrr = cpy.deepcopy(grm[x1,:])
         yrr = cpy.deepcopy(grm[x2,:])
     if not overplot:
-        xrp = grm[x1,:]
-        yrp = grm[x2,:]
+        if histogram:
+            xrp = np.array([xfhist[0][x1][0],xfhist[0][x1][-1]],dtype=np.single)
+            yrp = np.array([xfhist[0][x2][0],xfhist[0][x2][-1]],dtype=np.single)
+            for b in range(1,nbsl):
+                xrp[0] = min(xrp[0],xfhist[b][x1][0])
+                xrp[1] = max(xrp[1],xfhist[b][x1][-1])
+                yrp[0] = min(yrp[0],xfhist[b][x2][0])
+                yrp[1] = max(yrp[1],xfhist[b][x2][-1])
+        else:
+            xrp = grm[x1,:]
+            yrp = grm[x2,:]
 
         if xrange is not None: xrp = np.array(xrange)
         elif polar and cntour != 2:
@@ -1800,7 +2123,43 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
     ##print vlow,vhi,vmin,vmax
     ##print 'ID:',id(ds.data[0]),id(sl.data[0]),id(data[0]),id(tdata[0])
 
-    if cntour == 1 or cntour == 3:
+    if rect_plot:
+        if type(cmap) is types.StringType: cmap = plt.get_cmap(cmap)
+        elif cmap is None: cmap = plt.get_cmap()
+        smap = matplotlib.cm.ScalarMappable(cmap=cmap)
+        smap.set_clim(vlow,vhi)
+        vdef = 2.0*vlow - vhi
+        col = smap.to_rgba(vdef)
+        xtmp = ax.get_xlim()
+        ytmp = ax.get_ylim()
+        dx,dy = np.diff(xtmp)[0], np.diff(ytmp)[0]
+        rect = matplotlib.patches.Rectangle \
+            ((xtmp[0],ytmp[0]), width=dx,height=dy,color=col)
+        ax.add_patch(rect)
+        
+        if cbar is not None:
+            fake = np.zeros((2,2))
+            im = ax.imshow(fake,cmap=cmap,vmin=vlow,vmax=vhi,visible=False)
+            ax.set_aspect(aspect)
+        for b in range(nbsl):
+            nx = sl.nx[b]
+            ndim = nx.size
+            slc = [ slice(n) for n in nx ]
+            for i in range(ndim):
+                if nx[i] == 1: slc[i] = 0
+            d = sl.data[b]
+            x,y = (xfhist[b][x1],xfhist[b][x2])
+            cols = smap.to_rgba(d[slc])
+            if imtrans: cols = np.transpose(cols,(1,0,2))
+            dx,dy = (np.diff(x),np.diff(y))
+            for i in range(nx[x1]):
+                for j in range(nx[x2]):
+                    rect = matplotlib.patches.Rectangle \
+                        ((x[i],y[j]), width=dx[i],height=dy[j],color=cols[j,i])
+                    ax.add_patch(rect)
+            
+    ##elif cntour == 1 or cntour == 3:
+    elif cntour == 1 or cntour == 3:
         if cntour == 1:
             funct = "contour"  ;  extra=""
         else:
@@ -1883,46 +2242,97 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         loax  = None
         if pline: loax = ax
         ##print "loax:",loax
+    spr = None
     if xline is not None:
-        con_ord = sl.connect_order(x1+1)
+        con_ord = slfg.connect_order(x1+1)
         ##print sl.data[0].shape,con_ord
         dirs = [normid,x2]
-        if x2 < normid: dirs = [x2,normid]
+        if normid < 0: dirs = [x2]
+        elif x2 < normid: dirs = [x2,normid]
         for yint in xline:
-            xout,yout = _gen_lineout(sl,con_ord,x1,x2,yint,axes=loax,
-                                     polar=polar)
-            ##print 'xout:', xout.shape,xout
-            ##print 'yout:', yout.shape,yout
-            cstr = "(x" + str(dirs[0]+1) + ",x" + str(dirs[1]+1) + ") = "
-            if dirs[0] == normid:
-                lstr = "(" + str(vals[0]) + ',' + str(yint) + ") -- "
+            print yint,x1,x2
+            if histogram:
+                yval = _getHistogramIntercept(sl,xfhist,x2,yint)
             else:
-                lstr = "(" + str(yint) + ',' + str(vals[0]) + ") -- "
-            clab = cstr + lstr + ds.title
+                yval = yint
+            print yint,yval
+            xyolst = _gen_lineout(sl,con_ord,x1,x2,yval,axes=loax,
+                                  polar=polar,histogram=histogram)
+            if normid < 0: dlm = ''
+            else: dlm = '('
+            cstr,lstr = ('','')
+            for dir in dirs:
+                cstr += (dlm + 'x' + str(dir+1))
+                if dir == normid: vv = str(vals[0])
+                else:  vv = yint
+                lstr += (dlm + str(vv))
+                dlm = ','
+            if normid < 0: clstr = cstr + " = " + lstr + " -- "
+            else: clstr = cstr + ") = " + lstr + ") -- "
+            clab = clstr + ds.title
             xlab = ax.get_xlabel()
-            _1d.i2w(xout,yout,out,clab=clab,xlab=xlab,ylab=dlab,file=ds.file)
-            out += 1
+            multi = len(xyolst) - 1
+            print multi
+            if multi < 0:
+                print DN + " Warning: XLINE="+str(yint)+" outside plot range"
+            for i,t in enumerate(xyolst):
+                print t
+                xout, yout, fblk = t
+                #print 'xout:', xout.shape,xout
+                #print 'yout:', yout.shape,yout
+                if multi: clb = clab + ' -- #' + str(i+1)
+                else: clb = clab
+                if histogram:
+                    spr = np.concatenate((pspare,pff.f2i(xfhist[fblk][x1][0])))
+                print x1, xfhist[fblk][x1][0]
+                _1d.i2w(xout,yout,out,clab=clb,xlab=xlab,ylab=dlab,
+                        file=ds.file,spare=spr)
+                out += 1
                 
 
     if yline is not None:
-        con_ord = sl.connect_order(x2+1)
+        con_ord = slfg.connect_order(x2+1)
         ##print con_ord
         dirs = [normid,x1]
-        if x1 < normid: dirs = [x1,normid]
+        if normid < 0: dirs = [x1]
+        elif x1 < normid: dirs = [x1,normid]
         for xint in yline:
-            xout,yout = _gen_lineout(sl,con_ord,x2,x1,xint,axes=loax,dir='y',
-                                     polar=polar)
-            ##print 'xout:', xout.shape,xout
-            ##print 'yout:', yout.shape,yout
-            cstr = "(x" + str(dirs[0]+1) + ",x" + str(dirs[1]+1) + ") = "
-            if dirs[0] == normid:
-                lstr = "(" + str(vals[0]) + ',' + str(xint) + ") -- "
+            print xint,x1,x2
+            if histogram:
+                xval = _getHistogramIntercept(sl,xfhist,x1,xint)
             else:
-                lstr = "(" + str(xint) + ',' + str(vals[0]) + ") -- "
-            clab = cstr + lstr + ds.title
+                xval = xint
+            print xint,xval
+            xyolst = _gen_lineout(sl,con_ord,x2,x1,xval,axes=loax,dir='y',
+                                  polar=polar,histogram=histogram)
+            if normid < 0: dlm = ''
+            else: dlm = '('
+            cstr,lstr = ('','')
+            for dir in dirs:
+                cstr += (dlm + 'x' + str(dir+1))
+                if dir == normid: vv = str(vals[0])
+                else:  vv = xint
+                lstr += (dlm + str(vv))
+                dlm = ','
+            if normid < 0: clstr = cstr + " = " + lstr + " -- "
+            else: clstr = cstr + ") = " + lstr + ") -- "
+            clab = clstr + ds.title
             xlab = ax.get_ylabel()
-            _1d.i2w(xout,yout,out,clab=clab,xlab=xlab,ylab=dlab,file=ds.file)
-            out += 1
+            multi = len(xyolst) - 1
+            print multi
+            for i,t in enumerate(xyolst):
+                print t
+                xout, yout, fblk = t
+                #print 'xout:', xout.shape,xout
+                #print 'yout:', yout.shape,yout
+                if multi: clb = clab + ' -- #' + str(i+1)
+                else: clb = clab
+                if histogram:
+                    spr = np.concatenate((pspare,pff.f2i(xfhist[fblk][x2][0])))
+                print x2, xfhist[fblk][x2][0]
+                _1d.i2w(xout,yout,out,clab=clb,xlab=xlab,ylab=dlab,
+                        file=ds.file,spare=spr)
+                out += 1
 
     if conductor is not None:
         try:     #  Now try to overplot conductor
@@ -2017,7 +2427,7 @@ Arguments:
                 'orange'.
   levels:       2-element list containing data values mapped to the min and max
                 colors in the color map (used only for COLOR='mag'
-  cmap:         Mathplotlib color map to be used.
+  cmap:         Matplotlib color map to be used.
   cbar:         If set, color bar is to be plotted. Valid values are:
                   'h' or 'v', indicating horizontal or vertical placement
                   [x0,y0,dx,dy], indicating overlay position on plot axes, in
@@ -2551,14 +2961,14 @@ Arguments:
   conductor:  Conductor dataset (or list of datasets) to be overplotted.
               Must describe a valid conductor (some PFF Vertex datasets or
               pfmpl-2d quadlist3d dataset)
-  cmap:       Mathplotlib color map to be used.
+  cmap:       Matplotlib color map to be used.
   cbar:       If set, color bar is to be plotted. Valid values are:
                 'h' or 'v', indicating horizontal or vertical placement
                 [x0,y0,dx,dy], indicating overlay position on plot axes, in
                    axes-normalized units.
   cbtitle:    Title for color bar
   psymbol:    Symbol type used for scatter plot (see 'marker' option for
-              Mathplotlib scatter function for legal values)
+              Matplotlib scatter function for legal values)
   symsize:    Size of symbol (in pixels^2)
   edgecolors: Color of symbol outline
 
@@ -2940,13 +3350,14 @@ Return value: Returns 0 if successful, or None on error'''
                     if adim: print ' Number of vector components:', adim
                     if adim:
                         print " Range of data in each vector dimension:"
-                        data = ds.data ; s1 = ""  ;  s2 = ""  ;  s3 = ""
+                        data = ds.data ; s1 = "" ; s2 = "" ; s3 = "" ; sl = ""
                         mnmx = np.empty((adim,2),dtype=data[0].dtype)
+                        if adim > 1: sl = ",i"
                         for b in range(nblk):
                             bdat = data[b]
                             for i in range(adim):
-                              exec "mnmx[i,0] = "+ s1 + "bdat[...,i].min()" + s3
-                              exec "mnmx[i,1] = "+ s2 + "bdat[...,i].max()" + s3
+                              exec "mnmx[i,0] = "+s1+"bdat[..."+sl+"].min()"+s3
+                              exec "mnmx[i,1] = "+s2+"bdat[..."+sl+"].max()"+s3
                             if b == 0:
                                 s1 = "min(mnmx[i,0],"
                                 s2 = "max(mnmx[i,1],"  ;  s3 = ")"
@@ -3422,53 +3833,155 @@ def _integrate_2d(sl,xi,xt,itype,reverse,start):
                 ndata[c[0]][sl0] = nd[sl1]
     sl.data = ndata
 
-def _gen_lineout(sl,con_ord,xldir, xidir, xival, axes=None,dir='x',polar=False):
+def _gen_lineout(sl,con_ord,xldir, xidir, xival, axes=None,dir='x',polar=False,
+                 histogram=False):
     xout = None  ;  yout = None
     lastblk = sl.nblk
+    xvlst = np.asarray(xival,dtype=np.single)
+    if xvlst.ndim == 0: xvlst = [ xival for i in range(lastblk) ]
+    xyolst = []
+    print con_ord
     for con in con_ord:
         b = con[0]
-        lo = sl.get_slice(xival,coord=xidir+1,block=b+1,quiet=True)
+        xval = xvlst[b]
+        lo = sl.get_slice(xval,coord=xidir+1,block=b+1,quiet=True)
+        if lo is None: print b,'lo is none'
         if lo is not None:
             ##print lo.nblk,len(lo.x),len(lo.x[0]),b,x1
             x = lo.x[0][xldir]
             dd = np.squeeze(lo.data[0])
+            connected = False
             if xout is None:
                 xout = x
                 yout = dd
+                fblk = b
             else:
-                connected = False  ;  clist = con[1]
+                clist = con[1]
+                print 'bc',b,clist
                 for c in clist:
                     if c[0] == lastblk:
                         connected = True  ;  break
                 ##print "connected:",connected
                 if connected:
-                    xout[-1] += x[0]   ;  xout[-1] *= 0.5
-                    yout[-1] += dd[0]  ;  yout[-1] *= 0.5
-                    xout = np.append(xout,x[1:],axis=0)
-                    yout = np.append(yout,dd[1:],axis=0)
+                    if histogram:
+                        xout = np.append(xout,x,axis=0)
+                        yout = np.append(yout,dd,axis=0)
+                    else:
+                        xout[-1] += x[0]   ;  xout[-1] *= 0.5
+                        yout[-1] += dd[0]  ;  yout[-1] *= 0.5
+                        xout = np.append(xout,x[1:],axis=0)
+                        yout = np.append(yout,dd[1:],axis=0)
                 else:
-                    tmp = np.zeros((2),dtype=pff.PFFnp_float)
-                    yap = np.append(tmp,dd,axis=0)
-                    tmp[0] = 2.0*xout[-1] - xout[-2]
-                    tmp[1] = 2.0*x[0] - x[1]
-                    xap = np.append(tmp,x,axis=0)
-                    xout = np.append(xout,xap,axis=0)
-                    yout = np.append(yout,yap,axis=0)
+                    if histogram:
+                        # in histogram mode, start a new WDF array
+                        xyolst.append((xout,yout,fblk))
+                        xout = x
+                        yout = dd
+                        fblk = b
+                        connected = False
+                    else:
+                        tmp = np.zeros((2),dtype=pff.PFFnp_float)
+                        yap = np.append(tmp,dd,axis=0)
+                        tmp[0] = 2.0*xout[-1] - xout[-2]
+                        tmp[1] = 2.0*x[0] - x[1]
+                        xap = np.append(tmp,x,axis=0)
+                        xout = np.append(xout,xap,axis=0)
+                        yout = np.append(yout,yap,axis=0)
             lastblk = b
             if axes:
+                print 'HC',histogram,connected,b,lo.g_range.shape
                 if (dir == 'x' and not polar) or (dir != 'x' and polar):
+                    if histogram and connected:
+                        xhc,yhc = \
+                            [lastplp[0],lo.g_range[0,xldir,0]],[lastplp[1],xval]
+                        if abs(xval-lastplp[1]) < lo.g_eps[0,xldir]:
+                            lnsty = '-'
+                        else: lnsty = '--'
+                        print 'lnsty1',lnsty
                     if polar:
                         th,junk = ThetaFill(lo.g_range[0,xldir,:],0.03*np.pi)
-                        rv = xival + np.zeros((len(th),))
+                        rv = xval + np.zeros((len(th),))
                     else:
-                        rv,th = [xival,xival], lo.g_range[0,xldir,:]
+                        rv,th = [xval,xval], lo.g_range[0,xldir,:]
                     l = matplotlib.lines.Line2D(th,rv,c='w')
+                    lastplp = (th[-1],rv[-1])
                 else:
-                    l = matplotlib.lines.Line2D([xival,xival],
+                    if histogram and connected:
+                        xhc,yhc = \
+                            [lastplp[0],xval],[lastplp[1],lo.g_range[0,xldir,0]]
+                        if abs(xval-lastplp[0]) < lo.g_eps[0,xldir]:
+                            lnsty = '-'
+                        else: lnsty = ':'
+                        print 'lnsty2',lnsty
+                    l = matplotlib.lines.Line2D([xval,xval],
                                                 lo.g_range[0,xldir,:],c='w')
+                    lastplp = (xval,lo.g_range[0,xldir,-1])
+                if histogram and connected:
+                    lhc = matplotlib.lines.Line2D(xhc,yhc,c='w',linestyle=lnsty)
+                    axes.add_line(lhc)
                 axes.add_line(l)
-    return (xout,yout)
+    if xout is not None: xyolst.append((xout,yout,fblk))
+    return xyolst
 
+def _getHistogramIntercept(ds,xflst,crdid,xval,block='all'):
+    DN = "_getHistogramIntercept"
+    nblk,sdim = ds.nblk,ds.sdim
+    ##print crdid,xval,block,nblk,sdim
+    if block == 'all':
+        tblock = np.arange(nblk,dtype=np.intc)
+    else:
+        try:
+            tblock = np.asarray(block,dtype=np.intc)
+            ndim,nbtmp = (tblock.ndim,tblock.size)
+            if ndim == 0: tblock.reshape((1,))
+            elif ndim > 1: raise ValueError
+            if tblock.min() < 0 or tblock.max() >=nblk or \
+               tblock.size != np.unique(tblock).size: raise ValueError
+        except ValueError:
+            print DN + ": Illegal value for BLOCK keyword"
+            return None
+    nb = tblock.size
+    xhlst = ds.x
+    try:
+        ##print len(xflst),nb
+        if len(xflst) != nb: raise ValueError
+        for i,bx in enumerate(xflst):
+            ##print len(bx),sdim
+            if len(bx) != sdim: raise ValueError
+            xhb = xhlst[i]
+            for j,x in enumerate(bx):
+                ##print type(x),x.size,xhb[j].size+1
+                xh = xhb[j]
+                if type(x) is not np.ndarray: raise ValueError
+                if xh.size > 1 and x.size != xh.size+1:  raise ValueError
+    except ValueError:
+        print DN + ": Illegal value for XFLST argument"
+        return None
+
+    xilist = []
+    for b in tblock:
+        xh = xhlst[b][crdid]
+        xf = xflst[b][crdid]
+        nx = xf.size
+        nxh = nx - 1
+        eps = ds.g_eps[b,crdid]
+        ##print nxh,xval,eps,xf
+        if xval <= (xf[0] - eps) or xval >= (xf[-1] + eps): xv = xval
+        else:
+            w = np.where(xf < xval)[0]
+            if w.size == 0: xv = xh[0]
+            else:
+                indx = min(w[-1],nxh-1)
+                xv = xh[indx]
+                ##print w[-1],indx
+            ##print w.size,xv
+        xilist.append(xv)
+
+    return xilist
+            
+            
+
+    
 
 def _what_type(ds):
     if isinstance(ds,pff.blkgrid_dataset):
