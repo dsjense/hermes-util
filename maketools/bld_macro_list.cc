@@ -30,6 +30,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 #ifdef WIN32sys
@@ -37,31 +38,22 @@
 # define STAT_FUNCT _stat
 # define S_ISREG(mode)	 ( (mode) & _S_IFREG )
 # include "winrtl.h"
+static const char file_sep = '\\';
 #else
 # define STAT_STRUCT stat
 # define STAT_FUNCT stat
 # include <unistd.h>
+static const char file_sep = '/';
 #endif
 
 // using std::cout;
 // using std::endl;
-
+using std::strlen;
 using std::string;
 using std::list;
+using std::map;
 
-void usage(const char *cmd, int status)
-{
-  FILE *f = stdout;
-  if ( status ) f = stderr;
-  fprintf(f,"Usage: %s [-h] [-m match ..] [-n nomatch ..] -s src_ext [...]\n",
-          cmd);
-  fprintf(f,"       [-i inc_ext ..] [-S srcs_macro] [-I incs_macro] "
-            "[-O objs_macro] [-a] [-P]\n");
-  fprintf(f,"       [-E|-W|-l|-L lib_name] [-d|-D delete_file] "
-            "[-p target_prefix]\n");
-  fprintf(f,"       [product|-] [platform]\n\n");
-  std::exit(status);
-}
+#include "bld_macro_list_usage.h"
 
 int main(int argc, char *argv[])
 {
@@ -89,18 +81,28 @@ int main(int argc, char *argv[])
 
   char *cmd = argv[0];
 
-  while ( (c=getopt(argc, argv, "hm:n:s:i:S:I:O:L:lEWap:PD:d")) != -1 ) {
+#ifdef WIN32sys
+  const char optList[] = "hm:n:N:k:s:i:S:I:O:L:v:lEWap:PD:d";
+#else
+  const char optList[] = "hm:n:N:k:s:i:S:I:O:L:v:x:lEWap:PD:d";
+#endif
+  while ( (c=getopt(argc, argv, optList)) != -1 ) {
     switch (c) {
     case 'h':
-      usage(cmd,0);
+      bld_macro_list_usage(std::cout,0);
+      std::exit(0);
       break;
     case 'm':
       lgrp.AddMatch(optarg);
       lgrp_flgs += string(" -m") + string(optarg);
       break;
-    case 'n':
-      lgrp.AddNomatch(optarg);
+    case 'n': case 'N':
+      if (c == 'N') lgrp.AddNomatch(optarg,true);
+      else lgrp.AddNomatch(optarg);
       lgrp_flgs += string(" -n") + string(optarg);
+      break;
+    case 'k':
+      lgrp.SetKeyString(optarg);
       break;
     case 's':
       src_matcher.AddExtension(optarg);
@@ -123,6 +125,27 @@ int main(int argc, char *argv[])
     case 'L':
       if ( !LIBname.empty() || winflg || eflg ) error=1;
       else LIBname = optarg;
+      break;
+    case 'x':
+      src_matcher.AddExcludePattern(optarg);
+      inc_matcher.AddExcludePattern(optarg);
+      break;
+    case 'v':
+      {
+        char *vlist  = new char[strlen(optarg)+1];
+        std::strcpy(vlist,optarg);
+        char *tok = strtok(vlist," :");
+        while (tok) {
+          //std::cout << "VPATH token: " << tok << std::endl;
+          char *pc = tok + (strlen(tok)-1);
+          while ( *pc == file_sep ) *pc-- = '\0';
+          //std::cout << "VPATH token: " << tok << std::endl;
+          src_matcher.AddSearchDir(tok);
+          inc_matcher.AddSearchDir(tok);
+          tok = strtok(NULL," :");
+        }
+        delete [] vlist;
+      }
       break;
     case 'l':
       if ( !LIBname.empty() || winflg || eflg ) error=1;
@@ -180,13 +203,18 @@ int main(int argc, char *argv[])
   // cout <<  "eflg: " << eflg << endl;
   // cout <<  "winflg: " << winflg << endl;
   // cout <<  "mode: " << mode << endl;
+  //src_matcher.printit();
+  //lgrp.printit();
 
   argv += optind;
   argc -= optind;
 
   // for(int i=0; i<argc; ++i) printf("ARG%d: %s\n",i,argv[i]);
 
-  if ( error || argc > 2 || src_exts.empty() ) usage(cmd,1);
+  if ( error || argc > 2 || src_exts.empty() )  {
+    bld_macro_list_usage(std::cerr,1);
+    std::exit(1);
+  }
 
   string product = "";
   string ofilename = "macro_list";
@@ -250,25 +278,37 @@ int main(int argc, char *argv[])
     fprintf(wfile,"# Include extensions:%s\n",inc_exts.c_str());
 
   list<string> slist;
-  int n = src_matcher.BldFileList(slist);
+  map<string,string> smap;
+  int n = src_matcher.BldFileMap(smap);
   
   list<string> ilist;
-  if ( !inc_exts.empty() ) n = inc_matcher.BldFileList(ilist);
+  map<string,string> imap;
+  if ( !inc_exts.empty() ) n = inc_matcher.BldFileMap(imap);
   list<string>::iterator iter;
+  map<string,string>::iterator pos;
 
   if ( !lgrp_flgs.empty() ) {
     fprintf(wfile,"# lgrp flags:        %s\n",lgrp_flgs.c_str());
-    for(iter=slist.begin(); iter != slist.end(); ) {
-      if ( ! lgrp.CheckFile(*iter) ) iter = slist.erase(iter);
-      else ++iter;
+    for(pos=smap.begin(); pos != smap.end(); ) {
+      string fulname = pos->first;
+      if (pos->second != "") fulname = pos->second + file_sep + pos->first;
+      if ( ! lgrp.CheckFile(fulname) ) smap.erase(pos++);
+      else ++pos;
     }
     if ( !inc_exts.empty() ) {
-      for(iter=ilist.begin(); iter != ilist.end(); ) {
-        if ( ! lgrp.CheckFile(*iter) ) iter = ilist.erase(iter);
-        else ++iter;
+      for(pos=imap.begin(); pos != imap.end(); ) {
+        string fulname = pos->first;
+        if (pos->second != "") fulname = pos->second + file_sep + pos->first;
+        if ( ! lgrp.CheckFile(fulname) ) imap.erase(pos++);
+        else ++pos;
       }
     }
   }
+  for(pos=smap.begin(); pos != smap.end(); ++pos) slist.push_back(pos->first);
+  for(pos=imap.begin(); pos != imap.end(); ++pos) ilist.push_back(pos->first);
+  
+  slist.sort();
+  ilist.sort();
 
   Line_Dumper dumper(wfile);
   if ( !SRCname.empty() ) {
