@@ -19,6 +19,7 @@
 import math
 import types
 import re
+import numpy as np
 
 import pff
 
@@ -370,3 +371,26 @@ def nice_bounds(axis_start, axis_end, num_ticks=10):
 
     return axis_start, axis_end, nice_tick
 
+def XfFromXh(xh,xf0=None):
+    # If xf0 supplied, assumes xh = 0.5*(xf[:-1] + yf[1:])
+    hlen = xh.size
+    if xf0 is not None:
+        tdxh = 2.0*np.diff(xh)
+        dxft = np.empty(hlen+1, dtype=np.single)
+        dxft[0] = xf0
+        dxft[1] = 2.0*(xh[0] - xf0)
+        for i in range(hlen-1):
+            dxft[i+2] = tdxh[i] - dxft[i+1]
+        xf = np.cumsum(dxft)
+        if (xh - xf[:-1]).min() <= 0 or (xf[1:] - xh).min() <= 0:
+            print "XfFromXh: Warning -- inconsistent value of `xf0' supplied"
+            print "          default value will be used"
+            xf0 = None
+
+    if xf0 is None:
+        xf = np.empty(hlen+1, dtype=np.single)
+        xf[1:-1] = 0.5*(xh[:-1] + xh[1:])
+        xf[0] = 2.0*xh[0] - xf[1]
+        xf[-1] = 2.0*xh[-1] - xf[-2]
+
+    return xf
