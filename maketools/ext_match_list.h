@@ -24,17 +24,25 @@
 #define Ext_Match_List_h 1
 
 #include <list>
+#include <map>
 #include <string>
 
 class Ext_Match_List
 {
  public:
+  Ext_Match_List();
+  void AddSearchDir(const std::string &dir);
   void AddExtension(const std::string &ext);
+  void AddExcludePattern(const std::string &pat);
   int BldFileList(std::list<std::string> &filelist);
+  int BldFileMap(std::map<std::string,std::string> &filemap);
+  void printit();
 
  private:
   int fextmatch(const char *ext, const char *string);
   std::list<std::string> mat_exts;
+  std::list<std::string> search_dirs;
+  std::list<std::string> exclude_pattern;
 
 };
 
