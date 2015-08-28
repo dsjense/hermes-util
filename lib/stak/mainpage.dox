@@ -1,0 +1,59 @@
+/* $Id$
+ * 
+ * Copyright (2015) David Seidel.
+ * 
+ * Hermes is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ * 
+ * Hermes is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General
+ * Public License along with Hermes.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+ 
+/*! \mainpage Hermes Stack library (stak)
+ *
+ * \section desc_sec Description
+ *
+ * STAK is a library that provides tools for dynamic memory use in legacy
+ * Fortran 77 codes. It relies on the use of so-called Cray pointers, which
+ * exist as extensions on essentially all present-day Fortran 77 compilers.
+ * The basic model is that memory can be allocated in large bins, each
+ * containing multiple arrays of various types. With this model, arrays
+ * with common lifetime requirements can be grouped together in a single bin,
+ * which can be allocated and released as needed. The memory in the bins is
+ * laid out in such a way as to provide a very efficient method of detecting
+ * errors caused by writing to arrays beyond their bounds. Checks for such
+ * errors can be made at whatever frequency an application requires.
+ *
+ * \section bin_struct  Structure of Memory Bins
+
+ *  Each memory bin is a dynamically allocated array. The pointer
+ *  allocation function \ ref stkptr returns pointers to locations in this 
+ *  array. Each block of space allocated from the bin is bracketed 
+ *  by a leading and trailing control word. These control words 
+ *  contain the length (in integer words) of the block that they 
+ *  bracket, thus allowing the bin to be traversed in either 
+ *  direction. Also, between the control words for each block of 
+ *  space allocated from the bin are optional guard words, preloaded 
+ *  with the negative of the word index of the bin.
+*
+ * \section examples_sec Examples
+ *
+ * The TSTAK program found in the \e test subdirectory of the \e stak source
+ * distribution exercises most if not all of the functions of the library,
+ * including:
+ *   \li Its two-pass system for allocating multiple arrays in a memory bin,
+ *       which relieves the application from needing to compute the required
+ *       length of the bin itself.
+ *   \li The tools for checking for array overwriting.
+ *   \li Tools for writing persistent array data from memory bins to files,
+ *       and subsequently restoring the the data to memory bins from those
+ *       files (restart capability).
+ */
