@@ -31,6 +31,8 @@
 # include <unistd.h>
 #endif
 
+#include "txt2pydoc_usage.h"
+
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -53,17 +55,6 @@ static string slash_n = "\\n";
 // non-comment line of the file MUST be a "@" line, and that each "@"
 // line must be followd by at least one line of text.
 
-static void usage(const string &cmd, int status)
-{
-  ostream *o = &cout;
-  if ( status ) o = &cerr;
-
-  *o << "Usage: " << cmd << " [-h] [-c comment_char] text_file [out_file]"
-     << endl;
-
-  exit(status);
-}
-
 void process_last_line(std::ofstream &out, string &outline)
 {
   string::size_type idx;
@@ -75,20 +66,26 @@ void process_last_line(std::ofstream &out, string &outline)
 int main(int argc, char *argv[])
 {
   char cmmnt = '!';  // '!' is default comment character
-  int c;
   int error = 0;
 
   // get command "basename"
   string cmd = argv[0];
   string::size_type idx = cmd.rfind('/');
   if ( idx != string::npos ) cmd.erase(0,idx+1);
+  argv[0] = (char *) cmd.c_str(); // use base name for getopt messages
 
+  int c = -1;
+  for(int i=1;i<argc;++i) {
+    if (strcmp(argv[i],"-h")==0) { c = 1; break; }
+    if (strcmp(argv[i],"--help")==0) { c = 0; break; }
+  }
+  if (c >= 0) {
+    txt2pydoc_usage(cout,c);
+    return 0;
+  }
   // check for valid options
-  while ( (c=getopt(argc, argv, "hc:")) != -1 ) {
+  while ( (c=getopt(argc, argv, "c:")) != -1 ) {
     switch (c) {
-    case 'h':
-      usage(cmd,0);
-      break;
     case 'c':
       cmmnt = optarg[0];
       break;
@@ -107,7 +104,12 @@ int main(int argc, char *argv[])
   argv += optind;
   argc -= optind;
 
-  if ( error || argc < 1 || argc > 2 ) usage(cmd,1);
+  if ( error || argc < 1 || argc > 2 ) {
+    if (argc<1) cerr << cmd << ": No arguments were supplied" << endl;
+    else if (argc>2) cerr << cmd << ": Too many arguments supplied" << endl;
+    txt2pydoc_usage(cerr,2);
+    return 1;
+  }
 
   string txtfile = argv[0];  // input text file
   string ofile;              // output C or C++ include file
