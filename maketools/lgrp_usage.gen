@@ -1,0 +1,40 @@
+! $Id$
+! EXTENSION: C
+! 
+! Copyright (2015) David Seidel.
+! 
+! Hermes is free software: you can redistribute it and/or modify
+! it under the terms of the GNU Lesser General Public License as
+! published by the Free Software Foundation, either version 3 of
+! the License, or (at your option) any later version.
+! 
+! Hermes is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU Lesser General Public License for more details.
+! 
+! You should have received a copy of the GNU Lesser General
+! Public License along with Hermes.  If not, see
+! <http://www.gnu.org/licenses/>.
+!
+Usage: lgrp [options] <file ...>
+
+Finds or matches keys embedded in files.
+
+ Options:
+  -h,             Prints this usage information.
+  -k key_string   String indicating blank-delimited keys follow on remainder
+                  of line (default: `C_Groups')
+  -m match_key    Filters out files not containing `match_key'
+  -n nomatch_key  Filters out files containing `nomatch_key'
+  -N nomatch_key  Filters out files containing `nomatch_key', AND sets flag
+                  allowing files NOT containing `key_string' to be considered
+                  as non-matching.
+!#1 Longer description follows:
+
+If either `-m' or `-n' are specified, all files not filtered out are
+listed. If neither option is specified, all keys for each file will be
+listed. Multiple match and no-match keys may be specified. Files not
+containing `key_string' will never be matched, UNLESS both 1), at least
+one `-N' option is specified, and 2), no `-m' options are specified, in
+which case the file will ALWAYS be matched.

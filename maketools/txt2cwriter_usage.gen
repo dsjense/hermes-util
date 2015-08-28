@@ -1,0 +1,116 @@
+! $Id$
+! EXTENSION: C
+! 
+! Copyright (2015) David Seidel.
+! 
+! Hermes is free software: you can redistribute it and/or modify
+! it under the terms of the GNU Lesser General Public License as
+! published by the Free Software Foundation, either version 3 of
+! the License, or (at your option) any later version.
+! 
+! Hermes is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU Lesser General Public License for more details.
+! 
+! You should have received a copy of the GNU Lesser General
+! Public License along with Hermes.  If not, see
+! <http://www.gnu.org/licenses/>.
+!
+!#start 2  Include this in longer documentation
+Tool for converting lines in a text file into a C, C++, or Fortran
+function that will write those lines to a file. It is designed to
+facilitate writing large amounts of formatted text from a program; for
+example, writing usage information about the program to standard output.
+
+!#stop 2
+Usages: txt2cwriter [-s] [-c comment_char] [-p prefix_string] [-w max_width]
+                    text_file function_file
+        txt2cwriter [-h|--help]
+
+ Options:
+  -h,--help    Prints this usage information and exits. `-h' provides an
+               abbreviated version; `--help' provides the full version.
+  -s           Use "short" mode, which allows the function to output portions
+               of the original text depending on the value of a supplied
+               integer `mode'
+  -c x         `x' is a single character which, if the first character of an
+               input line, indicates  that line is a comment and will be
+               ignored. If not supplied, the default comment character is `!'.
+  -p string    A prefix string that will be inserted at the beginning of each
+               line from the input file. If not supplied, it defaults to an
+               empty string.
+  -w max_width Maximum width of a line in output function. Default is 78 for
+               C and C++; 72 for Fortran (to allow processing with Fortran 77)
+!#2 Longer description follows:
+
+Choice of Output Language
+By default, a C function will be written by this tool. There are two
+ways to override this behavior. First, if the file extension of
+`function_file' is `C', `cc', `cp', `cpp', `cxx', `CPP', or `c++', a
+C++ function will be written. If the file extension is `F', `f',
+`F90', or `f90', a Fortran (77) function will be written.
+Alternately, if a comment line of the form `! EXTENSION: ext' is
+encountered in the input text file before any non-comment line has
+been processed (default comment character assumed), `ext' will be used
+to determine the language of the function, overriding the extension of
+`function_file'.
+
+Function Signature
+The name of the function will be `function_file' with its extension
+removed. For example, if `function_file' is "abc.cpp", the C++ function
+written will be named "abc". This function will have at least one
+argument which specifies, in a language-appropriate way, the open file
+to which to write the text. If the `-s' option is specified, a second
+integer `mode' argument is added. The signatures of the resulting
+functions are shown below for each language, with the optional second
+`mode' argument enclosed in `[]' delimiters, which are NOT part of the
+signature.
+    void func_name(FILE *o[, int mode])          /* for C */
+    void func_name(std::ostream &o[, int mode])  // for C++
+    subroutine func_name(lun[, mode])            ! for Fortran
+      integer lun[, mode]                        ! for Fortran
+
+Short Mode
+If `-s' is specified on the command line, the text written
+by the generated function can be abbreviated based on the value of the
+`mode' variable passed to the function. This behavior is controlled
+through the use of special comments in the input text file, which are
+identified by the `#' character immediately following the comment
+character (with no space in between). If the next non-blank characters
+on the line represent an integer value (val), a line of the form
+   if (mode >= val) return;  // C,C++ code
+   if (mode.GE.val) return   ! Fortran
+is inserted in the function at that point.  Similarly, if the string
+`start' immediately follows the `#' character, followed by an integer
+(val), the following line will be written to the function:
+   if (mode < val) {      // C,C++
+   if (mode.LT.val) then  ! Fortran
+Finally, the comment line `!#stop ...' will cause
+   }        // C,C++
+   endif    ! Fortran
+to be inserted. There is not a limit on the number of `start'
+directives, but there must be a corresponding `stop' directive for
+each. The default comparison operators have been chosen so that, in
+general, successively larger values of `mode' passed to the function
+will result in successively more abbreviated text output. However,
+this behavior can be modified by following the integer value in the
+`!#' and `!#start' comment lines with a different operator. Legal
+operators are `<', `>', `=', `!', `<=', or `>='.
+!#1 Longest description follows:
+
+Examples
+There are several examples of the use of txt2cwriter in the various
+Hermes Utilities libraries. In all cases, the input text file has the
+file extension `.gen'. The file `txt2cwriter_usage.gen' in the
+`maketools' directory is arguably the best example, since it uses most
+of the features described here.  In this example, txt2cwriter is used
+to generate an include file `txt2cwriter_usage.h' from the text file
+`txt2cwriter_usage.gen'. This is automatically performed as needed
+using an implicit make rule (see `GNUmakefile' in the same
+directory). The include file generated is included in the file
+`txt2cwriter.cc'. Note that this process is somewhat tricky, since an
+execuable version of txt2cwriter is needed to generate the include file
+needed build txt2cwriter. By examining the makefile and
+`txt2cwriter.cc', one can see how to "bootstrap" the building of an
+initial version of txt2cwriter.

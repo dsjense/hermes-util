@@ -1,0 +1,58 @@
+! $Id$
+! EXTENSION: C
+! 
+! Copyright (2015) David Seidel.
+! 
+! Hermes is free software: you can redistribute it and/or modify
+! it under the terms of the GNU Lesser General Public License as
+! published by the Free Software Foundation, either version 3 of
+! the License, or (at your option) any later version.
+! 
+! Hermes is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU Lesser General Public License for more details.
+! 
+! You should have received a copy of the GNU Lesser General
+! Public License along with Hermes.  If not, see
+! <http://www.gnu.org/licenses/>.
+!
+!#start 2  Include this in longer documentation
+Tool for converting Python docstrings in a text file into C character string
+definitions in an include (.h) file. These can be used to supply documentation
+to a Python extension module.
+
+!#stop 2
+Usages: txt2pydoc [-c comment_char] text_file [out_file]
+        txt2pydoc [-h|--help]
+
+ Options:
+  -h,--help   Prints this usage information and exits. `-h' provides an
+              abbreviated version; `--help' provides the full version.
+  -c x        `x' is a single character which, if the first character of an
+              input line, indicates  that line is a comment and will be
+              ignored. If not supplied, the default comment character is `!'.
+!#2 Longer description follows:
+
+Besides the Python docstring data, `text_file' also includes two types
+of "special" lines, indicated by a special first character in the
+line. A "!" character is the default comment character (can be changed
+via the `-c' option), indicating that the rest of the line is a
+comment. Such lines are ignored anywhere they occur within the input
+text file. A "@" first character, immediately followed by a legal C
+variable name `vname', which indicates the name of the C character
+variable (static char vname[]) which will contain the docstring
+defined by the following lines, up to the next "@" line. Note that the
+first non-comment line of the file MUST be a "@" line, and that each
+"@" line must be followed by at least one line of text.
+!#1 Longest description follows:
+
+Example
+In the python/extensions subdirectory of the Hermes Utilities
+distribution, txt2pydoc is used to generate the include file
+`pff_ext.h' from the text file `pff_ext.docgen'. This is automatically
+performed as needed using an implicit make rule (see `GNUmakefile in
+the same directory). The include file generated is included in the
+file `pff_ext.cc', which can be examined to see how the C string
+variables defined in `pff_ext.h' are used to provide documentation for
+the Python extension module defined in `pff_ext.cc'.

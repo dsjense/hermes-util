@@ -1,0 +1,89 @@
+! $Id$
+! EXTENSION: C
+! 
+! Copyright (2015) David Seidel.
+! 
+! Hermes is free software: you can redistribute it and/or modify
+! it under the terms of the GNU Lesser General Public License as
+! published by the Free Software Foundation, either version 3 of
+! the License, or (at your option) any later version.
+! 
+! Hermes is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU Lesser General Public License for more details.
+! 
+! You should have received a copy of the GNU Lesser General
+! Public License along with Hermes.  If not, see
+! <http://www.gnu.org/licenses/>.
+!
+Usage: bld_macro_list [options] [product|-] [platform]
+
+Options:
+  -h              Prints this usage information
+  -k key_string   String in source file indicating blank-delimited keys
+                  follow on remainder of line (default: `C_Groups')
+  -m match_key    Filters out files not containing `match_key'
+  -n nomatch_key  Filters out files containing `nomatch_key'
+  -N nomatch_key  Filters out files containing `nomatch_key', AND sets flag
+                  allowing files NOT containing `key_string' to be considered
+                  as non-matching.
+  -s src_ext      Specifies a file extension for source files.
+  -i src_ext      Specifies a file extension for included files. If any files
+                  with matching extensions are found, they are written to the
+                  output file as the Make macro "INCS", or the name supplied
+                  by the `-I' option.
+  -x exclude      Shell file pattern for files to be excluded from the list of
+                  source files obtained using the `-s', `-i', and `-v' options.
+                  If the pattern does not include a leading directory, it will
+                  match a file in any directory. (Not currently implemented
+                  for Windows)
+  -v vpath        Any legal MAKE VPATH macro. All directories in `vpath', in
+                  addition to the current directory, will be searched for
+                  source files. In addition, any files written to the output
+                  file that are located in one of these directories will have
+                  their directory removed in the output macro definitions.
+  -S srcs_macro   Name of Make macro to be used to write the list of source
+                  files found to the output file. If not supplied, source
+                  files will not be listed.
+  -I incs_macro   Name of Make macro to be used to write the list of include
+                  files found to the output file. If not supplied, "INCS" will
+                  be used. This macro will NOT be written if no `-i' options 
+                  are provided.
+  -O objs_macro   Name of Make macro to be used to write the list of object
+                  files found to the output file. If not supplied, "OBJS" will
+                  be used.
+  -a              Append results to previous version of the file.
+  -P              Indicates "Partial" mode, meaning that the file will be
+                  appended to by a subsequent call to bld_macro_list using the
+                  `-a' option.
+  -E              Indicates that the OBJS macro items are executables. Cannot
+                  be used with `-l' or `-L' options.
+  -W              Indicates that the OBJS macro items are written for Windows
+                  NMAKE. Cannot be used with `-l' or `-L' options.
+  -l              Indicates all OBJS macro items targets are members of the
+                  library $(LIBRARY). Not compatible with `-E' option.
+  -L lib_name     Indicates all OBJS macro items are members of the library
+                  $(lib_name). Not compatible with `-E' option.
+  -p objs_prefix  Prefix to be prepended to the file names in the OBJS macro.
+  -D delete_file  Name of file to be deleted. File will only be deleted if the
+                  `-P' option was NOT specified, AND if an earlier version of
+                  the output file existed, and the new version has changed.
+  -d              Equivalent to `-D' option, except the name used will be
+                  [product_]dep_list[_platform].
+!#1 Longer description follows:
+
+Constructs a file containing a Make macro for target objects derived
+from specified source files in the current directory, or if VPATH is
+specified with the `-v' option, source files in those directories as
+well. Output will go the the file [product_]macro_list[_platform], where 
+`product' = "-" is equivalent to no value supplied. If a previous
+version of the output file exists, it will not be replaced unless it
+changes. Otherwise, the previous version is renamed with an appended
+".bak" suffix.
+
+Multiple `match' and `no-match' keys may be specified. Files not
+containing `key_string' will never be matched, UNLESS both 1), at
+least one `-N' option is specified, and 2), no `-m' options are
+specified, in which case the file will ALWAYS be matched. Multiple
+`-s', `-i', and `-x' options may also be provided.
