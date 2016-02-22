@@ -53,7 +53,29 @@ typedef std::map<int,PFF_File *> FileMap;
 typedef PFF_Dataset<float> PFF_DS;
 typedef std::map<int,PFF_DS *> DSMap;
 
-static FileMap filemap;
+struct FileData {
+  ~FileData();
+  FileMap fm;
+};
+FileData::~FileData()
+{
+  FileMap::iterator pos = fm.begin();
+  int cnt = 0;
+  for(  ; pos != fm.end(); ++pos) {
+    delete pos->second;
+    ++cnt;
+  }
+  fm.clear();
+  if (cnt) {
+    string plural = "";
+    if (cnt > 1) plural = "s";
+    cout << cnt << " open PFF file" << plural << " closed." << endl;
+  }
+ }
+
+static FileData fdata;
+FileMap &filemap = fdata.fm;
+
 static std::vector<int> freeDShandles;
 static DSMap dsmap;
 static int maxHandle = 0;
