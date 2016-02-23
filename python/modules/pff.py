@@ -16,9 +16,11 @@
 # Public License along with Hermes.  If not, see
 # <http://www.gnu.org/licenses/>.
 # 
+import __builtin__
 import exceptions
 import math
 import types
+import sys
 import copy as cpy
 import os.path
 import numpy as np
@@ -532,7 +534,7 @@ def bld_label_array(buf,dims):
         return np.array(list,dtype=(dt),copy=True)
 
 def buf2nparray(rlist,dims=0):
-    if ( rlist == None ): return None
+    if ( rlist is None ): return None
     #print len(rlist), rlist[0], rlist[1], rlist[2], len(rlist[3])
     if (dims == 0): dims = (rlist[2],)
     dt = rlist[0] + str(rlist[1])
@@ -550,6 +552,23 @@ def buf2list(rlist):
 def getLastSliceBlkMap():
     return _lastSliceBlkMap
 
+def _get_rstr(v,full):
+    if type(v) is types.ListType:
+        s = "["
+        pref = ""
+        for x in v:
+            s += pref + _get_rstr(x,full)
+            pref = ", "
+        s += "]"
+    elif type(v) is np.ndarray:
+        if full or v.size < 20:  s = v.__repr__()
+        else:
+            s = "<ndarray, shape=" + str(v.shape) + ", dtype=" + \
+                str(v.dtype) +">"
+    else:
+        s = v.__str__()
+    return s
+
 class dataset:
     "Abstraction of a general PFF dataset"
 
@@ -565,6 +584,35 @@ class dataset:
         self.rfu = header['rfu']
         self.file = os.path.abspath(pex.getfilename(id))
 
+    def __str__(self):
+        return self.info_string()
+
+    def printall(self,f=sys.stdout):
+        needClose = False
+        if type(f) is types.StringType:
+            try:
+                f = __builtin__.open(f,'w')
+                needClose = True
+            except IOError, e:
+                print >>sys.stderr, "pff_dataset.printall:",e
+                return
+
+        print >>f, self.info_string(True)
+        if needClose: f.close()
+
+    def info_string(self,full=False):
+        m = self.__dict__
+        s = ''
+        keys = m.keys()
+        keys.sort()
+        for k in keys:
+            s += k + ": "
+            v = m[k]
+            s += _get_rstr(v,full) + "\n"
+        return s[:-1]
+
+    def dir(self):
+        return self.__dict__.keys()
 
     def dup(self,new,copy=True):
         if copy:
@@ -650,13 +698,13 @@ class IFL_dataset(dataset):
                       # load numeric data
                         get_num_arrays = pex.get_num_arrays
                         rlist = get_num_arrays(handle, "iarray")
-                        if rlist == None:  self.iarray = None
+                        if rlist is None:  self.iarray = None
                         else: self.iarray = buf2nparray(rlist)
                         rlist = get_num_arrays(handle, "farray")
-                        if rlist == None:  self.farray = None
+                        if rlist is None:  self.farray = None
                         else: self.farray = buf2nparray(rlist)
                         rlist = get_num_arrays(handle, "flist")
-                        if rlist == None:  self.flist = None
+                        if rlist is None:  self.flist = None
                         else: self.flist = buf2nparray(rlist)
                     else:
                         raise pex.PFF_Error, "Not an IFL dataset"
@@ -678,17 +726,17 @@ class IFL_dataset(dataset):
             ##print htup
             iarray = self.iarray
             ia = ( 'i', )
-            if iarray != None: ia += (iarray.itemsize, iarray.tostring() )
+            if iarray is not None: ia += (iarray.itemsize, iarray.tostring() )
             else: ia += ( 1, '' )
 
             farray = self.farray
             fa = ( 'f', )
-            if farray != None: fa += (farray.itemsize, farray.tostring() )
+            if farray is not None: fa += (farray.itemsize, farray.tostring() )
             else: fa +=  ( 1, '' )
 
             flist = self.flist
             fl = ( 'f', )
-            if flist != None: fl += (flist.itemsize, flist.tostring() )
+            if flist is not None: fl += (flist.itemsize, flist.tostring() )
             else: fl += ( 1, '' )
 
             pex.write_ifl(htup, ia, fa, fl, id)
@@ -818,7 +866,7 @@ class VTX_dataset(dataset):
             #print stup
 
             lablist = self.glabels.tolist()
-            if self.dlabels != None:
+            if self.dlabels is not None:
                 lablist.extend(self.dlabels.tolist())
             nul = '\0'
             labbuf =nul.join(lablist) + nul
@@ -826,19 +874,19 @@ class VTX_dataset(dataset):
                 
             spare = self.spare
             ia = ( 'i', )
-            if spare != None: ia += (spare.itemsize, spare.tostring() )
+            if spare is not None: ia += (spare.itemsize, spare.tostring() )
             else: ia += ( 1, '' )
             #print ia, len(ia[2])
                 
             x = self.x
             xa = ( 'f', )
-            if x != None: xa += (x.itemsize, x.tostring(order='F') )
+            if x is not None: xa += (x.itemsize, x.tostring(order='F') )
             else: xa += ( 1, '' )
             #print xa, len(xa[2])
 
             data = self.data
             ##print self.adim, data
-            if self.adim > 0 and data != None:
+            if self.adim > 0 and data is not None:
                 da = ( str(data.dtype)[0], data.itemsize, \
                        data.tostring(order='F') )
 ##                da += (data[0].itemsize, )
@@ -1286,9 +1334,9 @@ class blkgrid_dataset(dataset):
 
             for i in range(self.nblk):
                 lablist = self.glabels[i].tolist()
-                if self.dlabels != None and self.dlabels[i] != None:
+                if self.dlabels is not None and self.dlabels[i] is not None:
                     lablist.extend(self.dlabels[i].tolist())
-                if self.blabels != None:
+                if self.blabels is not None:
                     lablist.append(self.blabels[i])
                 nul = '\0'
                 labbuf =nul.join(lablist) + nul
@@ -1296,13 +1344,13 @@ class blkgrid_dataset(dataset):
                 
                 spare = self.spare[i]
                 sp = ( 'i', )
-                if spare != None: sp += (spare.itemsize, spare.tostring() )
+                if spare is not None: sp += (spare.itemsize, spare.tostring() )
                 else: sp += ( 1, '' )
                 #print sp, len(sp[2])
                 
                 nx = self.nx[i]
                 nxa = ( 'i', )
-                if nx != None: nxa += (nx.itemsize, nx.tostring() )
+                if nx is not None: nxa += (nx.itemsize, nx.tostring() )
                 else: nxa += ( 1, '' )
                 #print nxa, len(nxa[2])
                 
@@ -1310,7 +1358,7 @@ class blkgrid_dataset(dataset):
                 #print xa, len(xa[2])
 
                 data = self.data[i]
-                if self.adim > 0 and data != None:
+                if self.adim > 0 and data is not None:
                     da = ( str(data.dtype)[0], data.itemsize, \
                            data.tostring(order='F') )
                 else: da = ( 'Empty', 1, '' )
@@ -1635,7 +1683,7 @@ class NUNF_dataset(blkgrid_dataset):
     def xblk_tuple(self, blk = 0):
         x = self.x[blk]
         xa = ( 'f', )
-        if x != None:
+        if x is not None:
             if self.sdim == 1:
                 xa += (x[0].itemsize, x[0].tostring(order='F') )
             else:
@@ -1776,9 +1824,9 @@ ds_typenames = pex.get_type_names()
 ##print ds_typenames
 
 PFFctype_sizes = pex.get_ctype_sizes()
-PFFnp_int = np.dtype('i' + str(PFFctype_sizes['i']))
-PFFnp_long = np.dtype('l' + str(PFFctype_sizes['l']))
-PFFnp_float = np.dtype('f' + str(PFFctype_sizes['f']))
+PFFnp_int = np.dtype('int' + str(8*PFFctype_sizes['i']))
+PFFnp_long = np.dtype('int' + str(8*PFFctype_sizes['l']))
+PFFnp_float = np.dtype('float' + str(8*PFFctype_sizes['f']))
 
 _lastSliceBlkMap = None
 
