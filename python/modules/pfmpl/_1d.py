@@ -304,7 +304,7 @@ Return value: Number of points in waveforms, or None on error.'''
     dct = {'apptype':3, 'nblk':1, 'adim':1, 'sdim':1, 'rfu':None, \
            'typename':'Time History', 'file':fname, 'spare':[None] }
     dct['nx'] = [ np.array([npts]) ]
-    dct['blabels'] = [ np.array(['']) ]
+    dct['blabels'] = np.array([''])
     tmp = [ np.array(['']) ]
     dct['dlabels'] = np.reshape(tmp,(1,1))
     nlabs = len(labs)
@@ -906,6 +906,8 @@ Return value: If successful, returns array of ordinate values of the WDF array,
     if not _wdflist.has_key(wdf):
         print DN + ':',wdf, "does not have valid data"  ;  return None
 
+    #print wdf,type(_wdflist[wdf].data[0])
+    #print _wdflist[wdf].data[0].shape, _wdflist[wdf].data[0].flags
     return _wdflist[wdf].data[0].copy(order='F')
 
 __all__.append('getYVal')
@@ -1191,7 +1193,8 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
     argnames = [ 'wdf', 'count' ]
     optvals = [ None, None ]
     kwdefs = { 'unset':False, 'showdefault':False, 'setdefault':False, \
-               'left':False, 'right':False, 'use_fig':None, 'histogram':None }
+               'left':False, 'right':False, 'use_fig':None, 'histogram':None,
+               'xlog':False, 'ylog':False }
                ##, '':, '':, '':, '':, '':, '':, 
     kwdefs.update(_plopts_cur) ## append settable option defaults
     ##print kwdefs
@@ -1330,6 +1333,9 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
         if right: xr = _left_xr
         ax.set_xlim(xr)
         ax.set_ylim(yr)
+        #print 'LOG:',xlog,ylog
+        if (xlog): ax.set_xscale('log')
+        if (ylog): ax.set_yscale('log')
         #print ax.xaxis.get_smart_bounds(),ax.yaxis.get_smart_bounds()
         w = plist[0]
         if title == ".": ax.set_title(getLabel(w))
@@ -1386,6 +1392,8 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
                 yr = utils.nice_bounds(ymin,ymax)[0:2]
             ax.set_xlim(xr)
             ax.set_ylim(yr)
+            if (xlog): ax.set_xscale('log')
+            if (ylog): ax.set_yscale('log')
             if title == ".": ax.set_title(getLabel(w))
             if xlabel is None: ax.set_xlabel(getLabel(w,'X'))
             if ylabel is None: ax.set_ylabel(getLabel(w,'Y'))
@@ -1988,17 +1996,18 @@ def get_common_time(wd1, wd2):
     xdel = xhi - xlow
     dt1 = dmin1 + (rng1[1] - rng1[0])/(nx1 - 1)
     dt2 = dmin2 + (rng2[1] - rng2[0])/(nx2 - 1)
-    
-    if xlow == rng1[0] and xhi  == rng1[1] and dt1 <= dt2:
+    nxmin = 0.5*max(nx1,nx2)
+    if xlow == rng1[0] and xhi  == rng1[1] and nx1 >= nxmin:
         m1 = True
-    elif xlow == rng2[0] and xhi  == rng2[1] and dt2 <= dt1:
+    elif xlow == rng2[0] and xhi  == rng2[1] and nx2 >= nxmin:
         m2 = True
-    print xlow,xhi
+    ##print xlow,xhi
 
     if m1 and not m2:
         return (x1,m1,m2)
     elif m2 and not m1:
         return (x2,m1,m2)
+            
 
     dmin = min(dmin1,dmin2)
     npnts = int(round(xdel/dmin)) + 1
@@ -2186,10 +2195,10 @@ def wint(wd1, wd2=None, **kwargs):
             intgrd = np.multiply(dx,y)
             if moment: xnew = x
         else:
-            xnew = np.empty(npts,dtype=pff.PFFnp_float)
-            xnew[0] = x[0] - 0.5*(x[1] - x[0])
-            xnew[-1] = x[-1] + 0.5*(x[-1] - x[-2])
-            xnew[1:-1] = np.multiply(0.5,np.add(x[:-1],x[1:]))
+            sx0 = ds.findSpare('X0',3)
+            if sx0 is not None: x0 = pff.i2f(sx0)
+            else: x0 = None
+            xnew = utils.XfFromXh(x,x0)
             dxn = np.diff(xnew)
             intgrd = np.multiply(dxn,y)
             ds.x[0][0] = xnew
