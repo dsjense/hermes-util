@@ -385,7 +385,6 @@ See also: findSpare()'''
             print "joinSpare: imap[" + k + \
                   "] must be a 1D array of integer*2 values"
             return None
-        print s,sk,colon,d
         s = np.concatenate((s,sk,colon,d))
         first = False
     return s
