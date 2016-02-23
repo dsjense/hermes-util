@@ -1084,7 +1084,7 @@ Return value: If successful, returns the number of grid blocks in the plot.
     nblk = g.nblk
     typekey = g.typekey
 
-    if overplot and _ovrplt.x == None:
+    if overplot and _ovrplt.x is None:
         print DN + \
             ": previous plot status unknown -- overplot option not allowed"
         return None
@@ -1116,7 +1116,7 @@ Return value: If successful, returns the number of grid blocks in the plot.
         if len(test):
             print DN + ": ZNORMAL required if not overplot plot"
             return None
-    if znormal == None:
+    if znormal is None:
         if overplot: znormal = _ovrplt.znorm
         else: znormal = 0.0
 
@@ -1307,7 +1307,7 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
     if quit:
         print "\n" + plotcon.__doc__  ;  return None
 
-    if overplot and _ovrplt.x == None:
+    if overplot and _ovrplt.x is None:
         print DN + \
             ": previous plot status unknown -- overplot option not allowed"
         okay = False
@@ -1637,7 +1637,7 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
          at least one attribute'''
         return None
 
-    if overplot and _ovrplt.x == None:
+    if overplot and _ovrplt.x is None:
         print DN + \
             ": previous plot status unknown -- overplot option not allowed"
         return None
@@ -1973,7 +1973,8 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
     else: slfg = sl
 
     grm = sl.g_range[nbsl,:,:]
-    if cntour == 2:
+    if cntour == 2 or rect_plot:
+        cntour = 2
         xrr = cpy.deepcopy(grm[x1,:])
         yrr = cpy.deepcopy(grm[x2,:])
     if not overplot:
@@ -2270,7 +2271,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             if normid < 0: clstr = cstr + " = " + lstr + " -- "
             else: clstr = cstr + ") = " + lstr + ") -- "
             clab = clstr + ds.title
-            xlab = ax.get_xlabel()
+            xlab = str(ax.get_xlabel())
             multi = len(xyolst) - 1
             print multi
             if multi < 0:
@@ -2284,7 +2285,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
                 else: clb = clab
                 if histogram:
                     spr = np.concatenate((pspare,pff.f2i(xfhist[fblk][x1][0])))
-                print x1, xfhist[fblk][x1][0]
+                    print x1, xfhist[fblk][x1][0]
                 _1d.i2w(xout,yout,out,clab=clb,xlab=xlab,ylab=dlab,
                         file=ds.file,spare=spr)
                 out += 1
@@ -2317,7 +2318,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             if normid < 0: clstr = cstr + " = " + lstr + " -- "
             else: clstr = cstr + ") = " + lstr + ") -- "
             clab = clstr + ds.title
-            xlab = ax.get_ylabel()
+            xlab = str(ax.get_ylabel())
             multi = len(xyolst) - 1
             print multi
             for i,t in enumerate(xyolst):
@@ -2329,7 +2330,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
                 else: clb = clab
                 if histogram:
                     spr = np.concatenate((pspare,pff.f2i(xfhist[fblk][x2][0])))
-                print x2, xfhist[fblk][x2][0]
+                    print x2, xfhist[fblk][x2][0]
                 _1d.i2w(xout,yout,out,clab=clb,xlab=xlab,ylab=dlab,
                         file=ds.file,spare=spr)
                 out += 1
@@ -2500,7 +2501,7 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
          the same number of attributes'''
         return None
 
-    if overplot and _ovrplt.x == None:
+    if overplot and _ovrplt.x is None:
         print DN + \
             ": previous plot status unknown -- overplot option not allowed"
         return None
@@ -3043,7 +3044,7 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
         print DN + ": invalid # of positional arguments:",nargs+1
         print "\n" + plotpar.__doc__  ;  return None
 
-    if overplot and _ovrplt.x == None:
+    if overplot and _ovrplt.x is None:
         print DN + \
             ": previous plot status unknown -- overplot option not allowed"
         return None
