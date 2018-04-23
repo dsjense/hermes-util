@@ -2,7 +2,7 @@
 -------------------------------------------------------------------------------
     PFF I/O utility:  pf_u_open.c
 -------------------------------------------------------------------------------
-      $Id: pf_u_open.c,v 1.2 2012/10/23 22:03:25 dbseidel Exp $
+      $Id$
       
       Copyright (2008) Sandia Corporation. Under the terms of
       Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
