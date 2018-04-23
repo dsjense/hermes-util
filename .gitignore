@@ -1,0 +1,7 @@
+*.so
+*.pyc
+*_dep_list
+*_macro_list
+*_usage.h
+html
+Build_*/
