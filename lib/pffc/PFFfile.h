@@ -1,4 +1,4 @@
-// $Id$
+// $Id: PFFfile.h,v 1.4 2012/10/23 22:00:57 dbseidel Exp $
 // 
 // Copyright (2008) Sandia Corporation. Under the terms of
 // Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
@@ -42,7 +42,8 @@ class PFF_File
  public:
 
   //! Enumeration over the possible PFF file modes.
-  typedef enum {READ=0, WRITE, READWRITE, WRITE_MP} PFF_File_Modes;
+  typedef enum {READ=0, WRITE   , READWRITE,
+                        WRITE_MP, READWRITE_MP} PFF_File_Modes;
 
   //! Enumeration over the possible PFF floating-point precision settings.
   typedef enum {REDUCED=0, FULL, ORD_FULL} PFF_FP_Precision;

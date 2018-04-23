@@ -2,7 +2,7 @@
 -------------------------------------------------------------------------------
     PFF I/O utility:  pf_u_mp.c
 -------------------------------------------------------------------------------
-  $Id$
+  $Id: pf_u_mp.c,v 1.1.1.1 2012/01/06 19:48:15 mfpasik Exp $
   
   Copyright (2008) Sandia Corporation. Under the terms of
   Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
@@ -108,6 +108,8 @@ int      *ierr;
       }
       /* update current file position */
       fid->position = offset;
+      if ( (fid->mode == RW) && (offset > fid->last_word) )
+        fid->last_word = offset;
       fid->stream = stream;
       fid->mp_current = 1;
     }

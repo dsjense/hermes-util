@@ -2,7 +2,7 @@
 -------------------------------------------------------------------------------
     PFF I/O utility:  pf_u_open.c
 -------------------------------------------------------------------------------
-      $Id$
+      $Id: pf_u_open.c,v 1.2 2012/10/23 22:03:25 dbseidel Exp $
       
       Copyright (2008) Sandia Corporation. Under the terms of
       Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
@@ -66,7 +66,7 @@ int  *nds, *ierr;
 
     Input:
       name    -  ASCII name of file
-      mode    -  I/O mode  (RE, WR, or RW)
+      mode    -  I/O mode  (RE, WR, RW, WR_MP, or RW_MP)
       ierr    -  If not zero, return with no operation
 
     Output:
@@ -115,9 +115,13 @@ int  *nds, *ierr;
       break;
     case WR_MP:
       mp_on = TRUE;
+      /* break intentionally omitted here! */
     case WR:
       strcpy ( tmode, "wb" );
       break;
+    case RW_MP:
+      mp_on = TRUE;
+      /* break intentionally omitted here! */
     case RW:
       strcpy ( tmode, "rb+" );
       break;
@@ -127,6 +131,7 @@ int  *nds, *ierr;
       return NULL;
   }
   if ( mode == WR_MP ) mode = WR;
+  if ( mode == RW_MP ) mode = RW;
 
   if ( ! mp_on || PFFMP_rank == 0 ) {
     tmpfile = fopen(name,tmode);
@@ -247,11 +252,9 @@ int  *nds, *ierr;
       }
       else  {
         *ierr = 0;
-        if ( tmpfid->dirtop ) {
-          pf_set_dsp ( tmpfid, 1, ierr );
-          *nds = tmpfid->dirtop->count;
-        }
+        if ( tmpfid->dirtop ) *nds = tmpfid->dirtop->count;
         else *nds = 0;
+
         if ( repair )  {
           if ( tmpfid->dirtop == NULL )
             tmpfid->last_word = PFF_HEADERLEN;
@@ -264,6 +267,7 @@ int  *nds, *ierr;
           tmpfid->extend_flag = FALSE;
           tmpfid->last_word = dir_loc - 1;
         }
+        pf_set_dsp ( tmpfid, 1, ierr );
       }
     }
   }

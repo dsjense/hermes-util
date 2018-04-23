@@ -1,4 +1,4 @@
-// $Id$
+// $Id: PFFfile.cc,v 1.4 2012/10/23 22:00:57 dbseidel Exp $
 // 
 // Copyright (2008) Sandia Corporation. Under the terms of
 // Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
@@ -63,6 +63,9 @@ PFF_File::PFF_File(const std::string &fname, PFF_File_Modes mode)
   case WRITE_MP:
     cmode = PFF::WR_MP;
     break;
+  case READWRITE_MP:
+    cmode = PFF::RW_MP;
+    break;
   }
   filename = fname;
   fid = PFF::pf_u_open(filename.c_str(),cmode,&nds,&last_error);
@@ -72,14 +75,15 @@ PFF_File::PFF_File(const std::string &fname, PFF_File_Modes mode)
 PFF_File::~PFF_File()
 /****************************************************************************/
 {
-  PFF::pf_u_close ( fid, &last_error );
+  if ( fid && fid->mp_current ) PFF::pf_u_close ( fid, &last_error );
 }
 
 /****************************************************************************/
 int PFF_File::Dataset_Count() const
 /****************************************************************************/
 {
-  if ( fid ) return fid->dirtop->count;
+  if ( fid && fid->mp_current && fid->dirtop ) return fid->dirtop->count;
+
   return 0;
 }
 
@@ -87,7 +91,7 @@ int PFF_File::Dataset_Count() const
 int PFF_File::Current_Dataset() const
 /****************************************************************************/
 {
-  if ( fid ) return fid->directory->count;
+  if ( fid && fid->mp_current && fid->directory ) return fid->directory->count;
   return 0;
 }
 
@@ -95,7 +99,8 @@ int PFF_File::Current_Dataset() const
 void PFF_File::Current_Dataset(int dataset)
 /****************************************************************************/
 {
-  PFF::pf_set_dsp( fid, dataset, &last_error);
+  if ( fid && fid->mp_current && dataset )
+    PFF::pf_set_dsp( fid, dataset, &last_error);
 }
 
 /****************************************************************************/

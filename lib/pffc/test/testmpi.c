@@ -2,7 +2,7 @@
 -------------------------------------------------------------------------------
     PFF test program:  testmpi.c
 -------------------------------------------------------------------------------
-     $Id$
+     $Id: testmpi.c,v 1.1.1.1 2012/01/06 19:48:16 mfpasik Exp $
      
      Copyright (2008) Sandia Corporation. Under the terms of
      Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
   int ierr = 0;
   int me = 0;
   char precstr[] = "Reduced";
+  int mode = WR_MP;
   int nprocs = 1;
   int nboxes = 1;
   int shft   = 0;
@@ -105,6 +106,9 @@ int main(int argc, char *argv[])
         case 'r':
           use_reduced=1;
           break;
+        case 'a':
+          mode=RW_MP;
+          break;
         default:
           if (me==0) fprintf(stderr,"%s: Unknown command option \'%c\'\n",
                              cmd,copt);
@@ -133,7 +137,21 @@ int main(int argc, char *argv[])
     strcpy(precstr,"Full");
   }
 
-  fid = pf_u_open ("pars.pff", WR_MP, &nds, &ierr );
+  fid = pf_u_open ("pars.pff", mode, &nds, &ierr );
+  if (ierr != 0) {
+    printf("Open error: %d %d\n",mode,ierr);
+    MP_RETURN(1);
+  }
+  if ( mode == RW_MP ) {
+    if (me==0) printf("In append mode with %d datasets\n",nds);
+    pf_set_dsp(fid,nds+1,&ierr);
+    if (ierr != 0) {
+      printf("Error setting dataset pointer in append mode: %d %d %d\n",
+             me, nds, ierr);
+      MP_RETURN(1);
+    }
+    if (me==0) printf("New loc: %ld\n",pf_u_tell(fid,&ierr));
+  }
 
   my_box = (me + shft) % nprocs;
   if ( my_box < nboxes ) {

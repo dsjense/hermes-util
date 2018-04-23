@@ -2,7 +2,7 @@
 -------------------------------------------------------------------------------
     PFF I/O utility:  pf_set_dsp.c
 -------------------------------------------------------------------------------
-      $Id$
+      $Id: pf_set_dsp.c,v 1.1.1.1 2012/01/06 19:48:15 mfpasik Exp $
       
       Copyright (2008) Sandia Corporation. Under the terms of
       Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
@@ -75,8 +75,12 @@ int     *ierr;
   /* Check to see if the error flag is set already */
   if( *ierr != 0 ) return;
 
-  if ( ( fid == NULL ) || ( fid->stream == NULL ) ) {
-    *ierr = 1;
+  if ( fid == NULL ) *ierr = 1;
+  else {
+    if ( fid->mp_current == 0 ) return;
+    if ( fid->stream == NULL ) *ierr = 1;
+  }
+  if ( *ierr != 0 ) {
     pf_wr_err ( module, *ierr, fid, "Illegal File ID (FID)" );
     return;
   }

@@ -2,7 +2,7 @@
 -------------------------------------------------------------------------------
     PFF I/O utility:   pff.h
 -------------------------------------------------------------------------------
-      $Id$
+      $Id: pff.h,v 1.3 2012/10/23 22:03:25 dbseidel Exp $
       
       Copyright (2008) Sandia Corporation. Under the terms of
       Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
@@ -60,12 +60,13 @@ namespace PFF {
 #endif
 
 #if defined(__STDC__) || defined(__cplusplus)
-  enum { RE, WR, RW, WR_MP };
+  enum { RE, WR, RW, WR_MP, RW_MP };
 #else
 # define RE     (0)
 # define WR     (1)
 # define RW     (2)
 # define WR_MP  (3)
+# define RW_MP  (4)
 #endif
 
 #if defined(__STDC__) || defined(__cplusplus)

@@ -2,7 +2,7 @@
 -------------------------------------------------------------------------------
     PFF I/O utility:  pf_get_direntry.c
 -------------------------------------------------------------------------------
-      $Id$
+      $Id: pf_get_dntry.c,v 1.1.1.1 2012/01/06 19:48:15 mfpasik Exp $
       
       Copyright (2008) Sandia Corporation. Under the terms of
       Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
@@ -64,6 +64,7 @@ int     *ierr;
 {
   static char        *module    = "PF_GET_DIRENTRY";
   PFFdir             *dir;
+  int                ds_count;
 
   /* Check to see if the error flag is set already */
   if( *ierr != 0 ) return NULL;
@@ -74,19 +75,20 @@ int     *ierr;
     return NULL;
   }
 
-  if (  (dir = fid->dirtop)  ==  NULL ) return NULL;
+  if (  (dir = fid->dirtop)  ==  NULL ) ds_count = 0;
+  else ds_count = (fid->dirtop)->count;
 
   /* if entry is one greater that count, return NULL with no error to 
      indicate End-of-Data */
-  if ( entry == (fid->dirtop)->count + 1 ) return NULL;
+  if ( entry == ds_count + 1 ) return NULL;
 
-  if ( ( entry < 1 )  ||  ( entry > (fid->dirtop)->count ) )    {
+  if ( ( entry < 1 )  ||  ( entry > ds_count ) )    {
     *ierr = 2;
     pf_wr_err ( module, *ierr, fid, "Entry # is out of range" );
     return NULL;
   }
 
-  if ( (entry - 1) < (dir->count - entry) )   {
+  if ( (entry - 1) < (ds_count - entry) )   {
     dir = fid->dirbottom;
     while ( dir->count < entry  && dir != NULL )
       dir = dir->up;
