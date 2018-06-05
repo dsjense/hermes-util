@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     if ( *cmd == path_delim ) { ++cmd; break; }
 
 #ifdef WIN32sys
-  const char optList[] = "hdm:n:N:k:s:v:D:I:V:L:lEWap:X:Pe:S:"
+  const char optList[] = "hdm:n:N:k:s:v:D:I:V:L:lEWap:X:Pe:S:";
 #else
   const char optList[] = "hdm:n:N:k:s:v:x:D:I:V:L:lEWap:X:Pe:S:";
 #endif

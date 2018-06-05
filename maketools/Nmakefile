@@ -32,7 +32,7 @@ LIBS = hermes.lib hermes++.lib
 
 !INCLUDE $(HERMES_ROOT)\etc\makeopts.$(HERMES_SYS_TYPE)
 
-CFG=""
+CFG=release
 !IF "$(OS)" == "Windows_NT"
 NULL=
 !ELSE 
@@ -40,7 +40,7 @@ NULL=nul
 !ENDIF
 
 INTDIR=.\Release$(LIB_EXT)
-!IF  "$(CFG)" == "release"
+!IF "$(CFG)" == "release"
 
 LIBDIR=..\lib\$(HERMES_SYS_TYPE)
 OUTDIR=..\bin\$(HERMES_SYS_TYPE)
@@ -70,7 +70,7 @@ DEP_LIST_FILE = $(PRODNAME)_dep_list.nmake
 DEP_INCDIRS = $(C_INCDIRS:/=-) $(F_INCDIRS:/=-)
 
 .SUFFIXES:
-.SUFFIXES:  .obj .h .hh .c .cc	
+.SUFFIXES:  .obj .h .hh .c .cc .gen	
 
 LINK32=link.exe
 LIB32=link.exe -lib
@@ -94,6 +94,12 @@ CXXFLAGS = $(CXXFLAGS_ALL) $(CFLAGS_CFG) $(CFLAGS_SYS) $(CPP_OPTS) \
 
 CPPFLAGS = $(CFLAGS_SYS:/=-) $(CPP_OPTS)
 
+LIBRARY = $(LIBDIR)\$(PRODUCT)$(LIB_EXT).lib
+LIBCPP = $(LIBDIR)\$(PRODUCT)$(LIB_EXT)++.lib
+USAGE_TARGETS = bld_dep_list_usage.h bld_macro_list_usage.h \
+	        hmakedepend_usage.h lgrp_usage.h txt2cwriter_usage.h \
+	        txt2pydoc_usage.h
+
 !IF EXISTS("$(MACRO_LIST_FILE)")
 !INCLUDE $(MACRO_LIST_FILE)
 !ELSE
@@ -104,19 +110,19 @@ LIB_OBJS = $(INTDIR)\cppsetup.obj $(INTDIR)\ifparser.obj \
            $(INTDIR)\pr.obj $(INTDIR)\ev_macros.obj $(INTDIR)\winrtl.obj
 LIBCPP_OBJS = $(INTDIR)\ext_match_list.obj $(INTDIR)\file_compare.obj \
             $(INTDIR)\l_group.obj $(INTDIR)\line_dumper.obj
-TARG_OBJS = $(INTDIR)\lgrp.obj $(INTDIR)\hmakedepend.obj \
+TARG_OBJS = $(INTDIR)\txt2cwriter.obj $(INTDIR)\lgrp.obj $(INTDIR)\hmakedepend.obj \
             $(INTDIR)\bld_dep_list.obj $(INTDIR)\bld_macro_list.obj
+FIRST_TARGET = $(OUTDIR)\txt2cwriter.exe
 TARGETS = $(OUTDIR)\lgrp.exe $(OUTDIR)\hmakedepend.exe \
           $(OUTDIR)\bld_dep_list.exe $(OUTDIR)\bld_macro_list.exe
 
-bootstrap:
+bootstrap: $(INTDIR) $(LIBDIR) $(OUTDIR) $(LIBRARY) $(LIBCPP)
+	$(MAKE) /$(MAKEFLAGS) CFG=release CPP_OPTS=/DBOOTSTRAP TARG=txt2cwriter $(FIRST_TARGET)
+	$(MAKE) /$(MAKEFLAGS) CFG=release $(USAGE_TARGETS)
 	$(MAKE) /$(MAKEFLAGS) CFG=release ALL
 	$(MAKE) CFG=$(CFG) depend
 	$(MAKE) CFG=$(CFG)
 !ENDIF
-
-LIBRARY = "$(LIBDIR)\$(PRODUCT)$(LIB_EXT).lib"
-LIBCPP = "$(LIBDIR)\$(PRODUCT)$(LIB_EXT)++.lib"
 
 default:
    @$(MAKE) /$(MAKEFLAGS) CFG=release ALL
@@ -166,7 +172,8 @@ $(DEP_LIST_FILE) : $(SRCS) $(INCS)
 	              $(DEP_INCDIRS) $(CPPFLAGS) -e0 $(PRODNAME) .nmake
 
 CLEAN clobber :
-	-@erase /Q $(OBJS) $(CLEAN_INCS) $(CLEAN_CFG) \
+	-@erase /Q $(OBJS) $(CLEAN_INCS) $(CLEAN_CFG) $(USAGE_TARGETS) \
+	  $(INTDIR)\*.obj $(TARGETS) $(MACRO_LIST_FILE) $(DEP_LIST_FILE) \
 	  "$(LIBRARY)" "$(LIBCPP)"
 
 "$(LIBDIR)" :
@@ -179,6 +186,9 @@ CLEAN clobber :
 "$(INTDIR)" :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 !endif
+
+.gen.h:
+	txt2cwriter -s $< $@ 
 
 .c{$(INTDIR)}.obj:
    $(CC) $(CFLAGS) $<
@@ -194,6 +204,7 @@ CLEAN clobber :
 !ELSE 
 # Bootstrap mode -- after this minimal set is made, make dependencies, then
 # make everything
+$(OUTDIR)\txt2cwriter.exe : $(INTDIR)\txt2cwriter.obj 
 $(OUTDIR)\lgrp.exe : $(INTDIR)\lgrp.obj 
 $(OUTDIR)\hmakedepend.exe : $(INTDIR)\hmakedepend.obj
 $(OUTDIR)\bld_dep_list.exe : $(INTDIR)\bld_dep_list.obj

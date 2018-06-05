@@ -29,6 +29,7 @@
 #include "pff_get.hh"
 #include "StringMatch.h"
 
+#include <algorithm>
 #include <vector>
 #include <cstdlib>
 #include <iostream>

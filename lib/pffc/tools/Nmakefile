@@ -161,7 +161,8 @@ $(DEP_LIST_FILE) : $(SRCS) $(INCS)
 	              $(BLDDEPLST_ARGS) -W -e0 $(PRODUCT) .nmake
 
 CLEAN clobber :
-	-@erase /Q $(ALL_OBJS) $(CLEAN_CFG) $(TARGETS) $(STANDALONE_TARGETS)
+	-@erase /Q $(ALL_OBJS) $(CLEAN_CFG) $(TARGETS) $(MACRO_LIST_FILE) \
+	 $(DEP_LIST_FILE) $(STANDALONE_TARGETS)
 	-@rmdir /Q /S $(INTDIR)
 
 $(DIRS_NEEDED) :

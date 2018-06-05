@@ -163,7 +163,7 @@ $(DEP_LIST_FILE) : $(SRCS) $(INCS)
 
 CLEAN clobber :
 	-@erase /Q $(OBJS) $(MAIN_OBJS) $(CLEAN_CFG) $(TARGETS) \
-	           $(STANDALONE_TARGETS)
+	 $(MACRO_LIST_FILE) $(DEP_LIST_FILE) $(STANDALONE_TARGETS)
 !if "$(INTDIR)" != "$(OUTDIR)"
 	-@rmdir /Q /S $(INTDIR)
 !endif

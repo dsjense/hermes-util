@@ -25,6 +25,7 @@
  *         classes derived from it.
  */
  
+#include <algorithm>
 #include <iostream>
 #include <cmath>
 #include "metrics.h"

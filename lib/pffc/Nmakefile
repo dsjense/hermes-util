@@ -36,7 +36,7 @@ MAKE = make
 F_INCDIRS = 
 C_INCDIRS =
 
-CFG=""
+CFG=release
 !IF "$(OS)" == "Windows_NT"
 NULL=
 !ELSE 
@@ -138,7 +138,7 @@ $(DEP_LIST_FILE) : $(SRCS) $(INCS)
 
 CLEAN clobber :
 	-@erase /Q $(OBJS) $(CLEAN_INCS) $(CLEAN_CFG) \
-	  "$(OUTDIR)\$(PRODNAME).lib"
+	  $(MACRO_LIST_FILE) $(DEP_LIST_FILE) "$(OUTDIR)\$(PRODNAME).lib"
 	-@rmdir /Q /S $(INTDIR)
 
 $(DIRS_NEEDED) :

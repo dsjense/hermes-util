@@ -34,7 +34,7 @@ template <typename T> class PFF_Dataset;
 class PFF_File;
 class Token_Stream;
 class Generic_Test;
-class Syntax;
+struct Syntax;
 
 //! \brief Class that hold the test environment information and provides an
 //!        interface to the PFF files.

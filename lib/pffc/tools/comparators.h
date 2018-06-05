@@ -37,7 +37,7 @@
 #include "metrics.h"
 
 class Test_Environment;
-class Syntax;
+struct Syntax;
 class Token;
 class Token_Stream;
 
