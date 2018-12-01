@@ -2,6 +2,8 @@
 *.pyc
 *_dep_list
 *_macro_list
+*_dep_list.bak
+*_macro_list.bak
 *_usage.h
 html
 Build_*/
