@@ -175,7 +175,10 @@ int *ierr;
       }
       else  ifl->floff10 = NULL;
     }
-    else  ifl->flist = NULL;
+    else {
+      ifl->flist = NULL;
+      ifl->floff10 = NULL;
+    }
   }
   else    {
     ifl->iarr    = iarr;
