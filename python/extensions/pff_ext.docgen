@@ -253,7 +253,7 @@ Return value:
   is used to convert the buffer to this array. Note these are the
   values BEFORE any settings are changed. For "file" = -1 or larger,
   the array's shape is [2,1] -- [0,0] is the file ID (or 0 for the
-  default setting), and [1,0] is the precison setting (0,1, or 2, see
+  default setting), and [1,0] is the precision setting (0,1, or 2, see
   "value" above). For "file" = -2 or smaller, the returned array's
   shape is [2,n+1], where n is the number of open files, and it
   returns the default precision, as well as the precision setting for
@@ -295,6 +295,21 @@ Return value: None
 Throws: TypeError for improper type or number of arguments,
         pff_ext.PFF_Error if requested file is not open
 
+@ccDsCnt
+Returns the number of datasets in an open PFF file.
+
+Usage:
+  dscount(file=0)
+
+Arguments:
+  file:  If positive integer, index of the open PFF file.
+         If 0, the current active file is used.
+
+Return value: Number of datasets in the file.
+
+Throws: TypeError for improper type or number of arguments,
+        pff_ext.PFF_Error if requested file is not open
+
 @ccGetMatch
 
 Returns integer array of dataset indicies whose dataset comment
@@ -313,7 +328,7 @@ characters have special meaning when encountered in the search string:
        interpreted literally
 
 Usage:
-  getmatch(string, file=0, range=(1,-1), exactcase=0, match=1, width=80)
+  getmatch(string, file=0, range=(1,-1), exactcase=0, match=1)
 
 Arguments:
   string:    String to search for.
@@ -326,7 +341,6 @@ Arguments:
   match:     If non-zero (default), indices of datasets whose comments
              match are returned, if zero, datasets whose comments do
              NOT match are returned.
-  width:     Maximum width of listing, in characters.
 
 Return value:
   A buffer containing packed integer array (or list). The
@@ -407,7 +421,8 @@ Usage:
   readhdr(ds=0, id=0)
 
 Arguments:
-  ds: Index of dataset for which to obtain directory information
+  ds: If positive, integer index of dataset for which to obtain directory
+      information.  Otherwise, the current active dataset is used.
   id: If positive, integer index of file containing
       dataset. Otherwise, the current active file is used.
 
@@ -483,7 +498,7 @@ Arguments:
 
   datatype: String describing the type of data requested. Valid values
             are:
-               for block datasets, 'spare','nx', 'x', or 'data'
+               for block datasets, 'spare', 'nx', 'x', or 'data'
                for vertex datasets, 'spare', 'x', or 'data'
                for IFL datasets, 'iarray', 'farray', or 'flist'
   block:    Index of block for which the data is requested. If the

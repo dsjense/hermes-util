@@ -83,14 +83,14 @@ case "HP-UX":
 case "Linux":
 	switch (`uname -m`)
 	    case "i686":
-	      setenv HERMES_SYS_TYPE linux_x86_pgi_gnu
+	      setenv HERMES_SYS_TYPE linux_x86_gnu
 	      #### setenv HERMES_SYS_TYPE linux_x86_intel
             breaksw
 	    case "ia64":
 	      setenv HERMES_SYS_TYPE linux_ia64_intel
             breaksw
 	    case "x86_64":
-	      setenv HERMES_SYS_TYPE linux_x86_64_pgi_gnu
+	      setenv HERMES_SYS_TYPE linux_x86_64_gnu
 	      #### setenv HERMES_SYS_TYPE linux_x86_64_intel
             breaksw
 	    default:
@@ -134,7 +134,6 @@ if ( $?SYSTEM == 0 ) setenv SYSTEM ''#
 if ( $HERMES_SYS_TYPE == "solaris" ) then
   # setenv MPI_ROOT /usr/local/mpich_shmem
   # setenv MPI_LIB "-L$MPI_ROOT/lib -lmpich -lthread"
-  # set extra_ARCH_LIST = tflop
 else if ( $HERMES_SYS_TYPE == "solaris_64" ) then
   # setenv MPI_ROOT /usr/local/mpich_shmem
   # setenv MPI_LIB "-L$MPI_ROOT/lib -lmpich -lthread"
@@ -151,6 +150,10 @@ else if ( $HERMES_SYS_TYPE == "linux_x86_pgi_gnu" ) then
 else if ( $HERMES_SYS_TYPE == "linux_x86_64_pgi_gnu" ) then
   # setenv MPI_ROOT /usr/local/apps/mpich/1.2.7p1/p4/pgi
   # setenv MPI_LIB "-L$MPI_ROOT/lib -lmpich"
+else if ( $HERMES_SYS_TYPE == "linux_x86_64_gnu" ) then
+  # setenv MPI_ROOT /usr/local/apps/mpich/1.2.7p1/p4/pgi
+  # setenv MPI_LIB "-L$MPI_ROOT/lib -lmpich"
+  set extra_ARCH_LIST = "linux_x86_gnu"
 else if ( $HERMES_SYS_TYPE == "linux_x86_64_intel" ) then
   # setenv MPI_ROOT /usr/local/apps/mpich/1.2.7p1/p4/intel
   # setenv MPI_LIB "-L$MPI_ROOT/lib -lmpich"
@@ -212,18 +215,31 @@ if ( $?MPI_ROOT != 0 ) then
   endif
 endif
 
+# Define list of python executables that will be used with PFF extension module
+# Not needed if only one python executable which is accessed via "python"
+# NOTE: If multiple python executables are specified, make sure that the
+#       version of the first one listed is NOT earlier than version 2.6 
+### setenv HERMES_PYTHON_TARGETS=python:python3.7
+
+set pyexe = python
+if ( $?HERMES_PYTHON_TARGETS != 0 ) then
+  set pyexe = `echo "$HERMES_PYTHON_TARGETS" | awk -F: '{print $1}'`
+endif
+echo "primary Python executable: $pyexe"
+
 # Add Hermes python modules to PYTHONPATH
 #
-which python >& /dev/null
+which $pyexe >& /dev/null
 if ( $status == 0 && -d $HERMES_ROOT/python ) then
   set pbase = $HERMES_ROOT/python
-  set pver = `python -V |& awk '{split($2,a,".");print a[1] "." a[2]}'`
+  set mod_dir = $pbase/modules
+  set pver = `$pyexe -V |& awk '{split($2,a,".");print a[1] "." a[2]}'`
   if ( $?PYTHONPATH == 0 ) then
-    setenv PYTHONPATH $pbase/modules:$pbase/extensions/$HERMES_SYS_TYPE-$pver
+    setenv PYTHONPATH $mod_dir:$pbase/extensions/$HERMES_SYS_TYPE-$pver
   else
     set pypath = $PYTHONPATH
     set mods = 0
-    foreach p ($pbase/extensions/$HERMES_SYS_TYPE-$pver $pbase/modules)
+    foreach p ($pbase/extensions/$HERMES_SYS_TYPE-$pver $mod_dir)
       echo "\:$pypath\:" | grep "\:$p\:" > /dev/null
       if ( $status != 0) then
         set pypath = $p\:$pypath
@@ -234,6 +250,15 @@ if ( $status == 0 && -d $HERMES_ROOT/python ) then
       setenv PYTHONPATH $pypath
     endif
   endif
+
+  # If you plan to use both pre-2.6 and post-2.5 versions of python,
+  # you need to define the PYTHONSTARTUP variable in hermesenv.sh,
+  # if it is not already in your environment. The specified startup
+  # file should contain code to make sure the proper hermes module
+  # directory is on the python path, following the directions provided
+  # in $HERMES_ROOT/README.
+  ### setenv PYTHONSTARTUP $HOME/.pythonrc
+
 endif
 #
 #  IDL/PFIDL environmental variables
@@ -256,4 +281,19 @@ if ( $?IDLROOT != 0 ) then
   else
     setenv IDL_DIR $IDLROOT/idl
   endif
+endif
+
+#
+#  Set up help environment if files exist
+#
+set tiohelp = $HERMES_ROOT/doc/Tiolib.pdf
+if ( -f $tiohelp ) then
+  setenv TIOhelp $tiohelp
+endif
+# if acroread is not available, set this variable to an alternate PDF reader
+##setenv TIO_help_reader okular
+
+set bldpffhelp = $HERMES_ROOT/doc/Bldpff.pdf
+if ( -f $bldpffhelp ) then
+  setenv BLDPFFhelp $bldpffhelp
 endif

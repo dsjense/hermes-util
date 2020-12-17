@@ -16,9 +16,6 @@
 # Public License along with Hermes.  If not, see
 # <http://www.gnu.org/licenses/>.
 # 
-from __future__ import print_function, division
-
-import sys
 import math
 import types
 import re
@@ -28,7 +25,7 @@ import numpy as np
 import pff
 
 def _testpa(nopt=0,extra=True, *args, **kwargs):
-    print(nopt,extra,args,kwargs)
+    print nopt,extra,args,kwargs
 
     ##, '':, '':, '':, '':, '':, '':, 
     kwdefs = { 'a':None, 'b':None, 'c':None, 'd':None, 'e':True, 'f':999, \
@@ -42,19 +39,19 @@ def _testpa(nopt=0,extra=True, *args, **kwargs):
 
     res = process_args(args, kwargs, 'TEST', argnames, kwdefs, optvals, extra)
 
-    if res == 0: print("Empty call")
-    elif res == 1: print("ERROR:", res)
+    if res == 0: print "Empty call"
+    elif res == 1: print "ERROR:", res
     else:
         if extra:
-            print('EXTRA:',res[1])
+            print 'EXTRA:',res[1]
             res = res[0]
-        keys = list(res.keys())
+        keys = res.keys()
         keys.sort()
-        for k in keys: print(k, res[k])
+        for k in keys: print k, res[k]
     
 
 def _testwpa(nopt=0,extra=True, *args, **kwargs):
-    print(nopt,extra,args,kwargs)
+    print nopt,extra,args,kwargs
 
     ##, '':, '':, '':, '':, '':, '':, 
     kwdefs = { 'a':None, 'b':None, 'c':None, 'd':None, 'e':True, 'f':999, \
@@ -70,18 +67,18 @@ def _testwpa(nopt=0,extra=True, *args, **kwargs):
     res = process_wargs(args, kwargs, 'TEST', argnames, kwdefs, wkeys, \
                         optvals, extra)
 
-    if res == 0: print("Empty call")
-    elif res == 1: print("ERROR:", res)
+    if res == 0: print "Empty call"
+    elif res == 1: print "ERROR:", res
     else:
         if extra:
-            print('EXTRA:',res[2])
-        print('WRES:')
-        for r in res[1]: print(r)
-        print('RES:')
+            print 'EXTRA:',res[2]
+        print 'WRES:'
+        for r in res[1]: print r
+        print 'RES:'
         res = res[0]
-        keys = list(res.keys())
+        keys = res.keys()
         keys.sort()
-        for k in keys: print(k, res[k])
+        for k in keys: print k, res[k]
     
 
 def process_wargs(args, kwargs, modname, argnames, kwdefs, wkeys, \
@@ -99,7 +96,7 @@ def process_wargs(args, kwargs, modname, argnames, kwdefs, wkeys, \
     nwkeys = len(wkeys)
     w_vals = [ {} for i in range(nwkeys) ]
     
-    kwvalid = list(kwdefs.keys())
+    kwvalid = kwdefs.keys()
     kwfind = kwvalid + wkeys
     argvals = {}
     for k in range(nopt):
@@ -109,11 +106,11 @@ def process_wargs(args, kwargs, modname, argnames, kwdefs, wkeys, \
     okay = True
     if nargs < nreqrd:
         verb = sngprl[min(1,nreqrd-1)]
-        print(modname + ":",nreqrd,"positional parameter" + verb + " required")
+        print modname + ":", nreqrd, "positional parameter" + verb + " required"
         okay = False
     if nargs > nargsmx:
         verb = sngprl[min(1,nargsmx-1)]
-        print(modname + ": only",nargsmx,"positional parameter"+verb+" allowed")
+        print modname + ": only",nargsmx,"positional parameter"+verb+" allowed"
         okay = False
     else:
         for k in range(nargs):
@@ -121,7 +118,7 @@ def process_wargs(args, kwargs, modname, argnames, kwdefs, wkeys, \
             argvals[name] = args[k]
         
     for k in kwvalid: argvals[k] = kwdefs[k]
-    keys = list(kwargs.keys())
+    keys = kwargs.keys()
 
     extras = {}
     for k in keys:
@@ -139,14 +136,14 @@ def process_wargs(args, kwargs, modname, argnames, kwdefs, wkeys, \
             if extra:  extras[k] = kwargs[k]
             else:
                 okay = False
-                print(modname + ": Could not match supplied keyword \"" + k + \
-                      "\"")
-                print(blnk + "  Valid keywords:",str(kwvalid))
+                print modname + ": Could not match supplied keyword \"" + k + \
+                      "\""
+                print blnk + "  Valid keywords:",str(kwvalid)
         else:
             okay = False
-            print(modname + ": Could not uniquely match supplied keyword \"" + \
-                  k + "\"")
-            print(blnk + "  It potentially matches valid keywords",str(mat))
+            print modname + ": Could not uniquely match supplied keyword \"" + \
+                  k + "\""
+            print blnk + "  It potentially matches valid keywords",str(mat)
 
     if not okay: return 1
 
@@ -166,7 +163,7 @@ def process_args(args, kwargs, modname, argnames, kwdefs, optargvals=None, \
     if optargvals is not None:  nopt = len(optargvals)
     nreqrd = nargsmx - nopt
     
-    kwvalid = list(kwdefs.keys())
+    kwvalid = kwdefs.keys()
     argvals = {}
     for k in range(nopt):
         name = argnames[k+nreqrd]
@@ -176,11 +173,11 @@ def process_args(args, kwargs, modname, argnames, kwdefs, optargvals=None, \
     sngprl = [ ' is', 's are' ]
     if nargs < nreqrd:
         verb = sngprl[min(1,nreqrd-1)]
-        print(modname + ":",nreqrd,"positional parameter" + verb + " required")
+        print modname + ":", nreqrd, "positional parameter" + verb + " required"
         okay = False
     if nargs > nargsmx:
         verb = sngprl[min(1,nargsmx-1)]
-        print(modname + ": only",nargsmx,"positional parameter"+verb+" allowed")
+        print modname + ": only",nargsmx,"positional parameter"+verb+" allowed"
         okay = False
     else:
         for k in range(nargs):
@@ -188,7 +185,7 @@ def process_args(args, kwargs, modname, argnames, kwdefs, optargvals=None, \
             argvals[name] = args[k]
         
     for k in kwvalid: argvals[k] = kwdefs[k]
-    keys = list(kwargs.keys())
+    keys = kwargs.keys()
 
     extras = {}
     for k in keys:
@@ -199,14 +196,14 @@ def process_args(args, kwargs, modname, argnames, kwdefs, optargvals=None, \
             if extra:  extras[k] = kwargs[k]
             else:
                 okay = False
-                print(modname + ": Could not match supplied keyword \"" + k + \
-                      "\"")
-                print(blnk + "  Valid keywords:",str(kwvalid))
+                print modname + ": Could not match supplied keyword \"" + k + \
+                      "\""
+                print blnk + "  Valid keywords:",str(kwvalid)
         else:
             okay = False
-            print(modname + ": Could not uniquely match supplied keyword \"" + \
-                  k + "\"")
-            print(blnk + "  It potentially matches valid keywords",str(mat))
+            print modname + ": Could not uniquely match supplied keyword \"" + \
+                  k + "\""
+            print blnk + "  It potentially matches valid keywords",str(mat)
 
     if not okay: return 1
 
@@ -228,30 +225,29 @@ def parsewsl(wslist, first, last=None, count=None, name='WDF', valid=False, \
     existing = valid or stringOK
 
     if existing:
-        keys = list(wslist.keys())
+        keys = wslist.keys()
         keys.sort()
         if len(keys) == 0:
-            print('All', name, 'arrays are empty')
+            print 'All', name, 'arrays are empty'
             return None
 
     if last is not None and count is not None:
-        print('LAST and COUNT cannot both be specified')
+        print 'LAST and COUNT cannot both be specified'
         return None
     if last is not None and \
-       (type(last) is not int or type(first) is not int):
-        print('If LAST is specified, FIRST and LAST must both be integers')
+       (type(last) is not types.IntType or type(first) is not types.IntType):
+        print 'If LAST is specified, FIRST and LAST must both be integers'
         return None
     if count is not None:
-        if type(count) is not int or type(first) is not int:
-            print('If COUNT is specified, FIRST and',
-                  'COUNT must both be integers')
+        if type(count) is not types.IntType or type(first) is not types.IntType:
+            print 'If COUNT is specified, FIRST and COUNT must both be integers'
             return None
-        first = list(range(first,first+count))
+        first = range(first,first+count)
 
-    if type(first) == int:
+    if type(first) == types.IntType:
         if last is None:
             if existing:
-                outlist = [s for s in [ first ] if s in wslist ]
+                outlist = [s for s in [ first ] if wslist.has_key(s) ]
             else:
                 outlist = [ first ]
             ##detailed = True
@@ -261,24 +257,24 @@ def parsewsl(wslist, first, last=None, count=None, name='WDF', valid=False, \
                 if top <= 0: top = max(keys)
                 outlist = [ s for s in keys if (s>=first and s<=top) ]
             else:
-                outlist = list(range(first,last+1))
+                outlist = range(first,last+1) 
 
-    elif type(first) == list:
+    elif type(first) == types.ListType:
         if existing:
-            outlist = [ s for s in first if s in wslist ]
+            outlist = [ s for s in first if wslist.has_key(s) ]
         else:
             outlist = first
         ##detailed = True
-    elif stringOK and type(first) == str:
+    elif stringOK and type(first) == types.StringType:
         slist = [ wslist[s].title for s in keys ]
-        #print(keys)
-        #print(slist)
+        #print keys
+        #print slist
         indicies = pff.scanlist(slist,first)
-        #print(indicies)
+        #print indicies
         outlist = [ keys[s] for s in indicies ]
-        #print(outlist)
+        #print outlist
     else:
-        print('Cannot process FIRST argument')
+        print 'Cannot process FIRST argument'
         return None
 
     return outlist
@@ -290,7 +286,7 @@ def get_empty_wsl(wslist,first=1,last=None,count=1):
     cnt = 0
     while cnt < count:
         if last is not None and s > last:  return None
-        while s in wslist:
+        while wslist.has_key(s):
             cnt = 0
             s = s + 1
             if last is not None and s > last:  return None
@@ -299,17 +295,17 @@ def get_empty_wsl(wslist,first=1,last=None,count=1):
         s += 1
     return s0
 
+
 def eval_numpy_function(x,op,quiet=False):
     try:
-        _lcls = locals()
-        exec('from numpy import * ; v = ' + op,globals(),_lcls)
-        return _lcls['v']
-    except Exception as e:
+        exec 'from numpy import * ; y = ' + op
+        return y
+    except Exception, e:
         if not quiet: 
             s = str(type(e))
             i1 = s.find('.') + 1
             i2 = s.find('.',i1)
-            print(s[i1:i2] + ":", e)
+            print s[i1:i2] + ":", e
         return None
 
 def findbestnummatch(keys,cmd):
@@ -336,11 +332,11 @@ def find_nums(key,cmd):
 
 def is_number(val):
     t = type(val)
-    if sys.version_info[0] < 3:
-        isIt = t is int or t is types.LongType or t is float
-    else: isIt = t is int or t is float
+    if t is types.IntType or t is types.LongType or t is types.FloatType:
+        return True, t
+    else:
+        return False, t
 
-    return isIt, t
 
 def nice_number(value, round_=False):
     '''nice_number(value, round_=False) -> float'''
@@ -359,6 +355,7 @@ def nice_number(value, round_=False):
         else: nice_fraction = 10.
 
     return nice_fraction * 10 ** exponent
+
 
 _niceLBnds = [1.,2.,5.,10.]
 _log10NiceBnds = np.log10(_niceLBnds)
@@ -383,7 +380,8 @@ def log_bounds(x):
     xmin = (10.**imn)*_niceLBnds[ib]
     return (xmin,xmax,1)
      
-def nice_bounds(axis_start, axis_end, num_ticks=10, log=False):
+
+def nice_bounds(axis_start, axis_end, num_ticks=10,log=False):
     '''
     nice_bounds(axis_start, axis_end, num_ticks=10) -> tuple
     @return: tuple as (nice_axis_start, nice_axis_end, nice_tick_width)
@@ -416,8 +414,8 @@ def XfFromXh(xh,xf0=None):
             dxft[i+2] = tdxh[i] - dxft[i+1]
         xf = np.cumsum(dxft)
         if (xh - xf[:-1]).min() <= 0 or (xf[1:] - xh).min() <= 0:
-            print("XfFromXh: Warning -- inconsistent value of `xf0' supplied")
-            print("          default value will be used")
+            print "XfFromXh: Warning -- inconsistent value of `xf0' supplied"
+            print "          default value will be used"
             xf0 = None
 
     if xf0 is None:
@@ -427,7 +425,6 @@ def XfFromXh(xh,xf0=None):
         xf[-1] = 2.0*xh[-1] - xf[-2]
 
     return xf
-
 
 def boxcar(dx, y, Fco, attenuation=3.0):
     '''\
@@ -457,7 +454,7 @@ where Fs = 1/dx is the sampling rate for the discretely-sampled waveform'''
     Fn = dx * Fco
     A = 10**(-0.05*attenuation)
     Jmax = len(y)
-    ##print(Fn,A)
+    ##print Fn,A
 
     # find the N value for the specified cutoff frequency and attenuation
 
@@ -466,18 +463,18 @@ where Fs = 1/dx is the sampling rate for the discretely-sampled waveform'''
 
     # Now find the exact root, which is a float (Nf):
     res = sciopt.fsolve(BoxcarFun, [Napprox], (Fn*math.pi,A), BoxcarFunPrime,
-                       full_output=True)
+                        full_output=True)
 
     if res[2] == 1:
         Nf = res[0][0]
     else:
         msg = res[-1] + ' -- Full output from scipy.optimize.fsolve:\n' + \
             repr(res[:-1])
-        raise RuntimeError(msg)
+        raise RuntimeError, msg
         
     
-    ##print(Napprox,Nf)
-    ##print(res)
+    ##print Napprox,Nf
+    ##print res
 
     hN = int(0.5*Nf)  # find nearest odd integer
     N0 = 2*hN + 1

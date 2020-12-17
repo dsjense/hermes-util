@@ -85,10 +85,10 @@ case $OSNAME in
 
     "Linux")
 	case `uname -m` in
-	    i686)    HERMES_SYS_TYPE="linux_x86_pgi_gnu" ;;
+	    i686)    HERMES_SYS_TYPE="linux_x86_gnu" ;;
 	### i686)    HERMES_SYS_TYPE="linux_x86_intel" ;;
 	    ia64)    HERMES_SYS_TYPE="linux_ia64_intel" ;;
-	    x86_64)  HERMES_SYS_TYPE="linux_x86_64_pgi_gnu" ;;
+	    x86_64)  HERMES_SYS_TYPE="linux_x86_64_gnu" ;;
 	### x86_64)  HERMES_SYS_TYPE="linux_x86_64_intel" ;;
 	    *)       HERMES_SYS_TYPE="linux" ;;
 	esac
@@ -164,6 +164,12 @@ elif [ "$HERMES_SYS_TYPE" = "linux_x86_64_pgi_gnu" ]; then
   # export MPI_ROOT MPI_LIB
   # USE_32BIT_IDL=1; export USE_32BIT_IDL
   extra_ARCH_LIST='linux_x86_pgi_gnu'
+elif [ "$HERMES_SYS_TYPE" = "linux_x86_64_gnu" ]; then
+  # MPI_ROOT=/usr/local/apps/mpich/1.2.7p1/p4/pgi
+  # MPI_LIB="-L$MPI_ROOT/lib -lmpich"
+  # export MPI_ROOT MPI_LIB
+  # USE_32BIT_IDL=1; export USE_32BIT_IDL
+  extra_ARCH_LIST='linux_x86_gnu'
 elif [ "$HERMES_SYS_TYPE" = "linux_x86_64_intel" ]; then
   # MPI_ROOT=/usr/local/apps/mpich/1.2.7p1/p4/intel
   # MPI_LIB="-L$MPI_ROOT/lib -lmpich"
@@ -213,22 +219,44 @@ if [ -n "$MPI_ROOT" -a -d "$MPI_ROOT" ]; then
   fi
 fi
 
+# Define list of python executables that will be used with PFF extension module
+# Not needed if only one python executable which is accessed via "python"
+# NOTE: If multiple python executables are specified, make sure that the first
+#       listed is NOT earlier than version 2.6 
+### HERMES_PYTHON_TARGETS=python:python3.7; export HERMES_PYTHON_TARGETS
+
+pyexe=python
+if [ -n "$HERMES_PYTHON_TARGETS" ]; then
+  pyexe=`echo "$HERMES_PYTHON_TARGETS" | awk -F: '{print $1}'`
+fi
+echo "primary Python executable: $pyexe"
+
 # Add Hermes python modules to PYTHONPATH
 #
-which python >/dev/null 2>&1
+which $pyexe >/dev/null 2>&1
 if [ $? -eq 0 -a -d $HERMES_ROOT/python ]; then
   pbase=$HERMES_ROOT/python
-  pver=`python -V 2>&1| awk '{split($2,a,".");print a[1] "." a[2]}'`
+  mod_dir=$pbase/modules
+  pver=`$pyexe -V 2>&1| awk '{split($2,a,".");print a[1] "." a[2]}'`
   if [ -z "$PYTHONPATH" ]; then
-     PYTHONPATH=$pbase/modules:$pbase/extensions/$HERMES_SYS_TYPE-$pver
+     PYTHONPATH=$mod_dir:$pbase/extensions/$HERMES_SYS_TYPE-$pver
   else
-    for p in $pbase/extensions/$HERMES_SYS_TYPE-$pver $pbase/modules; do
+    for p in $pbase/extensions/$HERMES_SYS_TYPE-$pver $mod_dir; do
       if ! echo ":$PYTHONPATH:" | grep ":$p:" >/dev/null; then
         PYTHONPATH=$p:$PYTHONPATH
       fi
     done
   fi
   export PYTHONPATH
+
+  # If you plan to use both pre-2.6 and post-2.5 versions of python,
+  # you need to define the PYTHONSTARTUP variable in hermesenv.sh,
+  # if it is not already in your environment. The specified startup
+  # file should contain code to make sure the proper hermes module
+  # directory is on the python path, following the directions provided
+  # in $HERMES_ROOT/README.
+  ### PYTHONSTARTUP=$HOME/.pythonrc; export PYTHONSTARTUP
+
 fi
 
 #
@@ -259,6 +287,8 @@ tiohelp=$HERMES_ROOT/doc/Tiolib.pdf
 if [ -f $tiohelp ]; then
   TIOhelp=$tiohelp; export TIOhelp
 fi
+# if acroread is not available, set this variable to an alternate PDF reader
+##TIO_help_reader=okular; export TIO_help_reader
 
 bldpffhelp=$HERMES_ROOT/doc/Bldpff.pdf
 if [ -f $bldpffhelp ]; then

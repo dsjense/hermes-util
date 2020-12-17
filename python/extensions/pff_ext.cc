@@ -53,6 +53,14 @@ typedef std::map<int,PFF_File *> FileMap;
 typedef PFF_Dataset<float> PFF_DS;
 typedef std::map<int,PFF_DS *> DSMap;
 
+#if PY_MAJOR_VERSION < 3
+const string oBufSpec = "[siis#]";
+const string iBufSpec = "(sis#)";
+#else
+const string oBufSpec = "[siiy#]";
+const string iBufSpec = "(siy#)";
+#endif
+
 struct FileData {
   ~FileData();
   FileMap fm;
@@ -143,11 +151,11 @@ extern "C" {
 
   PyObject *get_ctype_sizes(PyObject *self, PyObject *args)
   {
-    return Py_BuildValue( "{c:i,c:i,c:i,c:i}",
-                          'i', sizeof(int),
-                          'l', sizeof(long),
-                          'f', sizeof(float),
-                          'd', sizeof(double) );
+    return Py_BuildValue( "{s:i,s:i,s:i,s:i}",
+                          "i", sizeof(int),
+                          "l", sizeof(long),
+                          "f", sizeof(float),
+                          "d", sizeof(double) );
   }
 
   PyObject *open_pff_file(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -212,18 +220,19 @@ extern "C" {
     static char *argnames[] = { arg1, arg2, arg3, 0 };
 
     int ialen = 0, iasz = 0;
-    char cia;
+    char *cia = 0;
     char *iabuf = 0;
     int keep = 0, offset = 0;
 
-    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"(cis#)|ii", argnames, 
+    string frmt = iBufSpec + "|ii";
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs, frmt.c_str(), argnames, 
                                       &cia, &iasz, &iabuf ,&ialen,
                                       &keep, &offset) ) return 0;
     int ierr = 0;
     long ni = ialen/iasz;
-    //cout << cia  << " " << iasz <<" "<< ialen <<" "<< ni << endl;
+    // cout << cia  << " " << iasz <<" "<< ialen <<" "<< ni << endl;
          
-    assert(iasz == sizeof(int));
+    assert(iasz == sizeof(int) && string(cia) == "i");
 
     int *ival = 0;
     if ( ni ) ival = (int *)iabuf;
@@ -259,16 +268,16 @@ extern "C" {
     static char *argnames[] = { arg1, 0 };
 
     int ialen = 0, iasz = 0;
-    char cia;
+    char *cia;
     char *iabuf = 0;
 
-    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"(cis#)", argnames, 
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,iBufSpec.c_str(), argnames, 
                                       &cia, &iasz, &iabuf, &ialen) ) return 0;
     int ierr = 0;
     long ni = ialen/iasz;
     //cout << cia  << " " << iasz <<" "<< ialen <<" "<< ni << endl;
          
-    assert(iasz == sizeof(int));
+    assert(iasz == sizeof(int) && string(cia) == "i");
 
     int *ival = 0;
     if ( ni ) ival = (int *)iabuf;
@@ -280,6 +289,9 @@ extern "C" {
 #endif
     double xval = 0.0;
     PFF::pf_u_i2d(ival, &xval, &ierr);
+    //cout << "i2d: " << xval;
+    //for(int i=0; i<5; ++i) cout << " " << ival[i];
+    //cout << endl;
     if ( ierr ) {
       PyErr_SetString(PFF_Error, "Error converting int array to float");
       return 0;
@@ -293,16 +305,16 @@ extern "C" {
     static char *argnames[] = { arg1, 0 };
 
     int ialen = 0, iasz = 0;
-    char cia;
+    char *cia;
     char *iabuf = 0;
 
-    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"(cis#)", argnames, 
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,iBufSpec.c_str(), argnames, 
                                       &cia, &iasz, &iabuf, &ialen) ) return 0;
     int ierr = 0;
     long ni = ialen/iasz;
     //cout << cia  << " " << iasz <<" "<< ialen <<" "<< ni << endl;
          
-    assert(iasz == sizeof(int));
+    assert(iasz == sizeof(int) && string(cia) == "i");
 
     int *ival = 0;
     if ( ni ) ival = (int *)iabuf;
@@ -341,8 +353,8 @@ extern "C" {
       return 0;
     }
     int size = sizeof(int);
-    PyObject *r = Py_BuildValue("[ciis#]",
-                                 'i', size, 3, (char *) ival, size*3);
+    PyObject *r = Py_BuildValue(oBufSpec.c_str(),
+                                "i", size, 3, (char *) ival, size*3);
     return r;
   }
 
@@ -359,13 +371,16 @@ extern "C" {
 
     int ival[5];
     PFF::pf_u_d2i(dval, ival, &ierr);
+    //cout << "d2i: " << dval;
+    //for(int i=0; i<5; ++i) cout << " " << ival[i];
+    //cout << endl;
     if ( ierr ) {
       PyErr_SetString(PFF_Error, "Error converting double to int array");
       return 0;
     }
     int size = sizeof(int);
-    PyObject *r = Py_BuildValue("[ciis#]",
-                                 'i', size, 5, (char *) ival, size*5);
+    PyObject *r = Py_BuildValue(oBufSpec.c_str(),
+                                "i", size, 5, (char *) ival, size*5);
     return r;
   }
 
@@ -387,8 +402,8 @@ extern "C" {
       return 0;
     }
     int size = sizeof(int);
-    PyObject *r = Py_BuildValue("[ciis#]",
-                                 'i', size, 3, (char *) ival, size*3);
+    PyObject *r = Py_BuildValue(oBufSpec.c_str(),
+                                "i", size, 3, (char *) ival, size*3);
     return r;
   }
 
@@ -484,9 +499,40 @@ extern "C" {
       else if ( map[l] == PFF::FP_ALLFULL ) map[l] = 1;
       else map[l] = 2;
     }
-    PyObject *rval = Py_BuildValue("[ciis#]",'i',sizeof(int),mloc,map,lmap);
+    PyObject *rval = Py_BuildValue(oBufSpec.c_str(),
+                                   "i",sizeof(int),mloc,map,lmap);
     CHKFREE(map);
     return rval;
+  }
+
+  PyObject *pff_ds_count(PyObject *self, PyObject *args, PyObject *kwargs)
+  {
+    static char arg1[] = "file";
+    static char *argnames[] = { arg1, 0 };
+
+    int id = 0;
+
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"|i", argnames, &id) )
+      return 0;
+
+    PFF_File *file = 0;
+    if ( filemap.empty() ) {
+      PyErr_SetString(PFF_Error, "No PFF files currently open");
+      return 0;
+    }
+    if ( id > 0 ) {
+      FileMap::iterator pos = filemap.begin();
+      if ( (pos = filemap.find(id)) == filemap.end() ) {
+        std::ostringstream tmp;
+        tmp << "File \"" << id << "\" not open";
+        PyErr_SetString(PFF_Error, tmp.str().c_str());
+        return 0;
+      }
+      file = pos->second;
+    }
+    else file = FindCurrentFile();
+
+    return Py_BuildValue("i",file->Dataset_Count());
   }
 
   PyObject *pff_ds_list(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -498,10 +544,14 @@ extern "C" {
     static char *argnames[] = { arg1, arg2, arg3, arg4, 0 };
 
     int file = 0, low = 1, hi = -1, wid = 80;
-    char *match = 0;
+    static char defmatch[] = "";
+    char *match = defmatch;
 
     if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"|i(ii)si", argnames, &file,
                                       &low, &hi, &match, &wid) ) return 0;
+    //printf("match: %p",match);
+    //if (match) printf(" \"%s\"\n",match);
+    //else printf("\n");
     int ierr = 0;
     PFF::PFFfid *fid = 0;
     if ( filemap.empty() ) {
@@ -544,15 +594,14 @@ extern "C" {
     static char arg3[] = "range";
     static char arg4[] = "exactcase";
     static char arg5[] = "match";
-    static char arg6[] = "width";
-    static char *argnames[] = { arg1, arg2, arg3, arg4, arg5, arg6, 0 };
+    static char *argnames[] = { arg1, arg2, arg3, arg4, arg5, 0 };
 
-    int file = 0, low = 1, hi = -1, wid = 80, exact = 0, getmatch = 1;
+    int file = 0, low = 1, hi = -1, exact = 0, getmatch = 1;
     char *strng = 0;
 
     if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"s|i(ii)iii", argnames,
                                       &strng, &file, &low, &hi, &exact,
-                                      &getmatch, &wid) ) return 0;
+                                      &getmatch) ) return 0;
     int ierr = 0;
     PFF::PFFfid *fid = 0;
     if ( filemap.empty() ) {
@@ -586,7 +635,7 @@ extern "C" {
     int lmap = nmap*size;
     char *pmap = (char *) map;
     if (!map) pmap = strng;
-    PyObject *rval = Py_BuildValue("[ciis#]",'i',size,nmap,pmap,lmap);
+    PyObject *rval = Py_BuildValue(oBufSpec.c_str(),"i",size,nmap,pmap,lmap);
     CHKFREE(map);
     return rval;
   }
@@ -789,7 +838,8 @@ extern "C" {
     int size = sizeof(int);
     int lrfu = nrfu*size;
    
-    return Py_BuildValue("{s:i,s:i,s:i,s:i,s:i,s:i,s:s,s:s,s:[ciis#]}",
+    string frmt = "{s:i,s:i,s:i,s:i,s:i,s:i,s:s,s:s,s:" + oBufSpec + "}";
+    return Py_BuildValue(frmt.c_str(),
                          "handle",hndl,
                          "rawtype",raw,
                          "apptype",app,
@@ -798,7 +848,7 @@ extern "C" {
                          "adim",adim,
                          "title",tit,
                          "typename",typ,
-                         "rfu",'i',size,nrfu,(char *)hdr->rfu,lrfu);
+                         "rfu","i",size,nrfu,(char *)hdr->rfu,lrfu);
   }
 
   PyObject *release_ds_handle(PyObject *self, PyObject *args)
@@ -824,13 +874,13 @@ extern "C" {
   PyObject *get_labels(PyObject *self, PyObject *args, PyObject *kwargs)
   {
     int handle = 0;
-    char ltype = 0;
+    char *ltype = 0;
 
     static char arg1[] = "handle";
     static char arg2[] = "labeltype";
     static char *argnames[] = { arg1, arg2, 0 };
 
-    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"ic", argnames, 
+    if ( !PyArg_ParseTupleAndKeywords(args,kwargs,"is", argnames, 
                                       &handle, &ltype) ) return 0;
 
     //cout << handle << " " << ltype << endl;
@@ -846,9 +896,9 @@ extern "C" {
         PFF::PFFds_uniform *dsu = (PFF::PFFds_uniform *) dsany;
         int nblk = dsu->nblk;
         int nlabs = 1;
-        if ( ltype == 'S' ) nlabs = dsu->dims;
-        else if ( ltype == 'A' ) nlabs = dsu->dimd;
-        else if ( ltype != 'B' ) {
+        if ( ltype[0] == 'S' ) nlabs = dsu->dims;
+        else if ( ltype[0] == 'A' ) nlabs = dsu->dimd;
+        else if ( ltype[0] != 'B' ) {
           std::ostringstream tmp;
           tmp << "Illegal label type: " << ltype;
           PyErr_SetString(PFF_Error, tmp.str().c_str());
@@ -862,8 +912,8 @@ extern "C" {
             int blen = 0;
             PFF::PFFblock_uniform *blk = dsu->block[i];
             char **labs = blk->glabel;
-            if ( ltype == 'A' ) labs = blk->dlabel;
-            if ( ltype == 'B' ) labs = &(blk->blabel);
+            if ( ltype[0] == 'A' ) labs = blk->dlabel;
+            if ( ltype[0] == 'B' ) labs = &(blk->blabel);
             if (labs) blen = process_labels(labs, nlabs, bloc);
             else {
               blen = nlabs;
@@ -886,9 +936,9 @@ extern "C" {
         PFF::PFFds_nonuniform *dsn = (PFF::PFFds_nonuniform *) dsany;
         int nblk = dsn->nblk;
         int nlabs = 1;
-        if ( ltype == 'S' ) nlabs = dsn->dims;
-        else if ( ltype == 'A' ) nlabs = dsn->dimd;
-        else if ( ltype != 'B' ) {
+        if ( ltype[0] == 'S' ) nlabs = dsn->dims;
+        else if ( ltype[0] == 'A' ) nlabs = dsn->dimd;
+        else if ( ltype[0] != 'B' ) {
           std::ostringstream tmp;
           tmp << "Illegal label type: " << ltype;
           PyErr_SetString(PFF_Error, tmp.str().c_str());
@@ -902,8 +952,8 @@ extern "C" {
             int blen = 0;
             PFF::PFFblock_nonuniform *blk = dsn->block[i];
             char **labs = blk->glabel;
-            if ( ltype == 'A' ) labs = blk->dlabel;
-            if ( ltype == 'B' ) labs = &(blk->blabel);
+            if ( ltype[0] == 'A' ) labs = blk->dlabel;
+            if ( ltype[0] == 'B' ) labs = &(blk->blabel);
             if (labs) blen = process_labels(labs, nlabs, bloc);
             else {
               blen = nlabs;
@@ -921,8 +971,8 @@ extern "C" {
       {
         PFF::PFFds_vertex *dsv = (PFF::PFFds_vertex *) dsany;
         int nlabs = 0;
-        if ( ltype == 'S' ) nlabs = dsv->dims;
-        else if ( ltype == 'A' ) nlabs = dsv->dimd;
+        if ( ltype[0] == 'S' ) nlabs = dsv->dims;
+        else if ( ltype[0] == 'A' ) nlabs = dsv->dimd;
         else {
           std::ostringstream tmp;
           tmp << "Illegal label type: " << ltype;
@@ -933,7 +983,7 @@ extern "C" {
           if ( pass == 1 ) buf = new char[len];
           len = 0;
           char **labs = dsv->vlabel;
-          if ( ltype == 'A' ) labs = dsv->dlabel;
+          if ( ltype[0] == 'A' ) labs = dsv->dlabel;
           if (labs) len += process_labels(labs, nlabs, buf);
           else {
             len = nlabs;
@@ -982,7 +1032,7 @@ extern "C" {
     PFF_DS *dset = dsmap[handle];
     PFF::PFFds_any *dsany = dset->Get_DSany();
     int rawtype = dsany->head->rawtype;
-    char type = 'f';
+    char type[] = "f";
     int size = sizeof(float);
     char structtype = 0;
     int nblk = 1;
@@ -1176,16 +1226,17 @@ extern "C" {
     else if ( ibuf ) {
       buf = (char *) ibuf;
       size = sizeof(int);
-      type = 'i';
+      type[0] = 'i';
     }
     else if ( lbuf ) {
       buf = (char *) lbuf;
       size = sizeof(long);
-      type = 'i';
+      type[0] = 'i';
     }
     else return Py_BuildValue("");
 
-    PyObject *r = Py_BuildValue("[ciis#]", type, size, len, buf, size*len);
+    PyObject *r = Py_BuildValue(oBufSpec.c_str(),
+                                type, size, len, buf, size*len);
     if ( abuf ) delete [] abuf;
     return r;
  
@@ -1198,14 +1249,15 @@ extern "C" {
     char *tname = 0;
     char *title = 0;
     int ialen = 0, falen = 0, fllen = 0, iasz = 0, fasz = 0, flsz = 0;
-    char cia, cfa, cfl;
+    char *cia, *cfa, *cfl;
     char *iabuf = 0;
     char *fabuf = 0;
     char *flbuf = 0;
     int file = 0;
 
 //345678901234567890123456789012
-    if ( !PyArg_ParseTuple(args,"(iiss)(cis#)(cis#)(cis#)|i", 
+    string frmt = "(iiss)" + iBufSpec + iBufSpec + iBufSpec + "|i";
+    if ( !PyArg_ParseTuple(args, frmt.c_str(), 
                            &rawtype, &apptype, &tname, &title,
                            &cia, &iasz, &iabuf ,&ialen,
                            &cfa, &fasz, &fabuf ,&falen,
@@ -1228,12 +1280,12 @@ extern "C" {
     long nf = falen/fasz;
     long nfl = fllen/flsz;
          
-    cout << rawtype << " " << apptype << " \"" << tname << "\" \"" << title
-         << "\" " << ni << " " << nf << " " << nfl << endl;
+    //cout << rawtype << " " << apptype << " \"" << tname << "\" \"" << title
+    //     << "\" " << ni << " " << nf << " " << nfl << endl;
 
-    assert(iasz == sizeof(int));
-    assert(fasz == sizeof(float));
-    assert(flsz == sizeof(float));
+    assert(string(cia) == "i" && (ni == 0 || iasz == sizeof(int)));
+    assert(string(cfa) == "f" && (nf == 0 || fasz == sizeof(float)));
+    assert(string(cfl) == "f" && (nfl == 0 || flsz == sizeof(float)));
 
     int *iarray = 0;
     if ( ni ) iarray = (int *)iabuf;
@@ -1250,7 +1302,7 @@ extern "C" {
       float *farray = (float *)fabuf;
       for(int i = 0; i<nf; ++i) cout << i << " " << farray[i] << endl;
     }
-    if ( ni ) {
+    if ( nfl ) {
       float *flist = (float *)flbuf;
       for(int i = 0; i<nfl; ++i) cout << i << " " << flist[i] << endl;
     }
@@ -1281,7 +1333,7 @@ extern "C" {
     int lablen = 0, ialen = 0, xalen = 0, dalen = 0, iasz = 0, xasz = 0, 
       dasz = 0;
     int sdim, adim, nvi;
-    char cia, cxa, cda;
+    char *cia, *cxa, *cda;
     char *labbuf = 0;
     char *iabuf = 0;
     char *xabuf = 0;
@@ -1289,7 +1341,8 @@ extern "C" {
     int file = 0;
 
 //345678901234567890123456789012
-    if ( !PyArg_ParseTuple(args,"(iiss)(iii)s#(cis#)(cis#)(cis#)|i", 
+    string frmt = "(iiss)(iii)s#" + iBufSpec + iBufSpec + iBufSpec + "|i";
+    if ( !PyArg_ParseTuple(args, frmt.c_str(), 
                            &rawtype, &apptype, &tname, &title,
                            &sdim, &adim, &nvi, &labbuf, &lablen,
                            &cia, &iasz, &iabuf ,&ialen,
@@ -1311,9 +1364,9 @@ extern "C" {
     }
     long nv = nvi;
 
-    if (ialen) assert(iasz == sizeof(int));
-    if (sdim) assert(xasz == sizeof(float));
-    if (adim) assert(dasz == sizeof(float));
+    if (ialen) assert(string(cia) == "i" && iasz == sizeof(int));
+    if (sdim) assert(string(cxa) == "f" && xasz == sizeof(float));
+    if (adim) assert(string(cda) == "f" && dasz == sizeof(float));
 
     int *spare = 0;
     int nspare = ialen/iasz;
@@ -1458,7 +1511,7 @@ extern "C" {
   {
     int lablen = 0, splen = 0, nxlen = 0, xalen = 0, dalen = 0, spsz = 0,
       nxsz = 0, xasz = 0,  dasz = 0;
-    char csp, cnx, cxa, cda;
+    char *csp, *cnx, *cxa, *cda;
     char *labbuf = 0;
     char *spbuf = 0;
     char *nxbuf = 0;
@@ -1466,17 +1519,19 @@ extern "C" {
     char *dabuf = 0;
 
 //345678901234567890123456789012
-    if ( !PyArg_ParseTuple(args,"s#(cis#)(cis#)(cis#)(cis#)", 
+    string frmt = "s#" + iBufSpec + iBufSpec + iBufSpec + iBufSpec;
+    if ( !PyArg_ParseTuple(args, frmt.c_str(), 
                            &labbuf, &lablen,
                            &csp, &spsz, &spbuf ,&splen,
                            &cnx, &nxsz, &nxbuf ,&nxlen,
                            &cxa, &xasz, &xabuf ,&xalen,
                            &cda, &dasz, &dabuf ,&dalen) ) return 0;
 
-    assert(splen == 0 || spsz == sizeof(int));
-    assert(nxlen == 0 || nxsz == sizeof(long));
-    assert(xalen == 0 || xasz == sizeof(float));
-    assert(dalen == 0 || dasz == sizeof(float));
+    assert(string(csp) == "i" && (splen == 0 || spsz == sizeof(int)));
+    assert(string(cnx) == "i" && (nxlen == 0 || nxsz == sizeof(long)));
+    assert(string(cxa) == "f" && (xalen == 0 || xasz == sizeof(float)));
+    assert(string("fi").find(cda) != string::npos &&
+           (dalen == 0 || dasz == sizeof(float)));
 
     int ierr = 0;
     int *spare = 0;
@@ -1489,7 +1544,7 @@ extern "C" {
     float *dataa = 0;
     int *idataa = 0;
     if ( dalen ) {
-      if (cda == 'f') dataa = (float *)dabuf;
+      if (string(cda) == "f") dataa = (float *)dabuf;
       else idataa = (int *)dabuf;
     }
 #if 0
@@ -1591,7 +1646,7 @@ extern "C" {
                           glabs, dlabs, blab, PFF::TRUE, PFF::TRUE, &ierr);
       delete [] x;
     }
-    if ( cda == 'f' ) delete [] fdata;
+    if ( string(cda) == "f" ) delete [] fdata;
     else delete [] idata;
     delete [] dlabs;
     delete [] glabs;
@@ -1673,7 +1728,7 @@ extern "C" {
     int lmat = nmat*size;
     char *plist = buf;
     if ( !list.empty() ) plist = (char *)(&list[0]);
-    return Py_BuildValue("[ciis#]",'i',size,nmat,plist,lmat);
+    return Py_BuildValue(oBufSpec.c_str(),"i",size,nmat,plist,lmat);
 #endif
   }
 
@@ -1743,6 +1798,8 @@ static PyMethodDef pff_extmethods[] = {
   { "getmatch", (PyCFunction) pff_get_match, METH_VARARGS | METH_KEYWORDS,
     ccGetMatch },
   { "dslist", (PyCFunction) pff_ds_list, METH_VARARGS | METH_KEYWORDS, ccDir },
+  { "dscount", (PyCFunction) pff_ds_count, METH_VARARGS |METH_KEYWORDS,
+    ccDsCnt },
   { "open", (PyCFunction) open_pff_file, METH_VARARGS | METH_KEYWORDS, ccOpen },
   { "advance_ds_pointer", (PyCFunction) pff_adv_dsp,
     METH_VARARGS | METH_KEYWORDS, ccAdvDsp },
@@ -1769,6 +1826,7 @@ static PyMethodDef pff_extmethods[] = {
   { 0, 0, 0, 0 }
 };
 
+#if PY_MAJOR_VERSION < 3
 PyMODINIT_FUNC initpff_ext(void) {
   char ename[] = "pff_ext.Error";
   PyObject *m = Py_InitModule3("pff_ext", pff_extmethods,ccModule);
@@ -1776,3 +1834,24 @@ PyMODINIT_FUNC initpff_ext(void) {
   PFF_Error = PyErr_NewException(ename, 0, 0);
   PyDict_SetItemString(d,"PFF_Error",PFF_Error);
 }
+#else
+static struct PyModuleDef pff_ext_module = {
+  PyModuleDef_HEAD_INIT,
+  "pff_ext",  /* name of module */
+  ccModule,   /* module documentation, may be NULL */
+  -1,         /* size of per-interpreter state of module,
+                 or -1 if the module keeps state in global variables */
+  pff_extmethods
+};
+
+PyMODINIT_FUNC PyInit_pff_ext(void) {
+  char ename[] = "pff_ext.Error";
+  PyObject *m;
+  m = PyModule_Create(&pff_ext_module);
+  if (m == NULL) return NULL;
+  PFF_Error = PyErr_NewException(ename, 0, 0);
+  Py_INCREF(PFF_Error);
+  PyModule_AddObject(m,"PFF_Error",PFF_Error);
+  return m;
+}
+#endif

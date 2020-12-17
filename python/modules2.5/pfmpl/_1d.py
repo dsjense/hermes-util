@@ -16,21 +16,19 @@
 # Public License along with Hermes.  If not, see
 # <http://www.gnu.org/licenses/>.
 # 
-from __future__ import print_function, division, absolute_import
-
-import sys
+import exceptions
 import types
 import math
 import re as regex
 import pff
 import pff_ext as pex
-from . import plots
-from .plots import _ovrplt
+import plots
+from plots import _ovrplt
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines
 import copy as cpy
-from . import utils
+import utils
 import scipy.signal
 
 __doc__ = \
@@ -89,68 +87,63 @@ Return value: Returns the number of datasets read if successful,
 
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + re.__doc__)  ;  return None
+        print nl[res] + re.__doc__  ;  return None
 
-    wdfa = res['wdfa']
-    dataset = res['dataset']
-    fileid = res['fileid']
-    skip = res['skip']
-    xydata = res['xydata']
-    zero = res['zero']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
 
     wdl = utils.parsewsl(_wdflist, wdfa)
     if wdl is None:
-        print(DN + ": WDFA must be an integer or a list of integers")
+        print DN + ": WDFA must be an integer or a list of integers"
         return None
 
     okay = True
-    if type(dataset) is list:
+    if type(dataset) is types.ListType:
         dsl = dataset
         for i in range(len(dataset)):
-            if type(dataset[i]) is not int: okay = False
-    elif type(dataset) is int:
+            if type(dataset[i]) is not types.IntType: okay = False
+    elif type(dataset) is types.IntType:
         dsl = [dataset]
-    elif type(dataset) is str:
+    elif type(dataset) is types.StringType:
         try:
             tmp = pex.getmatch(dataset,fileid)
-        except pex.PFF_Error as e:
-            print(DN + ": Error:", e)
+        except pex.PFF_Error, e:
+            print DN + ": Error:", e
             return None
         if tmp[2] > 0:
             dsl = pff.buf2list(tmp)
         else:
-            print(DN + ": No datasets matching \"" + dataset + "\" found")
+            print DN + ": No datasets matching \"" + dataset + "\" found"
             return 0
-        if type(wdfa) == list and len(wdl) != len(dsl):
-            print(DN + ": length of WDFA (" + str(len(wdl)) + \
+        if type(wdfa) == types.ListType and len(wdl) != len(dsl):
+            print DN + ": length of WDFA (" + str(len(wdl)) + \
                   ") must equal number of matching datasets found (" + \
-                  str(len(dsl)) + ")")
+                  str(len(dsl)) + ")"
             return None
     else: okay = False
 
     if not okay:
-        print(DN + ": DATASET must be a string, integer, or a list of integers")
+        print DN + ": DATASET must be a string, integer, or a list of integers"
         return None
 
     nwd = len(wdl)
     nds = len(dsl)
-    if type(wdfa) == list and type(dataset) == list and \
+    if type(wdfa) == types.ListType and type(dataset) == types.ListType and \
        nwd != nds:
-        print(DN + ": length of WDFA (" + str(nwd) + \
-            ") must equal length of DATASET (" + str(nds) + ")")
+        print DN + ": length of WDFA (" + str(nwd) + \
+            ") must equal length of DATASET (" + str(nds) + ")"
         return None
 
     if nwd != nds:
         if nwd == 1:
-            wdl = list(range(wdfa, wdfa+nds))
+            wdl = range(wdfa, wdfa+nds)
             nwd = len(wdl)
         else:
             l0 = dsl[0]
-            dsl = list(range(l0,l0+nwd))
+            dsl = range(l0,l0+nwd)
             nds = len(dsl)
 
     assert(nwd == nds)
@@ -177,13 +170,13 @@ Return value: Returns the number of datasets read if successful,
             if zero is not None and ds.rawname == "UF1":
                 if abs(ds.dx[0][0]-ds.x0[0][0]) < 1.e-5*ds.dx[0][0]:
                     val = zero
-                    if type(zero) is str:
+                    if type(zero) is types.StringType:
                         if zero[:3].upper() == 'NEU':
                             val = ds.data[0][0]
                         elif zero[:3].upper() == 'DIR':
                             val = 0.0
                         else:
-                            print('Unknown ZERO specification -- assume 0.0')
+                            print 'Unknown ZERO specification -- assume 0.0'
                             val = 0.0
                         
                     zar = np.array([val],dtype=ds.data[0].dtype)
@@ -202,8 +195,8 @@ Return value: Returns the number of datasets read if successful,
                     
             if (tkey != 'U' and tkey != 'N') or \
                     ds.nblk > 1 or ds.sdim >1 or ds.adim > 1:
-                print(DN + ": skipping dataset",dsl[i], \
-                      "-- it does not have the proper format")
+                print DN + ": skipping dataset",dsl[i], \
+                      "-- it does not have the proper format"
             else:
                 # If not NGD, there are no data labels, only the block label
                 if ds.rawtype != pff.NGD:
@@ -281,7 +274,7 @@ Arguments:
 Return value: Number of points in waveforms, or None on error.'''
    
     DN = 'REASC'
-    argnames = [ 'infile', 'narray', 'out' ]
+    argnames = [ 'file', 'narray', 'out' ]
     optvals = [ None ]
     kwdefs = { 'format':0, 'limit':None, 'skip':0, 'xydata':None, \
                'sortx':False }
@@ -291,76 +284,69 @@ Return value: Number of points in waveforms, or None on error.'''
                              optvals, extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + reasc.__doc__)  ;  return None
+        print nl[res] + reasc.__doc__  ;  return None
 
-    infile = res['infile']
-    narray = res['narray']
-    out = res['out']
-    format = res['format']
-    limit = res['limit']
-    skip = res['skip']
-    sortx = res['sortx']
-    xydata = res['xydata']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
 
     okay = True
 
     if out is not None:
         t = type(out)
-        if t is int:  out = [ out ]
-        elif t is not list:
-            print(DN + ": OUT must be an integer or list of integers")
+        if t is types.IntType:  out = [ out ]
+        elif t is not types.ListType:
+            print  DN + ": OUT must be an integer or list of integers"
             okay = False
         else:
             for i in out:
-                if type(i) is not int:
-                    print(DN + ": OUT must be an integer or list of integers")
+                if type(i) is not types.IntType:
+                    print  DN + ": OUT must be an integer or list of integers"
                     okay = False
         if okay:
             dlt = narray - len(out)
             if dlt > 0:
                 nxt = out[-1] + 1
-                out += list(range(nxt,nxt+dlt))
+                out += range(nxt,nxt+dlt)
     else:
         out = get_empty_wdf(count=narray)
         nl = min(2,narray)
         if narray == 1: tail = " " + str(out)
         else: tail = "s " + str(out) + "-" + str(out+narray-1)
-        print(DN+": Waveform" +tail[:nl]+ "will be written to WDF array" + tail)
-        out = list(range(out,out+narray))
+        print DN+": Waveform" +tail[:nl]+ "will be written to WDF array" + tail
+        out = range(out,out+narray)
 
     if not okay:
-        print(reasc.__doc__)  ;  return None
+        print reasc.__doc__  ;  return None
 
-    arrays = readasc(infile,narray,format=format, limit=limit, skip=skip)
+    arrays = readasc(file,narray,format=format, limit=limit, skip=skip)
     if arrays is None: return None
     x,y,labs = arrays
     if format == 5:
         dx = x[0]
         npts = len(y[:,0])
         if xydata: x = np.linspace(dx,npts*dx,npts)
-        ##print(x,y.shape,npts)
+        ##print x,y.shape,npts
     else:
         npts = len(x)
         
-        ##print(x.shape,y.shape,labs)
+        ##print x.shape,y.shape,labs
 
         if sortx or not xydata:
             sind = np.argsort(x)
-            if len(np.where(np.subtract(sind,list(range(npts))) != 0)[0]) > 0:
-                ##print("needs sort")
+            if len(np.where(np.subtract(sind,range(npts)) != 0)[0]) > 0:
+                ##print "needs sort"
                 x = x[sind]
                 y = y[sind,:]
-            ##else: print("does't need sort")
+            ##else: print "does't need sort"
 
-    t = type(infile)
-    if t is str: fname = infile
-    else: fname = infile.name
+    t = type(file)
+    if t is types.StringType: fname = file
+    else: fname = file.name
     dct = {'apptype':3, 'nblk':1, 'adim':1, 'sdim':1, 'rfu':None, \
-           'typename':'Time History', 'infile':fname, 'spare':[None] }
+           'typename':'Time History', 'file':fname, 'spare':[None] }
     dct['nx'] = [ np.array([npts]) ]
     dct['blabels'] = np.array([''])
     tmp = [ np.array(['']) ]
@@ -385,13 +371,13 @@ Return value: Number of points in waveforms, or None on error.'''
         else:  dct['title'] = ''
         ds = pff.NUNF_dataset(new=dct)
         ds.fill_grid_range()
-        ##print(ds.g_range)
-        ##print(ds.g_eps)
+        ##print ds.g_range
+        ##print ds.g_eps
         mkUniform = False
         if format == 5 and not xydata:  mkUniform = True
         elif not xydata:  # None or False
             uds = ds.make_uniform(quiet=1)
-            ##print(uds, xydata)
+            ##print uds, xydata
             if uds is None or xydata is not None:
                 mkUniform = True
                 if uds is not None: ds = uds
@@ -400,7 +386,7 @@ Return value: Number of points in waveforms, or None on error.'''
                 dxtmp = np.empty((1),dtype=pff.PFFnp_float)
                 dxtmp[:] = (ds.g_range[0,0,1] - ds.g_range[0,0,0]) / \
                     (ds.nx[0][0] - 1)
-        elif type(xydata) is float:
+        elif type(xydata) is types.FloatType:
             if format == 5:  mkUniform = True
             else:
                 x0 = x[0]
@@ -414,7 +400,7 @@ Return value: Number of points in waveforms, or None on error.'''
                 xu = dx*np.arange(npts,dtype=pff.PFFnp_float)[wnz] + x0
                 relerr = abs(x[wnz] - xu)/x[wnz]
                 if relerr.max() < xydata:
-                    ##print('Uniform: ', relerr.max(), ' <', xydata)
+                    ##print 'Uniform: ', relerr.max(), ' <', xydata
                     mkUniform = True
                     x0tmp = np.array([x0],dtype=pff.PFFnp_float)
                     dxtmp = np.array([dx],dtype=pff.PFFnp_float)
@@ -423,7 +409,7 @@ Return value: Number of points in waveforms, or None on error.'''
             if format == 5:
                 x0tmp = np.asarray(x,dtype=pff.PFFnp_float)
                 dxtmp = x0tmp.copy()
-                ##print(x0tmp,dxtmp)
+                ##print x0tmp,dxtmp
             ds.x0 = [x0tmp]
             ds.dx = [dxtmp]
             del ds.x
@@ -470,7 +456,7 @@ Return value: Tuple containing X(np), Y(np,NVAR) and LABELS,
               being the label for the X data'''
 
     DN = 'READASC'
-    argnames = [ 'infile', 'nvar' ]
+    argnames = [ 'file', 'nvar' ]
     optvals = [ ]
     kwdefs = { 'format':0, 'limit':None, 'skip':0, 'quiet':False, \
                'dtype':pff.PFFnp_float }
@@ -481,57 +467,46 @@ Return value: Tuple containing X(np), Y(np,NVAR) and LABELS,
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + readasc.__doc__)  ;  return None
+        print nl[res] + readasc.__doc__  ;  return None
 
-    infile = res['infile']
-    nvar = res['nvar']
-    dtype = res['dtype']
-    format = res['format']
-    limit = res['limit']
-    skip = res['skip']
-    quiet = res['quiet']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
     okay = True
 
-    t = type(infile)
+    t = type(file)
     need_close = False
-    if t is str:
+    if t is types.StringType:
         try:
-            f = open(infile)
+            f = open(file)
             need_close = True
-        except IOError as e:
-            print(DN + ":",e)
+        except IOError, e:
+            print DN + ":",e
             okay = False
-    else:
-        f = infile
-        try:
-            if f.closed or f.mode != 'r':
-                print(DN + ": File",f.name,"is not open for reading:")
-                okay = False
-        except AttributeError as e:
-            print(DN + \
-          ": Supplied file must be a string or open, readable python text file")
+    elif t is types.FileType:
+        f = file
+        if f.closed or f.mode != 'r':
+            print DN + ": File",f.name,"is not open for reading:"
+            okay = False
 
-
-    ##print(infile, nvar, okay, need_close)
-    ##for k in kwvalid: exec("print(k, " + k + ")")
+    ##print file, nvar, okay, need_close
+    ##for k in kwvalid: exec "print k, " + k
     nvarp1 = nvar + 1
     bad = []
-    if type(nvar) is not int: bad.append('nvar')
-    if limit is not None and type(limit) is not int:
+    if type(nvar) is not types.IntType: bad.append('nvar')
+    if limit is not None and type(limit) is not types.IntType:
         bad.append('limit')
-    if type(skip) is not int: bad.append('skip')
-    if type(format) is not int or format < 0 or format > 5:
+    if type(skip) is not types.IntType: bad.append('skip')
+    if type(format) is not types.IntType or format < 0 or format > 5:
         bad.append('format')
     if len(bad) > 0:
-        print(DN + ": The following arguments were incorrectly specified:",bad)
+        print DN + ": The following arguments were incorrectly specified:",bad
         okay = False
 
     if not okay:
-        if not quiet: print(readasc.__doc__)
+        if not quiet: print readasc.__doc__
         return None
 
     f.seek(0)
@@ -543,13 +518,13 @@ Return value: Tuple containing X(np), Y(np,NVAR) and LABELS,
     bad = False
     lcount = 0
     iy0 = 1
-    ##print(lcount)
+    ##print lcount
     if format == 1 or format == 3:
         l = f.readline()
         try:
             nvals = float(l)
-        except ValueError as e:
-            print(DN + ": Error reading # of datapoints\n  ", e)
+        except ValueError, e:
+            print DN + ": Error reading # of datapoints\n  ", e
             return None
     if format == 2 or format == 3:
         for i in range(nvar):
@@ -575,27 +550,27 @@ Return value: Tuple containing X(np), Y(np,NVAR) and LABELS,
                     nvals = int(np.asarray(nums[1:],dtype=int)[0])
                 except ValueError: bad = True
             nvarp1 = nvar
-            print(lcount,nums,x,nvals)
+            print lcount,nums,x,nvals
         lcount += 1
         iy0 = 0
    
     if bad:
-        print(DN + ": EOF encountered while reading header/labels")
+        print DN + ": EOF encountered while reading header/labels"
         return None
 
-    ##print(labs)
+    ##print labs
 
     if nvals is None:
         nvals = 0
         sloc = f.tell()
-        ##print('nvals:',nvals, sloc)
+        ##print 'nvals:',nvals, sloc
         while True:
             l = f.readline()
             if not l: break
-            nvals += 1  ##  ;  print(nvals,l)
+            nvals += 1  ##  ;  print nvals,l
         f.seek(sloc)
 
-    ##print('nvals:',nvals,f.tell())
+    ##print 'nvals:',nvals,f.tell()
     if limit is not None and limit < nvals: ns = limit
     else: ns = nvals
     if format != 5: x = np.empty((ns,),dtype=dtype)
@@ -609,15 +584,15 @@ Return value: Tuple containing X(np), Y(np,NVAR) and LABELS,
         lcount += 1
         nums = ex.sub(" ",l).strip().split()
         if len(nums) < nvarp1:
-            print(DN + ": insufficient data in line #",lcount)
+            print DN + ": insufficient data in line #",lcount
             return None
         try:
             vals = np.asfarray(nums[:nvarp1],dtype=dtype)
-            ##print(lcount,vals)
+            ##print lcount,vals
             if format != 5: x[i] = vals[0]
             y[i,:] = vals[iy0:]
-        except ValueError as e:
-            print(DN + ": Error reading numerical data in line #",lcount)
+        except ValueError, e:
+            print DN + ": Error reading numerical data in line #",lcount
             return None
         i = i + 1
 
@@ -636,7 +611,7 @@ Usage:
 
 Arguments:
   wdfs:      Starting WDF index, or list of WDF indices, for storing datasets
-             that to be written
+             that are read
   wdmax:     Final WDF index. If specified, WDFS must be an integer.
   fileid:    PFF file index of file to be read from
   clabel:    If specified, will be used as the dataset comment
@@ -664,27 +639,25 @@ Return value: Number waveforms datasets written, or None on error.'''
 
     others = argnames + ['fileid','precision']
 
+
     res = utils.process_args(args, kwargs, DN, argnames, kwdefs, optvals, \
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + wri.__doc__)  ;  return None
+        print nl[res] + wri.__doc__  ;  return None
 
-    ##keys = list(res.keys())
+    ##keys = res.keys()
     ##keys.sort()
-    ##for k in keys:   exec("print(k, res[k])")    ##FIXME
+    ##for k in keys:   exec "print k, res[k]"
 
-    wdfs = res['wdfs']
-    wdmax = res['wdmax']
-    fileid = res['fileid']
-    precision = res['precision']
+    for k in others: exec k + " = res[k]"
 
     wdlist = utils.parsewsl(_wdflist, wdfs, wdmax, stringOK=True)
     if wdlist is None:  return 0
     cnt = len(wdlist)
-    ##print(wdlist)
+    ##print wdlist
     if cnt == 0:
-        print(DN + ': Specified WDF arrays are empty')
+        print DN + ': Specified WDF arrays are empty'
         return 0
 
     okay = True
@@ -694,34 +667,35 @@ Return value: Number waveforms datasets written, or None on error.'''
     for k in attr_map:
         val = res[k]
         if val is not None:
-            ##print("processing attribute", k, res[k])
+            ##print "processing attribute", k, res[k]
             is_label = k[1:6] == "label"
-            sval = (attr_map[k],val)
+            sval = repr(val)
             if is_label:
-                if type(val) is not str:
+                if type(val) is not types.StringType:
                     okay = False
-                    print(DN + ": Supplied value for", k, "must be a string")
+                    print  DN + ": Supplied value for", k, "must be a string"
                 else:
                     if  k == 'xlabel' or k == 'ylabel':
-                        sval = (attr_map[k],np.reshape(np.array([val]),(1,1)))
+                        ts = attr_map[k][:4]
+                        scmd = ts + " = np.reshape(np.array([" + sval + \
+                               "]),(1,1))"
+                        ##print "scmd:",scmd
+                        exec scmd
+                        sval = ts
             else:
-                if type(val) is not int:
+                if type(val) is not types.IntType:
                     okay = False
-                    print(DN + ": Supplied value for", k, "must be an integer")
-                else:
-                    sval = (attr_map[k],val)
+                    print DN + ": Supplied value for", k, "must be an integer"
             if okay:
-                attr_set.append(sval)
-    ##print(attr_set)
-
+                scmd = "ds." + attr_map[k] + " = " + sval 
+                attr_set.append(scmd)
+    ##print attr_set
     for k in prec_map:
         val = res[k]
         if val is not None and val is not False and val != 0:
-            _lcls = locals()
-            cmd = "_v = " + repr(prec_map[k])
-            exec(cmd,globals(),_lcls)
-            precision = _lcls['_v']
-            ##print("WRI precision:",precision)
+            ##print "processing prec", k, res[k]
+            exec "precision = " + repr(prec_map[k])
+    ##print wdfs, wdmax, fileid, precision
 
     need_cpy = len(attr_set) > 0
 
@@ -729,16 +703,14 @@ Return value: Number waveforms datasets written, or None on error.'''
         ds = _wdflist[i]
         if need_cpy or ds.rawtype != pff.NGD:
             ds = cpy.deepcopy(_wdflist[i])
-            for attr,val in attr_set:
-                cmd = "ds." + attr + " = val"
-                ##print('cmd:',cmd)
-                exec(cmd)
+            for s in attr_set:
+                exec s
             # If not NGD, the only place for these strings is the block label
             if ds.rawtype != pff.NGD:  ds.blabels = np.reshape(ds.dlabels,(1,))
         try:
             ds.write(fileid,precision,ignore=True)
-        except pex.PFF_Error as e:
-            print(DN + ":", e)
+        except pex.PFF_Error, e:
+            print DN + ":", e
             return None
 
     return cnt
@@ -776,31 +748,28 @@ Return value: Returns 0 if successful, or None on error'''
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + whelp.__doc__)  ;  return None
+        print nl[res] + whelp.__doc__  ;  return None
 
-    wdfs = res['wdfs']
-    wdmax = res['wdmax']
-    file = res['file']
-    full = res['full']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = res.keys()
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
 
     detailed = False
-    if type(wdfs) == int and wdfs <= 0:
-        wdlist = list(_wdflist.keys())
+    if type(wdfs) == types.IntType and wdfs <= 0:
+        wdlist = _wdflist.keys()
         wdlist.sort()
     else:
         wdlist = utils.parsewsl(_wdflist, wdfs, wdmax, stringOK=True)
         if wdlist is None:  return None
 
-        if (type(wdfs) == int and wdmax is None) or \
-           type(wdfs) == list:
+        if (type(wdfs) == types.IntType and wdmax is None) or \
+           type(wdfs) == types.ListType:
             detailed = True
 
     if len(wdlist) == 0:
-        print(DN + ': Specified WDF arrays are empty')  ;  return None
+        print DN + ': Specified WDF arrays are empty'  ;  return None
 
     if full is not None:
         if full == 0: detailed = False
@@ -809,27 +778,27 @@ Return value: Returns 0 if successful, or None on error'''
     if detailed:
         for i in wdlist:
             ds = _wdflist[i]
-            print("Values for wdf array number" , i)
-            print(" Comment:", ds.title)
-            print("   File:", ds.file)
-            print(" X-label:", ds.glabels[0][0])
-            print(" Y-label:", ds.dlabels[0][0])
+            print "Values for wdf array number" , i
+            print " Comment:", ds.title
+            print "   File:", ds.file
+            print " X-label:", ds.glabels[0][0]
+            print " Y-label:", ds.dlabels[0][0]
             if ds.typekey == 'U':
-                print(" Start Time: ",ds.x0[0][0],", Delta Time: ",ds.dx[0][0])
+                print " Start Time: ",ds.x0[0][0],", Delta Time: ",ds.dx[0][0]
             else:
-                print(" Start Time: ", ds.g_range[0][0][0], \
-                      ", Non-Uniform X-Axis")
-            print(" Number of Points:", ds.nx[0][0])
-            print(" Range of X-values: ", ds.g_range[0][0][0], \
-                  "  ", ds.g_range[0][0][1])
+                print " Start Time: ", ds.g_range[0][0][0], \
+                      ", Non-Uniform X-Axis"
+            print " Number of Points:", ds.nx[0][0]
+            print " Range of X-values: ", ds.g_range[0][0][0], \
+                  "  ", ds.g_range[0][0][1]
             data =  ds.data[0]
-            print(" Range of Y-values: ", data.min(), "  ", data.max())
-            print(" -----------------")
+            print " Range of Y-values: ", data.min(), "  ", data.max()
+            print " -----------------"
     else:
-        print("WDF Arrays with Valid Data are Listed:")
-        print("Array   Comment", end=' ')
-        if file: print(": File")
-        else: print("")
+        print "WDF Arrays with Valid Data are Listed:"
+        print "Array   Comment",
+        if file: print ": File"
+        else: print ""
         jd = max(int(math.log10(max(wdlist)))+1,3)
         fmt="%"+str(jd)+"d"
         for i in range(8-jd): fmt += " "
@@ -837,7 +806,7 @@ Return value: Returns 0 if successful, or None on error'''
         for i in wdlist:
             fstr = ''
             if file: fstr = ": " + _wdflist[i].file
-            print(fmt % ( i, _wdflist[i].title, fstr ))
+            print fmt % ( i, _wdflist[i].title, fstr )
 
     return 0
 
@@ -872,17 +841,15 @@ Return value: If successful, returns the number of WDF arrays deleted,
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + delwdf.__doc__)  ;  return None
+        print nl[res] + delwdf.__doc__  ;  return None
 
-    wdfs = res['wdfs']
-    wdmax = res['wdmax']
-    quiet = res['quiet']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec ("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
 
-    if type(wdfs) == int and wdfs <= 0:
+    if type(wdfs) == types.IntType and wdfs <= 0:
         dlen = len(_wdflist)  ;  _wdflist.clear()
     else:
         dlist = utils.parsewsl(_wdflist,wdfs,wdmax,stringOK=True)
@@ -890,7 +857,7 @@ Return value: If successful, returns the number of WDF arrays deleted,
         dlen = len(dlist)
         for w in dlist:  del _wdflist[w]
 
-    if not quiet:  print(dlen, 'Waveform Arrays have been Cleared')
+    if not quiet:  print dlen, 'Waveform Arrays have been Cleared'
 
     return dlen
     
@@ -922,15 +889,13 @@ Return value: If successful, returns the index of the first empty WDF array,
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + get_empty_wdf.__doc__)  ;  return None
+        print nl[res] + get_empty_wdf.__doc__  ;  return None
 
-    first = res['first']
-    count = res['count']
-    last = res['last']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
 
     first = max(first,1)
     return utils.get_empty_wsl(_wdflist,first,last,count)
@@ -961,16 +926,15 @@ Return value: If successful, returns the dataset object corresponding to the
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + w2i.__doc__)  ;  return None
+        print nl[res] + w2i.__doc__  ;  return None
 
-    wdf = res['wdf']
-    copy = res['copy']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-    if wdf not in _wdflist:
-        print(DN + ':',wdf, "does not have valid data")
+    ##for k in keys:   exec "print k, " + k
+    if not _wdflist.has_key(wdf):
+        print DN + ':',wdf, "does not have valid data"
         return None
 
     if copy:
@@ -1016,17 +980,15 @@ Return value: If successful, the mean is returned, or if `stddev' is True, a
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + getMean.__doc__)  ;  return None
+        print nl[res] + getMean.__doc__  ;  return None
 
-    wdf = res['wdf']
-    window = res['window']
-    stddev = res['stddev']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-    if wdf not in _wdflist:
-        print(DN + ':',wdf, "does not have valid data")  ;  return None
+    ##for k in keys:   exec "print k, " + k
+    if not _wdflist.has_key(wdf):
+        print DN + ':',wdf, "does not have valid data"  ;  return None
 
     ds = _wdflist[wdf]
     bad = False
@@ -1042,7 +1004,7 @@ Return value: If successful, the mean is returned, or if `stddev' is True, a
             else:
                 w = None
                 try:
-                    if type(window) is str:
+                    if type(window) is types.StringType:
                         if len(window) > 0 and window.upper()[0]== 'Z':
                             zoom,window = True,True
                         else: bad = True
@@ -1054,12 +1016,12 @@ Return value: If successful, the mean is returned, or if `stddev' is True, a
             bad = True
 
         if bad:
-            print(DN + ': Invalid WINDOW keyword value')  ;  return None
+            print DN + ': Invalid WINDOW keyword value'  ;  return None
 
         if window:
             if w is None:
                 w = getWdfWind(wdf,zoom=zoom)
-                print('Selected X limits: ',(w.min(),w.max()))
+                print 'Selected X limits: ',(w.min(),w.max())
 
             xmin,xmax = w.min(),w.max()
             if ds.typekey == 'U':
@@ -1096,15 +1058,15 @@ Return value: If successful, returns array of abscissa values of the WDF array,
     res = utils.process_args(args, kwargs, DN, ['wdf'], {}, [], extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + getX.__doc__)  ;  return None
+        print nl[res] + getX.__doc__  ;  return None
 
-    wdf = res['wdf']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-    if wdf not in _wdflist:
-        print(DN + ':',wdf, "does not have valid data")  ;  return None
+    ##for k in keys:   exec "print k, " + k
+    if not _wdflist.has_key(wdf):
+        print DN + ':',wdf, "does not have valid data"  ;  return None
 
     return _wdflist[wdf].getx()
 
@@ -1125,18 +1087,18 @@ Return value: If successful, returns array of ordinate values of the WDF array,
     res = utils.process_args(args, kwargs, DN, ['wdf'], {}, [], extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + getY.__doc__)  ;  return None
+        print nl[res] + getY.__doc__  ;  return None
 
-    wdf = res['wdf']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-    if wdf not in _wdflist:
-        print(DN + ':',wdf, "does not have valid data")  ;  return None
+    ##for k in keys:   exec "print k, " + k
+    if not _wdflist.has_key(wdf):
+        print DN + ':',wdf, "does not have valid data"  ;  return None
 
-    #print(wdf,type(_wdflist[wdf].data[0]))
-    #print(_wdflist[wdf].data[0].shape, _wdflist[wdf].data[0].flags)
+    #print wdf,type(_wdflist[wdf].data[0])
+    #print _wdflist[wdf].data[0].shape, _wdflist[wdf].data[0].flags
     return _wdflist[wdf].data[0].copy(order='F')
 
 __all__.append('getYVal')
@@ -1159,22 +1121,22 @@ Return value: If successful, returns ordinate value corresponding to XVAL,
     res = utils.process_args(args, kwargs, DN, argnames, {}, [], extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + getYVal.__doc__)  ;  return None
+        print nl[res] + getYVal.__doc__  ;  return None
 
-    wdf = res['wdf']
-    xval = res['xval']
-    ##keys = list(res.keys())
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
+
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-    if wdf not in _wdflist:
-        print(DN + ':',wdf, "does not have valid data")
+    ##for k in keys:   exec "print k, " + k
+    if not _wdflist.has_key(wdf):
+        print DN + ':',wdf, "does not have valid data"
         return None
 
     ds = _wdflist[wdf]
     f1, indx = ds.find_blk_intercept(xval)
-    ##print(indx,f1)
+    ##print indx,f1
     if indx < 0:
-        print(DN + ':',xval, 'is outside dataset range')
+        print DN + ':',xval, 'is outside dataset range'
         return None
     else:
         data = ds.data[0]
@@ -1197,15 +1159,15 @@ Return value: If successful, returns the tuple (XMIN,XMAX) for the WDF array,
     res = utils.process_args(args, kwargs, DN, ['wdf'], {}, [], extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + getXRange.__doc__)  ;  return None
+        print nl[res] + getXRange.__doc__  ;  return None
 
-    wdf = res['wdf']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-    if wdf not in _wdflist:
-        print(DN + ':',wdf, "does not have valid data")  ;  return None
+    ##for k in keys:   exec "print k, " + k
+    if not _wdflist.has_key(wdf):
+        print DN + ':',wdf, "does not have valid data"  ;  return None
 
     return tuple(_wdflist[wdf].g_range[0,0])
 
@@ -1226,15 +1188,15 @@ Return value: If successful, returns the tuple (YMIN,YMAY) for the WDF array,
     res = utils.process_args(args, kwargs, DN, ['wdf'], {}, [], extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + getYRange.__doc__)  ;  return None
+        print nl[res] + getYRange.__doc__  ;  return None
 
-    wdf = res['wdf']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-    if wdf not in _wdflist:
-        print(DN + ':',wdf, "does not have valid data")  ;  return None
+    ##for k in keys:   exec "print k, " + k
+    if not _wdflist.has_key(wdf):
+        print DN + ':',wdf, "does not have valid data"  ;  return None
 
     data = _wdflist[wdf].data[0]
     return ( data.min(), data.max() )
@@ -1256,15 +1218,15 @@ Return value: If successful, returns the number of x-y pairs in the WDF array,
     res = utils.process_args(args, kwargs, DN, ['wdf'], {}, [], extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + getNp.__doc__)  ;  return None
+        print nl[res] + getNp.__doc__  ;  return None
 
-    wdf = res['wdf']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-    if wdf not in _wdflist:
-        print(DN + ':',wdf, "does not have valid data")  ;  return None
+    ##for k in keys:   exec "print k, " + k
+    if not _wdflist.has_key(wdf):
+        print DN + ':',wdf, "does not have valid data"  ;  return None
 
     return _wdflist[wdf].nx[0][0]
 
@@ -1301,24 +1263,23 @@ Return value: If more than one label is requested, a tuple of labels,
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + getLabel.__doc__)  ;  return None
+        print nl[res] + getLabel.__doc__  ;  return None
 
-    wdf = res['wdf']
-    key = res['key']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-    if wdf not in _wdflist:
-        print(DN + ":",wdf, "does not have valid data")
+    ##for k in keys:   exec "print k, " + k
+    if not _wdflist.has_key(wdf):
+        print  DN + ":",wdf, "does not have valid data"
         return None
 
     ds = _wdflist[wdf]
     tup = ()
     if key is None: tkey = all
-    elif type(key) is str:  tkey = key.upper()
+    elif type(key) is types.StringType:  tkey = key.upper()
     else:
-        print(DN + ": Parameter \"key\" must be a string")  ;  return None
+        print DN + ": Parameter \"key\" must be a string"  ;  return None
 
     for c in tkey:
         if c == 'C': tup += (ds.title, )
@@ -1335,7 +1296,7 @@ _plodefs = { 'overlay':True, 'nogrid':False, 'xrange':None, 'yrange':None, \
              'legend':0, 'color':None, 'line':None, 'lw':None, 'charsize':None }
 _plopts_cur = {}
 _pdchmx = 0
-for i in list(_plodefs.keys()):
+for i in _plodefs.keys():
     _pdchmx = max(_pdchmx, len(i))
     _plopts_cur[i] = _plodefs[i]
 
@@ -1427,110 +1388,87 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
                'xlog':False, 'ylog':False }
                ##, '':, '':, '':, '':, '':, '':, 
     kwdefs.update(_plopts_cur) ## append settable option defaults
-    ##print(kwdefs)
+    ##print kwdefs
 
     res = utils.process_args(args, kwargs, DN, argnames, kwdefs, optvals, \
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]  ;  nr = [ 0,None ]
-        print(nl[res] + plo.__doc__)  ;  return nr[res]
+        print nl[res] + plo.__doc__  ;  return nr[res]
 
-    wdf = res['wdf']
-    count = res['count']
-    charsize = res['charsize']
-    color = res['color']
-    histogram = res['histogram']
-    left = res['left']
-    legend = res['legend']
-    line = res['line']
-    lw = res['lw']
-    nogrid = res['nogrid']
-    overlay = res['overlay']
-    right = res['right']
-    setdefault = res['setdefault']
-    showdefault = res['showdefault']
-    title = res['title']
-    unset = res['unset']
-    use_fig = res['use_fig']
-    wait = res['wait']
-    xlabel = res['xlabel']
-    xlog = res['xlog']
-    xrange = res['xrange']
-    ylabel = res['ylabel']
-    ylog = res['ylog']
-    yrange = res['yrange']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
     if unset:
-        for k in list(_plodefs.keys()):
+        for k in _plodefs.keys():
             _plopts_cur[k] = _plodefs[k]
         return 0
     if setdefault:
         for k in keys:
-            if k in _plopts_cur: exec("_plopts_cur[k] = " + k)
+            if _plopts_cur.has_key(k): exec "_plopts_cur[k] = " + k
         if not showdefault:  return 0
     if showdefault:
         blnk = ''
         for i in range(_pdchmx):  blnk += ' '
-        print('Default parameters for the PLO command are:')
-        dkeys = list(_plopts_cur.keys())  ; dkeys.sort()
+        print 'Default parameters for the PLO command are:'
+        dkeys = _plopts_cur.keys()  ; dkeys.sort()
         for i in dkeys:
             l = len(i)
             tmp = "   " + i + blnk[l:] + " = "
-            print(tmp + str(_plopts_cur[i]))
+            print tmp + str(_plopts_cur[i])
         return 0
 
     if wdf is None:
-        print(DN + ": WDF array index must be specified")  ;  return None
+        print DN + ": WDF array index must be specified"  ;  return None
 
     plist = utils.parsewsl(_wdflist,wdf,count=count,stringOK=True)
     if plist is None:
-        print(DN + ": Error parsing WDF and COUNT")  ;  return None
+        print DN + ": Error parsing WDF and COUNT"  ;  return None
     nplts = len(plist)
     if nplts == 0:
-        print(DN + ": No specified WDF arrays contain data")  ;  return None
+        print DN + ": No specified WDF arrays contain data"  ;  return None
 
-    ##print(plist)
+    ##print plist
     okay = True
     if xrange is not None:
         typ = type(xrange)
-        if (typ is list or typ is tuple) and \
+        if (typ is types.ListType or typ is types.TupleType) and \
            len(xrange) == 2:
             xmin, xmax = xrange
         else:
-            print(DN + ": XRANGE must be a 2-element list or tuple")
+            print DN + ": XRANGE must be a 2-element list or tuple"
             okay = False
     else: xmin = None
     if yrange is not None:
         typ = type(yrange)
-        if (typ is list or typ is tuple) and \
+        if (typ is types.ListType or typ is types.TupleType) and \
            len(yrange) == 2:
             ymin, ymax = yrange
         else:
-            print(DN + ": YRANGE must be a 2-element list or tuple")
+            print DN + ": YRANGE must be a 2-element list or tuple"
             okay = False
     else: ymin = None
 
     leftright = None
     if left or right:
         if left and right:
-            print(DN + \
-              ": LEFT and RIGHT cannot both be specified for the same plot")
+            print DN + \
+              ": LEFT and RIGHT cannot both be specified for the same plot"
             okay = False
         if nogrid:
-            print(DN + ": NOGRID must be false if LEFT or RIGHT is specified")
+            print DN + ": NOGRID must be false if LEFT or RIGHT is specified"
             okay = False
         if not overlay and nplts > 1:
-            print(DN + ": OVERLAY must be true if LEFT or RIGHT is specified")
+            print DN + ": OVERLAY must be true if LEFT or RIGHT is specified"
             okay = False
         if okay:
             if left: leftright = 'L'
             else: leftright = 'R'
 
     typ = type(histogram)
-    if typ is not list and typ is not tuple:
+    if typ is not types.ListType and typ is not types.TupleType:
         histogram = [histogram]
     nhist = len(histogram)
     add = histogram[-1]
@@ -1538,7 +1476,7 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
     xhist = []
     for i,w in enumerate(plist):
         x0 = None
-        if type(histogram[i]) is float:
+        if type(histogram[i]) is types.FloatType:
             x0 = histogram[i]
             histogram[i] = True
         if histogram[i]:
@@ -1588,10 +1526,10 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
         if right: xr = _left_xr
         ax.set_xlim(xr)
         ax.set_ylim(yr)
-        #print('LOG:',xlog,ylog)
+        #print 'LOG:',xlog,ylog
         if (xlog): ax.set_xscale('log')
         if (ylog): ax.set_yscale('log')
-        #print(ax.xaxis.get_smart_bounds(),ax.yaxis.get_smart_bounds())
+        #print ax.xaxis.get_smart_bounds(),ax.yaxis.get_smart_bounds()
         w = plist[0]
         if title == ".": ax.set_title(getLabel(w))
         elif title is not None: ax.set_title(title)
@@ -1611,12 +1549,12 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
             ovoff = _ovrplt.znorm
             _ovrplt.znorm += nplts
         else:
-            print(DN + ": NOGRID option invalid if last plot wasn't by PLO")
+            print DN + ": NOGRID option invalid if last plot wasn't by PLO"
             return None
 
-    ##print(color, type(color))
+    ##print color, type(color)
     cmap = plots.bld_map(color)
-    ##print(line, type(line))
+    ##print line, type(line)
     lmap = plots.bld_map(line,'line')
     reset = False
     iplt = 0
@@ -1635,10 +1573,9 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
                 ax.legend(handles,labels,loc=legend,frameon=False, prop=lprops)
             f.canvas.draw()
             if wait:
-                if type(wait) is str:
+                if type(wait) is types.StringType:
                     hak(wait)
                 else: hak()
-
             f,ax = plots.adv_frame()
             if xrange is None:
                 if xlog: xr = utils.log_bounds(getX(w))[0:2]
@@ -1666,11 +1603,11 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
             yh = getY(w)
             npt = 2*yh.size
             yy = np.empty((npt,),dtype=np.single)
-            for i in range(npt):  yy[i] = yh[i//2]
+            for i in range(npt):  yy[i] = yh[i/2]
             ##yy = np.fromiter((yh[i/2] for i in range(npt)),dtype=np.single)
             xx = yy.copy()
             xx[0],xx[-1] = (xf[0],xf[-1])
-            for i in range(2,npt):  xx[i-1] = xf[i//2]
+            for i in range(2,npt):  xx[i-1] = xf[i/2]
             ##xx[1:-1] = np.fromiter((xf[i/2] for i in range(2,npt)),
             ##                       dtype=np.single)
         else:   xx, yy = ( getX(w), getY(w) )
@@ -1681,7 +1618,7 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
     if legend is not None:
         if right:
             handles = []  ;  labels = []
-            for a in f.axes[-2:]:
+            for a in f.axes:
                 h,l = a.get_legend_handles_labels()
                 handles += h  ;  labels += l
                 axtmp = -2
@@ -1693,7 +1630,7 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
                              prop=lprops)
     f.canvas.draw()
     if wait and overlay:
-        if type(wait) is str:   hak(wait)
+        if type(wait) is types.StringType:   hak(wait)
         else: hak()
  
     return 0
@@ -1742,40 +1679,33 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
     argnames = [ 'wdx', 'wdy' ]
     optvals = [ ]
     kwdefs = { 'out':None }
-    needed = argnames[:]  ;  needed.extend(list(kwdefs.keys()))
-    ##print(id(argnames),id(needed))
+    needed = argnames[:]  ;  needed.extend(kwdefs.keys())
+    ##print id(argnames),id(needed)
     plopts_toss = [ 'overlay', 'legend' ]
                ##, '':, '':, '':, '':, '':, '':, 
     kwdefs.update(_plopts_cur) ## append settable option defaults
     for toss in plopts_toss:
         del kwdefs[toss]
-    ##print(kwdefs,args,len(args))
+    ##print kwdefs,args,len(args)
 
     res = utils.process_args(args, kwargs, DN, argnames, kwdefs, optvals, \
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]  ;  nr = [ 0,None ]
-        print(nl[res] + xplo.__doc__)  ;  return nr[res]
+        print nl[res] + xplo.__doc__  ;  return nr[res]
 
-    wdx = res['wdx'] ; del res['wdx']
-    wdy = res['wdy'] ; del res['wdy']
-    out = res['out'] ; del res['out']
+    for k in needed:
+        exec k + " = res[k]"
+        del res[k]
+    ##print wdx,wdy,out
+    ##print res
 
-    charsize = res['charsize']
-    color = res['color']
-    line = res['line']
-    lw = res['lw']
-    nogrid = res['nogrid']
-    title = res['title']
-    wait = res['wait']
-    xlabel = res['xlabel']
-    xrange = res['xrange']
-    ylabel = res['ylabel']
-    yrange = res['yrange']
-    ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    for k in res.keys():
+        exec k + " = res[k]"
+   ##keys.sort()
+    ##for k in keys:   exec "print k, " + k
     xcom, m1, m2 = get_common_time(wdx,wdy)
-    ##print(wdx,wdy,xcom,m1,m2)
+    ##print wdx,wdy,xcom,m1,m2
     dsx = w2i(wdx,copy=False)
     dsy = w2i(wdy,copy=False)
     xa = dsx.data[0]
@@ -1792,11 +1722,10 @@ Return value: If error encountered, returns None. Otherwise, 0 is returned'''
         out = get_empty_wdf(10000)
         delout = True
     else: delout = False
-
     if xlabel is None:   xlabel = getLabel(wdx,'Y')
     if ylabel is None:   ylabel = getLabel(wdy,'Y')
     if title is None:   title = ylabel + ' vs. ' + xlabel
-    ##print(repr(xlabel),repr(ylabel),repr(title))
+    ##print repr(xlabel),repr(ylabel),repr(title)
     i2w(xa,ya,out,clab=title,xlab=xlabel,ylab=ylabel)
     plo(out,**res)
 
@@ -1839,51 +1768,48 @@ Return value: If successful, returns the number of WDF arrays copied,
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]  ;  nr = [ 0,None ]
-        print(nl[res] + xfr.__doc__)  ;  return nr[res]
+        print nl[res] + xfr.__doc__  ;  return nr[res]
 
-    wdf1 = res['wdf1']
-    wdf2 = res['wdf2']
-    count = res['count']
-    quiet = res['quiet']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
     len1 = None
     t1 = type(wdf1)  ;  t2 = type(wdf2)
-    if t2 is int or t2 is list:
+    if t2 is types.IntType or t2 is types.ListType:
         len1 = count
         if count is not None:
-            if t1 is int and t2 is int and \
-               type(count) is int:
-                wdf1 = list(range(wdf1,count+wdf1))
-                wdf2 = list(range(wdf2,count+wdf2))
+            if t1 is types.IntType and t2 is types.IntType and \
+               type(count) is types.IntType:
+                wdf1 = range(wdf1,count+wdf1)
+                wdf2 = range(wdf2,count+wdf2)
             else:   len1 = None
         else:
             len1 = 1
-            if t1 is list:
+            if t1 is types.ListType:
                 len1 = len(wdf1)
-                if t2 is int:
-                    wdf2 = list(range(wdf2,len1+wdf2))
+                if t2 is types.IntType:
+                    wdf2 = range(wdf2,len1+wdf2)
                 else:
                     len2 = len(wdf2)
                     if len2 < len1:
                         st = wdf2[len2-1] + 1
                         delt = len1 - len2
-                        wdf2 += list(range(st,st+delt))
-            elif t1 is int:
+                        wdf2 += range(st,st+delt)
+            elif t1 is types.IntType:
                 wdf1 = [wdf1]
-                if t2 is int:
+                if t2 is types.IntType:
                     wdf2 = [wdf2]
 
     if len1 is None:
-        print("Invalid syntax")  ;  return None
+        print "Invalid syntax"  ;  return None
 
     clist = utils.parsewsl(_wdflist,wdf1,valid=True)
     if clist is None:
-        print(DN + ": Error parsing WDF1")  ;  return None
+        print DN + ": Error parsing WDF1"  ;  return None
     elif len(clist) == 0:
-        print("No specified WDF arrays contain data")  ;  return 0
+        print "No specified WDF arrays contain data"  ;  return 0
 
     cnt = 0
     notvalid = ''
@@ -1901,7 +1827,7 @@ Return value: If successful, returns the number of WDF arrays copied,
             notvalid += " " + str(w)
 
     if notvalid:
-        print("xfr: No data in some WDF arrays:" + notvalid)
+        print "xfr: No data in some WDF arrays:" + notvalid
 
     return cnt
 
@@ -1943,34 +1869,34 @@ Return value: If successful, returns the number of WDF arrays changed,
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]  ;  nr = [ 0,None ]
-        print(nl[res] + cha.__doc__)  ;  return None
+        print nl[res] + cha.__doc__  ;  return None
 
     append = res['append']  ;  del res['append']
-    wdfs = res['wdfs']  ;  del res['wdfs']
-    wdmax = res['wdmax']  ;  del res['wdmax']
-    for k in list(res.keys()):
+    for k in argnames:
+        exec k + " = res[k]"  ;  del res[k]
+    for k in res.keys():
         if res[k] is None: del res[k]
 
-    keys = list(res.keys())
+    keys = res.keys()
     okay = True
     clist = utils.parsewsl(_wdflist,wdfs,wdmax,stringOK=True)
     if clist is None:
-        print(DN + ": Error parsing WDF and WDMAX")  ;  okay = False
+        print DN + ": Error parsing WDF and WDMAX"  ;  okay = False
     if len(res) == 0:
-        print(DN + ": At least one change must be specified")  ;  okay = False
+        print DN + ": At least one change must be specified"  ;  okay = False
     for k in keys:
         if k == "scale" or k == "tzero" or k == "mdt":
             num, t = utils.is_number(res[k])
             if not num:
-                print(DN + ":",k.upper(),"must be a number")  ;  okay = False
+                print DN + ":",k.upper(),"must be a number"  ;  okay = False
         else:
-            if type(res[k]) is not str:
-                print(DN + ":",k.upper(),"must be a string")  ;  okay = False
+            if type(res[k]) is not types.StringType:
+                print DN + ":",k.upper(),"must be a string"  ;  okay = False
     if not okay:
-        print("\n" + cha.__doc__)  ;  return None
+        print "\n" + cha.__doc__  ;  return None
 
     if len(clist) == 0:
-        print(DN + ": No specified WDF arrays contain data")  ;  return 0
+        print DN + ": No specified WDF arrays contain data"  ;  return 0
 
     for wd in clist:
         ds = _wdflist[wd]
@@ -1998,24 +1924,21 @@ Return value: If successful, returns the number of WDF arrays changed,
                 ds.g_range *= val
                 ds.g_eps *= val
             else:
-                ##print(k, res[k])
+                ##print k, res[k]
                 if append:
                     if k == 'clabel':   ds.title += res[k]
-                    elif k == 'tlabel': ds.typename += res[k]
+                    elif k == 'clabel': ds.typename += res[k]
                     elif k == 'xlabel':
                         s = ds.glabels[0][0] + res[k]
-                        #dt = 'a' + str(max(1,len(s)))
                         ds.glabels = np.reshape(np.array([s]), (1,1))
                     elif k == 'ylabel':
                         s = ds.dlabels[0][0] + res[k]
-                        #dt = 'a' + str(max(1,len(s)))
                         ds.dlabels = np.reshape(np.array([s]), (1,1))
                 else:
                     if k == 'clabel':   ds.title = res[k]
                     elif k == 'tlabel': ds.typename = res[k]
                     else:
                       s = res[k]
-                      ##dt = 'a' + str(max(1,len(s)))
                       if k == 'xlabel':
                         ds.glabels = np.reshape(np.array([s]), (1,1))
                       elif k == 'ylabel':
@@ -2074,15 +1997,13 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]  ;  nr = [ 0,None ]
-        print(nl[res] + i2w.__doc__)  ;  return None
+        print nl[res] + i2w.__doc__  ;  return None
 
     rcpy = res['copy']  ;  del res['copy']
     tspare = res['spare']  ;  del res['spare']
-
-    a1 = res['a1']  ;  del res['a1']
-    a2 = res['a2']  ;  del res['a2']
-    a3 = res['a3']  ;  del res['a3']
-    for k in list(res.keys()):
+    for k in argnames:
+        exec k + " = res[k]"  ;  del res[k]
+    for k in res.keys():
         if res[k] is None: del res[k]
 
     ds = None
@@ -2091,18 +2012,18 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
         ds = a1
         wdf = a2
         if a3 is not None:
-            print(DN + \
-                ": If DS specified, only 2 positional arguments are allowed")
+            print DN + \
+                ": If DS specified, only 2 positional arguments are allowed"
             okay = False
     else:
         x = a1  ;  y = a2  ;  wdf = a3  ;  name = 'X'
         for a in [x,y]:
             t = type(a)  ;  tokay = True
-            if t is list or t is np.ndarray:
+            if t is types.ListType or t is np.ndarray:
                 if len(a) < 2:
-                    print(DN + ":", name, "must have at least two elements")
+                    print  DN + ":", name, "must have at least two elements"
                     okay = False
-                if t is list:
+                if t is types.ListType:
                     for val in a:
                         num, dum = utils.is_number(val)
                         if not num:
@@ -2114,11 +2035,11 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
                         if dt != 'F' and dt != 'I': tokay = False
             else: tokay = False
             if not tokay:
-                print(DN + ":", name, "must be a list of 1D-ndarray of numbers")
+                print DN + ":", name, "must be a list of 1D-ndarray of numbers"
                 okay = False
             name = 'Y'
-    if wdf is not None and type(wdf) is not int:
-        print(DN + ": WDF must be an integer")  ;  okay = None
+    if wdf is not None and type(wdf) is not types.IntType:
+        print DN + ": WDF must be an integer"  ;  okay = None
 
     if tspare is None:
         spare = None
@@ -2126,24 +2047,24 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
         try:
             spare = np.asarray(tspare,dtype=np.intc)
         except ValueError:
-            print(DN + \
-              ": Spare array must be a 1D NUMPY.NDARRAY object of integer type")
+            print DN + \
+              ": Spare array must be a 1D NUMPY.NDARRAY object of integer type"
             okay = False
 
-    keys = list(res.keys())
+    keys = res.keys()
     ##if res.has_key('ylabel'):
-    ##    print('ylabel',res['ylabel'],repr(type(res['ylabel']))
+    ##    print 'ylabel',res['ylabel'],repr(type(res['ylabel']))
     for k in keys:
         # Right now, all settable keywords are strings
-        if type(res[k]) is not str and \
+        if type(res[k]) is not types.StringType and \
            type(res[k]) is not np.string_:
-            print(DN + ":",k.upper(),"must be a string")  ;  okay = False
+            print DN + ":",k.upper(),"must be a string"  ;  okay = False
     if not okay:
-        print("\n" + i2w.__doc__)  ;  return None
+        print "\n" + i2w.__doc__  ;  return None
 
-    ##print(ds,wdf,rcpy)
-    ##if ds is None:   print(x,y)
-    ##print(res)
+    ##print ds,wdf,rcpy
+    ##if ds is None:   print x,y
+    ##print res
 
     if ds is not None:
         if rcpy:   _wdflist[wdf] = cpy.deepcopy(ds)
@@ -2152,7 +2073,7 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
         return None
          
     yy = y  ;  nx = len(x)  ;  ny = len(y)
-    if type(y) == list or y.dtype is not pff.PFFnp_float:
+    if type(y) == types.ListType or y.dtype is not pff.PFFnp_float:
         yy = np.array(y,dtype=pff.PFFnp_float)
     dict = {'data': [yy], 'apptype':3, 'adim':1, 'sdim':1, 'spare':[spare], \
             'nblk':1, 'nx':[np.array([ny],dtype=pff.PFFnp_long)], \
@@ -2168,14 +2089,14 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
     elif nx == ny:
         typekey = 'N'
         xx = x
-        if type(x) == list or x.dtype is not pff.PFFnp_float:
+        if type(x) == types.ListType or x.dtype is not pff.PFFnp_float:
             xx = np.array(x,dtype=pff.PFFnp_float)
         dict['x'] = [[xx]]
         dict['rawtype'] = pff.NGD
         dict['rawname'] = 'NGD'
         gr = [xx.min(), xx.max()]
     else:
-        print(DN + ": X and Y arrays must have the same length")
+        print DN + ": X and Y arrays must have the same length"
         return None
 
     eps = pff.GridEpsilonFactor*(gr[1] - gr[0])
@@ -2193,12 +2114,12 @@ Return value: If X, Y, and COPY are all specified, the PFF dataset object
         elif k == 'ylabel':
             dict['dlabels'] = np.array([res[k]]).reshape(1,1)
 
-    if 'title' not in dict: dict['title'] = ''
-    if 'typename' not in dict: dict['typename'] = ''
-    if 'file' not in dict: dict['file'] = ''
-    if 'glabels' not in dict:
+    if not dict.has_key('title'): dict['title'] = ''
+    if not dict.has_key('typename'): dict['typename'] = ''
+    if not dict.has_key('file'): dict['file'] = ''
+    if not dict.has_key('glabels'):
         dict['glabels'] = np.array(['']).reshape(1,1)
-    if 'dlabels' not in dict:
+    if not dict.has_key('dlabels'):
         dict['dlabels'] = np.array(['']).reshape(1,1)
 
     if typekey == 'U':
@@ -2217,7 +2138,7 @@ __all__.append('hak')
 
 def hak(prompt=None):
     '''\
-Function to suspend processing until input is received from the keyboard. Useful
+Function to suspend processing until input is received from the keypad. Useful
 for pausing between plots in multi-plot scripts.
 
 Usage:
@@ -2230,14 +2151,12 @@ Arguments:
 Return value: String containing the line input at the keyboard, or "EOF" if
               end-of-file (ctrl-D) is received.'''
 
-    if prompt is None: prompt = "<CR> to continue: "
-    #return pex.hak()
-    try:
-        if sys.version_info[0] < 3:
-            return raw_input(prompt)
-        else:
-            return input(prompt)
-    except EOFError: return 'EOF'
+    if prompt is None:
+        #return pex.hak()
+        return raw_input("<CR> to continue: ")
+    else:
+        #return pex.hak(prompt)
+        return raw_input(prompt)
 
 __all__.append('get_common_time')
 
@@ -2266,24 +2185,24 @@ Return value: The tuple (xcom,m1,m2), where xcom is the common abscissa grid,
     res = utils.process_args(args, kwargs, DN, argnames, {}, [], extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]  ;  nr = [ 0,None ]
-        print(nl[res] + get_common_time.__doc__)  ;  return None
+        print nl[res] + get_common_time.__doc__  ;  return None
 
     wd1 = res['wd1']
     wd2 = res['wd2']
 
-    if type(wd1) is not int or type(wd2) is not int:
-        print("WD1 and WD2 must both be integers")
+    if type(wd1) is not types.IntType or type(wd2) is not types.IntType:
+        print "WD1 and WD2 must both be integers"
         return None
 
     wlist = utils.parsewsl(_wdflist, [wd1,wd2], valid=True )
     nw = len(wlist)
     if nw != 2:
         if nw == 0:
-            print("Neither WDF array provided contains data")
+            print "Neither WDF array provided contains data"
         else:
             if wlist[0] == wd1:  s = str(wd2)
             else: s = str(wd1)
-            print("WDF array", s, "does not contain data")
+            print "WDF array", s, "does not contain data"
         return None
 
     test = []
@@ -2299,7 +2218,7 @@ Return value: The tuple (xcom,m1,m2), where xcom is the common abscissa grid,
     test.append(1.0e-4*np.diff(rng2)[0])
     maxdel = min(test)
 
-    ##print(maxdel,test,dmin1,dmin2,rng1,rng2)
+    ##print maxdel,dmin1,dmin2,rng1,rng2
 
     need_new = True
     m1 = False
@@ -2327,7 +2246,7 @@ Return value: The tuple (xcom,m1,m2), where xcom is the common abscissa grid,
         m1 = True
     elif xlow == rng2[0] and xhi  == rng2[1] and nx2 >= nxmin:
         m2 = True
-    ##print(xlow,xhi,m1,m2)
+    ##print xlow,xhi
 
     if m1 and not m2:
         return (x1,m1,m2)
@@ -2366,7 +2285,7 @@ Return value: True if legal, False if not.'''
     res = utils.process_args(args, kwargs, DN, argnames, {}, [], extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]  ;  nr = [ 0,None ]
-        print(nl[res] + _is_wdfds.__doc__)  ;  return None
+        print nl[res] + _is_wdfds.__doc__  ;  return None
 
     ds = res['ds']
 
@@ -2421,29 +2340,23 @@ Arguments:
                              optvals, extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + filt.__doc__)  ;  return None
+        print nl[res] + filt.__doc__  ;  return None
 
-    wdf = res['wdf']
-    wdout = res['wdout']
-    frequency = res['frequency']
-    btype = res['btype']
-    order = res['order']
-    frange = res['frange']
-    padlen = res['padlen']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
 
     okay = True
  
-    if type(wdf) is not int: okay = False
-    if wdf not in _wdflist:
-        print(DN+": WDF array",wdf,"does not contain valid data")
+    if type(wdf) is not types.IntType: okay = False
+    if not _wdflist.has_key(wdf):
+        print DN+": WDF array",wdf,"does not contain valid data"
         okay = False
     if wdout is None:  wdout = wdf
     else:
-        if type(wdout) is not int: okay = False
+        if type(wdout) is not types.IntType: okay = False
         elif wdout != wdf:
             _wdflist[wdout] = cpy.deepcopy(_wdflist[wdf])
 
@@ -2453,25 +2366,25 @@ Arguments:
         nbt = len(bt)
         if nbt == 1: btype = btLegal[bt[0]]
         elif nbt == 0:
-            print(DN+": Illegal BTYPE:", repr(btype))
+            print DN+": Illegal BTYPE:", repr(btype)
             okay = False
         else:
-            print(DN+": Illegal BTYPE:", repr(btype))
+            print DN+": Illegal BTYPE:", repr(btype)
             okay = False
     except :
-        print(DN+": Illegal btype:", repr(btype))
+        print DN+": Illegal btype:", repr(btype)
         okay = False
         
     if btype == 'boxcar' or btype == 'low' or btype == 'high':
         if frequency is None:
-            print(DN+": FREQUENCY keyword required for BTYPE=", repr(btype))
+            print DN+": FREQUENCY keyword required for BTYPE=", repr(btype)
             okay = False
         elif not utils.is_number(frequency)[0]:
-            print(DN+": FREQUENCY keyword must be a number")
+            print DN+": FREQUENCY keyword must be a number"
             okay = False
     else:
         if frange is None:
-            print(DN+": FRANGE keyword required for BTYPE=", repr(btype))
+            print DN+": FRANGE keyword required for BTYPE=", repr(btype)
             okay = False
         else:
             try:
@@ -2480,24 +2393,24 @@ Arguments:
                     raise ValueError
                 frequency = lims
             except ValueError:
-                print(DN+": FRANGE keyword must be a 2-element list" + \
-                         " of numeric frequency bounds for BTYPE=", repr(btype))
+                print DN+": FRANGE keyword must be a 2-element list" + \
+                         " of numeric frequency bounds for BTYPE=", repr(btype)
                 okay = False
-    if type(order) is not int or order < 1:
-        print(DN+": ORDER keyword must be positive integer")
+    if type(order) is not types.IntType or order < 1:
+        print DN+": ORDER keyword must be positive integer"
         okay = False
     if padlen == 0: extra = {}
-    elif type(padlen) is not int:
-        print(DN+": PADLEN keyword must be a non-negative integer, or None")
+    elif type(padlen) is not types.IntType:
+        print DN+": PADLEN keyword must be a non-negative integer, or None"
         okay = False
     else: extra = {'padlen':padlen}
 
     if np.diff(getX(wdf)).min() < 0.0:
-        print(DN+": Abscissa array must be monotonically increasing")
+        print DN+": Abscissa array must be monotonically increasing"
         okay = False            
-
+        
     if not okay:
-        print("\n" + filt.__doc__)  ;  return None
+        print "\n" + filt.__doc__  ;  return None
 
     ds = _wdflist[wdout]
     if ds.typekey == 'U':
@@ -2550,7 +2463,7 @@ Arguments:
 Return Value: None'''
 
     DN = 'WFFT'
-    argnames = [ 'wdf', 'wdout' ]
+    argnames = [ 'wd1', 'wd2' ]
     optvals = [ None ]
     kwdefs = { 'cmplx':None }
     ##, '':, '':, '':, '':, '':, '':, 
@@ -2559,42 +2472,40 @@ Return Value: None'''
                              optvals, extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + wfft.__doc__)  ;  return None
+        print nl[res] + wfft.__doc__  ;  return None
 
-    wdf = res['wdf']
-    wdout = res['wdout']
-    cmplx = res['cmplx']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
 
     okay = True
  
-    if type(wdf) is not int: okay = False
-    if wdf not in _wdflist:
-        print(DN+": WDF array",wdf,"does not contain valid data")
+    if type(wd1) is not types.IntType: okay = False
+    if not _wdflist.has_key(wd1):
+        print DN+": WDF array",wd1,"does not contain valid data"
         okay = False
-    if wdout is None:  wdout = wdf
+    if wd2 is None:  wd2 = wd1
     else:
-        if type(wdout) is not int: okay = False
-        elif wdout != wdf:
-            _wdflist[wdout] = cpy.deepcopy(_wdflist[wdf])
+        if type(wd2) is not types.IntType: okay = False
+        elif wd2 != wd1:
+            _wdflist[wd2] = cpy.deepcopy(_wdflist[wd1])
 
     if cmplx is not None:
-        if type(cmplx) is not int:
-            print(DN+": CMPLX keyword must provide an integer WDF index")
+        if type(cmplx) is not types.IntType:
+            print DN+": CMPLX keyword must provide an integer WDF index"
             okay = False
         ds3 = cmplx
     
-    if np.diff(getX(wdf)).min() < 0.0:
-        print(DN+": Abscissa array must be monotonically increasing")
+    if np.diff(getX(wd1)).min() < 0.0:
+        print DN+": Abscissa array must be monotonically increasing"
         okay = False            
 
     if not okay:
-        print("\n" + wfft.__doc__)  ;  return None
+        print "\n" + wfft.__doc__  ;  return None
 
-    ds = _wdflist[wdout]
+    ds = _wdflist[wd2]
     if ds.typekey == 'N':
         dsx = ds.make_uniform(quiet=1)
         if dsx is not None:  ds = dsx
@@ -2610,12 +2521,12 @@ Return Value: None'''
         ds.rawtype=pff.UF1
         ds.typekey='U'
         ds = pff.UNF_dataset(new=ds.__dict__)
-        _wdflist[wdout] = ds
+        _wdflist[wd2] = ds
     nt = ds.nx[0][0] - 1 # need # of bins, not bounds
     dt = ds.dx[0][0]
 
     ##print(nt,dt,type(nt),type(dt),float(dt))
-    ##x1 = np.fft.rfftfreq(nt,d=dt) ## not in early numpy distributions
+    ##x1 = np.fft.rfftfreq(nt-1,d=dt) ## not in early numpy distributions
     yave = 0.5*(ds.data[0][1:] + ds.data[0][:-1])
     yc = np.fft.rfft(yave) * dt
 
@@ -2629,7 +2540,7 @@ Return Value: None'''
         ds.data[0] = abs(yc)
         ds.title += ' -- FFT Magnitude'
     else:
-        _wdflist[ds3] = cpy.deepcopy(_wdflist[wdout])
+        _wdflist[ds3] = cpy.deepcopy(_wdflist[wd2])
         ds.data[0] = yc.real
         ds.title += ' -- FFT Real part'
         _wdflist[ds3].data[0] = yc.imag
@@ -2640,7 +2551,7 @@ Return Value: None'''
 
 __all__.append('dif')
 
-def dif(*args, **kwargs):
+def dif(wd1, wd2=None, **kwargs):
     '''\
 Function to compute the derivative of a WDF array.
 
@@ -2662,49 +2573,48 @@ Arguments:
 
 Return Value: None'''
 
-    DN = 'DIF'
-    argnames = [ 'wd1', 'wd2' ]
-    optvals = [ None ]
-    kwdefs = { 'centered':None, 'clabel':None,  'xlabel':None, 'ylabel':None }
-
-    res = utils.process_args(args, kwargs, DN, argnames, kwdefs, \
-                             optvals, extra=False)
-
-    if res == 0 or res == 1:
-        nl = [ "", "\n" ]
-        print(nl[res] + re.__doc__)  ;  return None
-
-    wd1 = res['wd1']
-    wd2 = res['wd2']
-    centered = res['centered']
-    clabel = res['clabel']
-    xlabel = res['xlabel']
-    ylabel = res['ylabel']
+    kwvalid = ['centered', 'clabel', 'xlabel', 'ylabel']
      
     okay = True
-    if type(wd1) is not int: okay = False
-    if wd1 not in _wdflist:
-        print("WDF array",wd1,"does not contain valid data")
+    if type(wd1) is not types.IntType: okay = False
+    if not _wdflist.has_key(wd1):
+        print "WDF array",wd1,"does not contain valid data"
         return None
     if wd2 is None:  wd2 = wd1
     else:
-        if type(wd2) is not int: okay = False
+        if type(wd2) is not types.IntType: okay = False
         elif wd2 != wd1:
             _wdflist[wd2] = cpy.deepcopy(_wdflist[wd1])
 
-    keys = list(res.keys())
+    keys = kwargs.keys()
+    centered = True
+    clabel = None
+    xlabel = None
+    ylabel = None
     for k in keys:
-        if res[k] is None: continue
-        if k[1:] == "label" and type(res[k]) is not str:
-            print(k, "must be a string")
+        mat = utils.findbestmatch(kwvalid,k)
+        lmat = len(mat)
+        if lmat != 1:
             okay = False
+            if lmat == 0:
+                print "Could not match supplied keyword \"" + k + "\""
+                print "Valid keywords:",str(kwvalid)
+            else:
+                print "Could not uniquely match supplied keyword \"" + k + "\""
+                print "It potentially matches valid keywords",str(mat)
+        else:
+            mat = mat[0]
+            if mat != "centered" and type(kwargs[k]) is not types.StringType:
+                print mat, "must be a string"
+                okay = False
+            exec mat + " = kwargs[k]"
 
     if np.diff(getX(wd1)).min() < 0.0:
-        print(DN+": Abscissa array must be monotonically increasing")
+        print DN+": Abscissa array must be monotonically increasing"
         okay = False            
 
     if not okay:
-        print(dif.__doc__)
+        print dif.__doc__
         return None
 
     ds = _wdflist[wd2]
@@ -2748,16 +2658,14 @@ Return Value: None'''
 
     if clabel is not None:  ds.title = clabel
     if xlabel is not None:
-        #dt = 'a' + str(len(xlabel))
         ds.glabels = np.reshape(np.array([xlabel]), (1,1))
     if ylabel is not None:
-        #dt = 'a' + str(len(ylabel))
         ds.dlabels = np.reshape(np.array([ylabel]), (1,1))
 
 
 __all__.append('wint')
 
-def wint(*args, **kwargs):
+def wint(wd1, wd2=None, **kwargs):
     '''\
 Function to compute the integral of a WDF array.
 
@@ -2782,57 +2690,57 @@ Arguments:
 
 Return Value: None'''
 
-    DN = 'WINT'
-    argnames = [ 'wd1', 'wd2' ]
-    optvals = [ None ]
-    kwdefs = { 'centered':None, 'moment':0, 'clabel':None,  'xlabel':None,
-               'ylabel':None }
-
-    res = utils.process_args(args, kwargs, DN, argnames, kwdefs, \
-                             optvals, extra=False)
-
-    if res == 0 or res == 1:
-        nl = [ "", "\n" ]
-        print(nl[res] + re.__doc__)  ;  return None
-
-    wd1 = res['wd1']
-    wd2 = res['wd2']
-    centered = res['centered']
-    moment = res['moment']
-    clabel = res['clabel']
-    xlabel = res['xlabel']
-    ylabel = res['ylabel']
+    kwvalid = ['centered', 'moment', 'clabel', 'xlabel', 'ylabel']
      
     okay = True
-    if type(wd1) is not int: okay = False
-    if wd1 not in _wdflist:
-        print("WDF array",wd1,"does not contain valid data")
+    if type(wd1) is not types.IntType: okay = False
+    if not _wdflist.has_key(wd1):
+        print "WDF array",wd1,"does not contain valid data"
         return None
     if wd2 is None:  wd2 = wd1
     else:
-        if type(wd2) is not int: okay = False
+        if type(wd2) is not types.IntType: okay = False
         elif wd2 != wd1:
             _wdflist[wd2] = cpy.deepcopy(_wdflist[wd1])
 
-    keys = list(res.keys())
+    keys = kwargs.keys()
+    centered = True
+    moment = 0
+    clabel = None
+    xlabel = None
+    ylabel = None
     for k in keys:
-        val = res[k]
-        if val is None: continue
-        if k[1:] == "label" and type(val) is not str:
-            print(k, "must be a string")
+        mat = utils.findbestmatch(kwvalid,k)
+        lmat = len(mat)
+        if lmat != 1:
             okay = False
-        if k == "moment":
-            num, t = utils.is_number(val)
-            if not num or (t is float and val < 0.0): 
-                print(k, "must be an integer or non-negative float")
-                okay = False
+            if lmat == 0:
+                print "Could not match supplied keyword \"" + k + "\""
+                print "Valid keywords:",str(kwvalid)
+            else:
+                print "Could not uniquely match supplied keyword \"" + k + "\""
+                print "It potentially matches valid keywords",str(mat)
+        else:
+            mat = mat[0]
+            val = kwargs[k]
+            if mat != "centered":
+                if mat == "moment":
+                    num, t = utils.is_number(val)
+                    if not num or \
+                       (t is types.FloatType and kwargs[k] < 0.0): 
+                        print mat, "must be an integer or non-negative float"
+                        okay = False
+                elif type(val) is not types.StringType:
+                    print mat, "must be a string"
+                    okay = False
+            exec mat + " = val"
 
     if np.diff(getX(wd1)).min() < 0.0:
-        print(DN+": Abscissa array must be monotonically increasing")
+        print DN+": Abscissa array must be monotonically increasing"
         okay = False            
 
     if not okay:
-        print(wint.__doc__)
+        print wint.__doc__
         return None
 
     ds = _wdflist[wd2]
@@ -2842,6 +2750,7 @@ Return Value: None'''
         else:            centered = True
 
     y = ds.data[0]
+    ##print centered,moment,tkey
     if tkey =='N' or moment:
         x = getX(wd2)
     if centered:
@@ -2889,10 +2798,8 @@ Return Value: None'''
 
     if clabel is not None:  ds.title = clabel
     if xlabel is not None:
-        #dt = 'a' + str(len(xlabel))
         ds.glabels = np.reshape(np.array([xlabel]), (1,1))
     if ylabel is not None:
-        #dt = 'a' + str(len(ylabel))
         ds.dlabels = np.reshape(np.array([ylabel]), (1,1))
 
 
@@ -2918,12 +2825,10 @@ Arguments:
            zoom in on a specific region of the plot is provided before the
            cursor is used to select the abscissa range.
   tshift:  If True, the array will be translated in x such that it begins at
-           x = 0
-
-Return Value: None'''
+           x = 0'''
 
     DN = 'WIND'
-    argnames = [ 'wdf', 'wdout' ]
+    argnames = [ 'wd1', 'wd2' ]
     optvals = [ None ]
     kwdefs = { 'xrange':False, 'tshift':False }
     ##, '':, '':, '':, '':, '':, '':, 
@@ -2932,28 +2837,25 @@ Return Value: None'''
                              optvals, extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + wind.__doc__)  ;  return None
+        print nl[res] + wind.__doc__  ;  return None
 
-    wdf = res['wdf']
-    wdout = res['wdout']
-    xrange = res['xrange']
-    tshift = res['tshift']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
+    ##for k in keys:   exec "print k, " + k
 
     okay = True
  
-    if type(wdf) is not int: okay = False
-    if wdf not in _wdflist:
-        print(DN+": WDF array",wdf,"does not contain valid data")
+    if type(wd1) is not types.IntType: okay = False
+    if not _wdflist.has_key(wd1):
+        print DN+": WDF array",wd1,"does not contain valid data"
         okay = False
-    if wdout is None:  wdout = wdf
+    if wd2 is None:  wd2 = wd1
     else:
-        if type(wdout) is not int: okay = False
-        elif wdout != wdf:
-            _wdflist[wdout] = cpy.deepcopy(_wdflist[wdf])
+        if type(wd2) is not types.IntType: okay = False
+        elif wd2 != wd1:
+            _wdflist[wd2] = cpy.deepcopy(_wdflist[wd1])
 
     w = None
     zoom = False
@@ -2965,7 +2867,7 @@ Return Value: None'''
                 t = str(w.dtype)
                 if t[:3] != 'int' and t[:5] != 'float': w = None
                 xrange = True
-            elif type(xrange) is str:
+            elif type(xrange) is types.StringType:
                 if len(xrange) > 0 and xrange.upper()[0]== 'Z': zoom = True
                 else: w = None
             else: w = None
@@ -2973,13 +2875,13 @@ Return Value: None'''
             w = None
 
         if w is None:
-            print(DN + ': Invalid XRANGE keyword value')  ;  return None
+            print DN + ': Invalid XRANGE keyword value'  ;  return None
     
-    if zoom or w is None:  w = getWdfWind(wdout,zoom=zoom)
+    if zoom or w is None:  w = getWdfWind(wd2,zoom=zoom)
 
-    ##print(w,zoom,w.dtype)
+    ##print w,zoom,w.dtype
          
-    ds = _wdflist[wdout]
+    ds = _wdflist[wd2]
     nc = ds.nx[0][0]
     xmin,xmax = (w.min(),w.max())
     grmin,grmax = ds.g_range[0,0,:]
@@ -2998,26 +2900,27 @@ Return Value: None'''
         if tshift: xnew -= xmin
     ncnew = i2 - i1
     if ncnew < 3:
-        print(DN + ': Selected window contains insufficient points')
+        print DN + ': Selected window contains insufficient points'
         return None
 
-    ##print(ncnew,i1,i2,xmin,xmax)
+    ##print ncnew,i1,i2,xmin,xmax
     if ds.typekey == 'U':
-        ##print(x1st,x0,x0new,dx)
+        ##print x1st,x0,x0new,dx
         ds.x0[0][0] = x0new
     else:
-        ##print(x[i1],xnew)
+        ##print x[i1],xnew
         ds.x[0][0] = xnew
     ds.nx[0][0] = ncnew
     ds.data[0] = ds.data[0][i1:i2]
     ds.fill_grid_range()
+
 
     return
 
 
 __all__.append('fctn')
 
-def fctn(*args,**kwargs):
+def fctn(wd1,fstr,*args,**kwargs):
     '''Apply a NUMPY function to the data in a WDF array.
 
 Usage:
@@ -3040,46 +2943,31 @@ Arguments:
 
 Return Value: None'''
 
-    DN = 'FCTN'
-    argnames = [ 'wdf', 'fstr', 'wdout' ]
-    optvals = [ None ]
-    kwdefs = { 'clabel':None,  'xlabel':None, 'ylabel':None }
-    ##, '':, '':, '':, '':, '':, '':, 
-
-    res = utils.process_args(args, kwargs, DN, argnames, kwdefs, \
-                             optvals, extra=False)
-    if res == 0 or res == 1:
-        nl = [ "", "\n" ]
-        print(nl[res] + wind.__doc__)  ;  return None
-
-    wdf = res['wdf']
-    wdout = res['wdout']
-    fstr = res['fstr']
-    clabel = res['clabel']
-    xlabel = res['xlabel']
-    ylabel = res['ylabel']
-
-    ##keys = list(res.keys())
-    ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-
     attr_map = { 'clabel':'title','xlabel':'glabels', 'ylabel':'dlabels' }
-    kwvalid = list(attr_map.keys())
+    kwvalid = attr_map.keys()
     okay = True
     try:
         i = dir(np).index(fstr)
-        exec('if type(np.'+fstr+') is not np.ufunc: okay = False')
+        exec  'if type(np.'+fstr+') is not np.ufunc: okay = False'
     except ValueError:
         okay = False
     if not okay:
-        print("\"" + fstr + "\" is not a valid function")
+        print "\"" + fstr + "\" is not a valid function"
         return None
+    argc = len(args)
+    wdout = None
+    if argc == 1:
+        if type(args[0]) is not types.IntType:  okay = False
+        else: wdout = args[0]
+    elif argc > 1: okay = False
 
-    ##print(wdout)
+    ##print wd1,wdout,okay,fstr
 
-    check = [wdf]
+    ##print wdout
+
+    check = [wd1]
     vlist = utils.parsewsl(_wdflist,check,valid=True)
-    ##print(vlist)
+    ##print vlist
     clen = len(check)  ;  vlen = len(vlist)
     if vlen != clen:
         bad = ''
@@ -3089,29 +2977,46 @@ Return Value: None'''
         else:
             if vlist[0] == check[0]: bad = str(check[1])
             else: bad = str(check[0])
-        print("The following WDF arrays are not valid: " + bad)
+        print "The following WDF arrays are not valid: " + bad
         return None
 
-    keys = list(kwdefs.keys())
+    keys = kwargs.keys()
     okay = True
     attr_set = []
 
-    ##print("keys:",keys)
+    ##print "keys:",keys
 
     for k in keys:
-        val = res[k]
-        if val is None: continue
-        if type(val) is not str:
+        mat = utils.findbestmatch(kwvalid,k)
+        lmat = len(mat)
+        if lmat != 1:
             okay = False
-            print("Supplied value for", k, "must be a string")
+            if lmat == 0:
+                print "Could not match supplied keyword \"" + k + "\""
+                print "Valid keywords:",str(kwvalid)
+            else:
+                print "Could not uniquely match supplied keyword \"" + k + "\""
+                print "It potentially matches valid keywords",str(mat)
         else:
-            sval = (attr_map[k],val)  ###repr(val)
-            if  k == 'xlabel' or k == 'ylabel':
-                sval = (attr_map[k],np.reshape(np.array([val]),(1,1)))
-        if okay:   attr_set.append(sval)
+            mat = mat[0]
+            val = kwargs[k]
+            if type(val) is not types.StringType:
+                okay = False
+                print  "Supplied value for", mat, "must be a string"
+            else:
+                sval = repr(val)
+                if  mat == 'xlabel' or mat == 'ylabel':
+                    ts = attr_map[mat][:4]
+                    scmd = ts + " = np.reshape(np.array([" + sval + \
+                           "]),(1,1))"
+                    exec scmd
+                    sval = ts
+            if okay:
+                scmd = "dso." + attr_map[mat] + " = " + sval 
+                attr_set.append(scmd)
 
-    ##print("attr_set:", attr_set)
-    ##print(glabels)
+    ##print "attr_set:", attr_set
+    ##print glabels
 
     ##return None
 
@@ -3120,17 +3025,17 @@ Return Value: None'''
         return None
 
     if wdout is not None:
-        if wdout in _wdflist:  dssave = w2i(wdout,copy=False)
-        xfr(wdf,wdout)
+        if _wdflist.has_key(wdout):  dssave = w2i(wdout,copy=False)
+        xfr(wd1,wdout)
     else:
-        wdout = wdf
+        wdout = wd1
 
     dso = w2i(wdout,copy=False)
     reset = False
     try:
-        exec('dso.data[0] = np.'+fstr+'(dso.data[0])')
-    except ValueError as e:
-        print("\"" + fstr + "\" is not an allowed function")
+        exec 'dso.data[0] = np.'+fstr+'(dso.data[0])'
+    except ValueError,e:
+        print "\"" + fstr + "\" is not an allowed function"
         reset = True
         
     if reset:
@@ -3140,251 +3045,122 @@ Return Value: None'''
             _wdflist[wdout] = dso
         return None
 
-    for attr,val in attr_set:
-        cmd = "dso." + attr + " = val"
-        ##print('cmd:',cmd)
-        exec(cmd)
-         
-    ##print("bop returning", wdout)
-    return
+    for s in attr_set:  exec s
+
+    ##print "bop returning", wdout
+    return wdout
 
 __all__.append('add')
 
-def add(*args,**kwargs):
-    '''\
-Adds two WDF arrays together, or in its second form, adds a scalar to a WDF
-array. If an optional index for an output WDF array is not supplied, the result
-will be written to the first WDF array. If the abscissa ranges of the two arrays
-do not match, a common abscissa grid will be created (see get_common_time for
-more details).
- 
-Usage:
-  add(wd1, wd2, [wdout], [clabel=str], [xlabel=str], [ylabel=str])
+def add(wd1,*args,**kwargs):
+    '''Usage:
+  add(wd1,wd2,[wdout])
     or
-  add(wd1, 0, value ,[wdout], [clabel=str], [xlabel=str], [ylabel=str])
+  add(wd1,0,value,[wdout])
 
-Arguments:
-  wd1:    Index of the first WDF array to be used in the operation.
-  wd2:    If supplied as the second argument, the index of the second WDF array
-          to be used in the operation.
-  value:  If the second argument is the integer 0, a scalar value that will be
-          added to the first WDF array (wd1).
-  wdout:  Index of the WDF array to receive the output of the operation. If not
-          supplied, the first array (wd1) will be overwritten with the result.
-  clabel: Comment label for output dataset.
-  xlabel: Abscissa (x) axis label for output dataset.
-  ylabel: Ordinate (y) axis label for output dataset.
+Keyword arguments \'clabel\', \'xlabel\', and \'ylabel\' are also supported'''
 
-Return Value: If successful, the index of the output WDF array,
-otherwise, None'''
-
-    if len(args) == 0 and len(kwargs) == 0:
-        print(add.__doc__)
-        return None
-
-    rval = binary_op('+',*args,**kwargs)
-    if type(rval) == str and rval[:4] == 'fail':
-        print('ADD:'+rval[4:]) 
-        print(add.__doc__)
+    rval = binary_op('+',wd1,*args,**kwargs)
+    if type(rval) == types.StringType and typerval[:4] == 'fail':
+        print 'Error:'+rval[4:] 
+        print add.__doc__
         rval = None
 
     return rval
 
 __all__.append('sub')
 
-def sub(*args,**kwargs):
-    '''\
-Subtracts two WDF arrays, or in its second form, subtracts a scalar from a WDF
-array. If an optional index for an output WDF array is not supplied, the result
-will be written to the first WDF array. If the abscissa ranges of the two arrays
-do not match, a common abscissa grid will be created (see get_common_time for
-more details).
- 
-Usage:
-  sub(wd1, wd2, [wdout], [clabel=str], [xlabel=str], [ylabel=str])
+def sub(wd1,*args,**kwargs):
+    '''Usage:
+  sub(wd1,wd2,[wdout])
     or
-  sub(wd1, 0, value ,[wdout], [clabel=str], [xlabel=str], [ylabel=str])
+  sub(wd1,0,value,[wdout])
 
-Arguments:
-  wd1:    Index of the first WDF array to be used in the operation.
-  wd2:    If supplied as the second argument, the index of the second WDF array
-          to be used in the operation.
-  value:  If the second argument is the integer 0, a scalar value that will be
-          subtracted from the first WDF array (wd1).
-  wdout:  Index of the WDF array to receive the output of the operation. If not
-          supplied, the first array (wd1) will be overwritten with the result.
-  clabel: Comment label for output dataset.
-  xlabel: Abscissa (x) axis label for output dataset.
-  ylabel: Ordinate (y) axis label for output dataset.
+Keyword arguments \'clabel\', \'xlabel\', and \'ylabel\' are also supported'''
 
-Return Value: If successful, the index of the output WDF array,
-otherwise, None'''
-
-    if len(args) == 0 and len(kwargs) == 0:
-        print(sub.__doc__)
-        return None
-
-    rval = binary_op('-',*args,**kwargs)
-    if type(rval) == str and rval[:4] == 'fail':
-        print('SUB:'+rval[4:]) 
-        print(sub.__doc__)
+    rval = binary_op('-',wd1,*args,**kwargs)
+    if type(rval) == types.StringType and rval[:4] == 'fail':
+        print 'Error:'+rval[4:] 
+        print sub.__doc__
         rval = None
 
     return rval
 
 __all__.append('mul')
 
-def mul(*args,**kwargs):
-    '''\
-Multiplies two WDF arrays, or in its second form, multiplies a WDF array by a
-scalar. If an optional index for an output WDF array is not supplied, the result
-will be written to the first WDF array. If the abscissa ranges of the two arrays
-do not match, a common abscissa grid will be created (see get_common_time for
-more details).
- 
-Usage:
-  mul(wd1, wd2, [wdout], [clabel=str], [xlabel=str], [ylabel=str])
+def mul(wd1,*args,**kwargs):
+    '''Usage:
+  mul(wd1,wd2,[wdout])
     or
-  mul(wd1, 0, value ,[wdout], [clabel=str], [xlabel=str], [ylabel=str])
+  mul(wd1,0,value,[wdout])
 
-Arguments:
-  wd1:    Index of the first WDF array to be used in the operation.
-  wd2:    If supplied as the second argument, the index of the second WDF array
-          to be used in the operation.
-  value:  If the second argument is the integer 0, a scalar value that will be
-          multiplied times the first WDF array (wd1).
-  wdout:  Index of the WDF array to receive the output of the operation. If not
-          supplied, the first array (wd1) will be overwritten with the result.
-  clabel: Comment label for output dataset.
-  xlabel: Abscissa (x) axis label for output dataset.
-  ylabel: Ordinate (y) axis label for output dataset.
+Keyword arguments \'clabel\', \'xlabel\', and \'ylabel\' are also supported'''
 
-Return Value: If successful, the index of the output WDF array,
-otherwise, None'''
-
-    if len(args) == 0 and len(kwargs) == 0:
-        print(mul.__doc__)
-        return None
-
-    rval = binary_op('*',*args,**kwargs)
-    if type(rval) == str and rval[:4] == 'fail':
-        print('MUL:'+rval[4:]) 
-        print(mul.__doc__)
+    rval = binary_op('*',wd1,*args,**kwargs)
+    if type(rval) == types.StringType and rval[:4] == 'fail':
+        print 'Error:'+rval[4:] 
+        print mul.__doc__
         rval = None
 
     return rval
 
 __all__.append('div')
 
-def div(*args,**kwargs):
-    '''\
-Divides two WDF arrays, or in its second form, divides a WDF array by a scalar.
-If an optional index for an output WDF array is not supplied, the result will
-be written to the first WDF array. If the abscissa ranges of the two arrays do
-not match, a common abscissa grid will be created (see get_common_time for
-more details).
- 
-Usage:
-  div(wd1, wd2, [wdout], [dzero=0.0], [clabel=str], [xlabel=str], [ylabel=str])
+def div(wd1,*args,**kwargs):
+    '''Usage:
+  div(wd1,wd2,[wdout],[dzero=0.0])
     or
-  div(wd1, 0, value ,[wdout], [dzero=0.0], [clabel=str], [xlabel=str],
-      [ylabel=str])
+  div(wd1,0,value,[wdout],[dzero=0.0])
 
-Arguments:
-  wd1:    Index of the first WDF array to be used in the operation.
-  wd2:    If supplied as the second argument, the index of the second WDF array
-          to be used in the operation.
-  value:  If the second argument is the integer 0, a scalar value that will be
-          used to divide the first WDF array (wd1).
-  wdout:  Index of the WDF array to receive the output of the operation. If not
-          supplied, the first array (wd1) will be overwritten with the result.
-  dzero:  If supplied, the value to be used  for the result when the divisor
-          array equals zero. If not supplied, zero will be used.
-  clabel: Comment label for output dataset.
-  xlabel: Abscissa (x) axis label for output dataset.
-  ylabel: Ordinate (y) axis label for output dataset.
-
-Return Value: If successful, the index of the output WDF array,
-otherwise, None'''
+Keyword arguments \'clabel\', \'xlabel\', and \'ylabel\' are also supported'''
     
-    if len(args) == 0 and len(kwargs) == 0:
-        print(div.__doc__)
-        return None
-
-    kwvals = { 'dzero':0.0 }
-    kwvalid = list(kwvals.keys())
+    kwdefs = { 'dzero':0.0 }
+    kwvalid = kwdefs.keys()
     kwextra = {}
 
-    keys = list(kwargs.keys())
+    for k in kwvalid: exec k + " = kwdefs[k]"
+    keys = kwargs.keys()
     okay = True
 
     for k in keys:
         mat = utils.findbestmatch(kwvalid,k)
         lmat = len(mat)
         if lmat == 1:
-            kwvals[mat[0]] = kwargs[k]
+            exec mat[0] + " = kwargs[k]"
         elif lmat == 0:
             kwextra[k] = kwargs[k]
         else:
             okay = False
-            print("Could not uniquely match supplied keyword \"" + k + "\"")
-            print("It potentially matches valid keywords",str(mat))
+            print "Could not uniquely match supplied keyword \"" + k + "\""
+            print "It potentially matches valid keywords",str(mat)
 
-    print('dzero:',kwvals['dzero'])
-
-    rval = binary_op('/',*args,**kwextra)
-    if type(rval) == str and rval[:4] == 'fail':
-        print('DIV:'+rval[4:]) 
-        print(div.__doc__)
+    rval = binary_op('/',wd1,*args,**kwextra)
+    if type(rval) == types.StringType and rval[:4] == 'fail':
+        print 'Error:'+rval[4:] 
+        print div.__doc__
         rval = None
     elif rval is not None:
         data = _wdflist[rval].data[0]
         bad = np.where(~(np.isfinite(data)))
-        data[bad] = kwvals['dzero']
+        data[bad] = dzero
 
     return rval
 
 
 __all__.append('wpow')
 
-def wpow(*args,**kwargs):
-    '''\
-Raises the first WDF array to the power specified by the second WDF array, or
-in its second form, raises a WDF array to a specified scalar power. If an
-optional index for an output WDF array is not supplied, the result will be
-written to the first WDF array. If the abscissa ranges of the two arrays do
-not match, a common abscissa grid will be created (see get_common_time for
-more details). For operations which do not have a real result (e.g., raising
-a negative number to a fractional power), the output result will be set to zero.
- 
-Usage:
-  wpow(wd1, wd2, [wdout], [clabel=str], [xlabel=str], [ylabel=str])
+def wpow(wd1,*args,**kwargs):
+    '''Usage:
+  wpow(wd1,wd2,[wdout])
     or
-  wpow(wd1, 0, value ,[wdout], [clabel=str], [xlabel=str], [ylabel=str])
+  wpow(wd1,0,value,[wdout])
 
-Arguments:
-  wd1:    Index of the first WDF array to be used in the operation.
-  wd2:    If supplied as the second argument, the index of the second WDF array
-          to be used in the operation.
-  value:  If the second argument is the integer 0, a scalar power to be applied
-          to first WDF array (wd1).
-  wdout:  Index of the WDF array to receive the output of the operation. If not
-          supplied, the first array (wd1) will be overwritten with the result.
-  clabel: Comment label for output dataset.
-  xlabel: Abscissa (x) axis label for output dataset.
-  ylabel: Ordinate (y) axis label for output dataset.
-
-Return Value: If successful, the index of the output WDF array,
-otherwise, None'''
+Keyword arguments \'clabel\', \'xlabel\', and \'ylabel\' are also supported'''
     
-    if len(args) == 0 and len(kwargs) == 0:
-        print(wpow.__doc__)
-        return None
-
-    rval = binary_op('^',*args,**kwargs)
-    if type(rval) == str and rval[:4] == 'fail':
-        print('WPOW:'+rval[4:]) 
-        if not _tmp_quiet[0]: print(wpow.__doc__)
+    rval = binary_op('^',wd1,*args,**kwargs)
+    if type(rval) == types.StringType and rval[:4] == 'fail':
+        print 'Error:'+rval[4:] 
+        if not _tmp_quiet[0]: print wpow.__doc__
         rval = None
     elif rval is not None:
         data = _wdflist[rval].data[0]
@@ -3396,46 +3172,18 @@ otherwise, None'''
 
 __all__.append('rtp')
 
-def rtp(*args,**kwargs):
-    '''\
-Raises a WDF array to scalar power. If an optional index for an
-output WDF array is not supplied, the result will overwrite the
-original WDF array (wdf). For operations which do not have a real
-result (e.g., raising a negative number to a fractional power), the
-output result will be set to zero.
- 
-Usage:
-  rtp(wdf, value ,[wdout], [clabel=str], [xlabel=str], [ylabel=str])
+def rtp(wd1,value,*args,**kwargs):
+    '''Usage:
+  rtp(wd1,value,[wdout])
 
-Arguments:
-  wdf:    Index of the WDF array to be used in the operation.
-  value:  A scalar power to be applied to WDF array (wdf).
-  wdout:  Index of the WDF array to receive the output of the operation. If not
-          supplied, the original array (wdf) will be overwritten with the
-          result.
-  clabel: Comment label for output dataset.
-  xlabel: Abscissa (x) axis label for output dataset.
-  ylabel: Ordinate (y) axis label for output dataset.
-
-Return Value: If successful, the index of the output WDF array,
-otherwise, None'''
-
-    if len(args) == 0 and len(kwargs) == 0:
-        print(rtp.__doc__)
-        return None
-    if len(args) < 2:
-        print('RTP: requires at least 2 arguments')
-        return None
-
+Keyword arguments \'clabel\', \'c=xlabel\', and \'ylabel\' are also supported.'''
+    
     _tmp_quiet[0] = True
-    largs = list(args)
-    largs.insert(1,0)
-    print('rtp',largs)
-    rval = wpow(*largs,**kwargs)
+    rval = wpow(wd1,0,value,*args,**kwargs)
     _tmp_quiet[0] = False
-    if type(rval) == str and rval[:4] == 'fail':
-        print('RTP:'+rval[4:]) 
-        print(rtp.__doc__)
+    if type(rval) == types.StringType and rval[:4] == 'fail':
+        print 'Error:'+rval[4:] 
+        print rtp.__doc__
         rval = None
     elif rval is not None:
         data = _wdflist[rval].data[0]
@@ -3444,95 +3192,51 @@ otherwise, None'''
 
     return rval
 
-def binary_op(*args,**kwargs):
-    '''\
-Support function for various binary array operations. Used by the add, sub,
-mul, div, wpow, and rtp functions.
-
-Usage:
-  binary_op(op, wd1, wd2, [wdout], [clabel=str], [xlabel=str], [ylabel=str])
-    or
-  binary_op(op, wd1, 0, value ,[wdout], [clabel=str], [xlabel=str],
-            [ylabel=str])
-
-Arguments:
-  op:     Single character indicating the operation to be performed. Currently
-          supported options are any one of the characters +-*/^.
-  wd1:    Index of the first WDF array to be used in the operation.
-  wd2:    If supplied as the second argument, the index of the second WDF array
-          to be used in the operation.
-  value:  If the second argument is the integer 0, a scalar to be used in place
-          of the second WDF array.
-  wdout:  Index of the WDF array to receive the output of the operation. If not
-          supplied, the first array (wd1) will be overwritten with the result.
-  clabel: Comment label for output dataset.
-  xlabel: Abscissa (x) axis label for output dataset.
-  ylabel: Ordinate (y) axis label for output dataset.
-
-Return Value: If successful, the index of the output WDF array. Otherwise, None
-              or a string, prepended with 'fail ', indicating the reason for
-              the failure'''
-
+def binary_op(op,wd1,*args,**kwargs):
+    ##print args
+    ##print kwargs
     attr_map = { 'clabel':'title','xlabel':'glabels', 'ylabel':'dlabels' }
-    kwdefs = {}
-    for k in attr_map: kwdefs[k] = None
-
-    DN = 'BINARY_OP'
-    argnames = [ 'op', 'wd1', 'a2', 'a3' , 'a4']
-    optvals = [ None, None ]
-    kwdefs = { 'clabel':None,  'xlabel':None, 'ylabel':None }
-    ##, '':, '':, '':, '':, '':, '':, 
-
-    res = utils.process_args(args, kwargs, DN, argnames, kwdefs, \
-                             optvals, extra=False)
-    if res == 0 or res == 1:
-        nl = [ "", "\n" ]
-        print(nl[res] + binary_op.__doc__)  ;  return None
-
-    op = res['op']
-    wd1 = res['wd1']
-    a2 = res['a2']
-    a3 = res['a3']
-    a4 = res['a4']
-    clabel = res['clabel']
-    xlabel = res['xlabel']
-    ylabel = res['ylabel']
-
-    validops = { '+':np.add, '-':np.subtract, '*':np.multiply, '/':np.divide,
-                 '^':np.power }
-    if op not in validops:
-        print(repr(op) + " is not a valid operation")
+    kwvalid = attr_map.keys()
+    validops = "+-*/^"
+    ##print 'binOp:',op,wd1,args,kwargs
+    if validops.find(op) < 0:
+        print "\"" + op + "\" is not a valid operation"
         return None
-    fctn = validops[op]
-    if type(wd1) is not int or type(a2) is not int:
+    argc = len(args)
+    if argc < 1 or type(wd1) is not types.IntType or \
+       type(args[0]) is not types.IntType:
         return 'fail Invalid or missing arguments'
 
     scalar = None
-    nextarg = a3
+    nextarg = 1
     check = [wd1]
-    if a2 > 0:      # not scalar
-        ##print("wd2 provided")
-        wd2 = a2
+    ##print argc, args[0]
+    if args[0] > 0:
+        ##print "wd2 provided"
+        wd2 = args[0]
         check.append(wd2)
     else:
-        if a3 is None: return 'fail scalar value not supplied'
-        nextarg = a4
+        if argc < 2: return 'fail Missing scalar argument'
+        nextarg = 2
         wd2 = None
         try:
-            scalar = float(a3)
-            ##print("Scalar",wd2,nextarg,scalar,t)
-        except (TypeError, ValueError) as e:
+            scalar = float(args[1])
+            ##print "Scalar",wd2,nextarg,scalar,t
+        except (TypeError, ValueError), e:
             return 'fail ' + str(e)
 
-    wdout = nextarg
-    if wdout is not None and type(wdout) is not int:
-            return 'fail Invalid type for wdout'
+    ##print wd1,wd2,scalar,check
 
-    ##print(op,wd1,a2,a3,a4)
-    ##print(wd2,scalar,wdout,repr(clabel),repr(xlabel),repr(ylabel))
+    wdout = None
+    if argc > nextarg:
+        wdout = args[nextarg]
+        if type(wdout) is not types.IntType:
+            return 'fail Invalid type for wdout'
         
+    ##print wdout
+
     vlist = utils.parsewsl(_wdflist,check,valid=True)
-    ##print(vlist)
+    ##print vlist
     clen = len(check)  ;  vlen = len(vlist)
     if vlen != clen:
         bad = ''
@@ -3542,26 +3246,45 @@ Return Value: If successful, the index of the output WDF array. Otherwise, None
         else:
             if vlist[0] == check[0]: bad = str(check[1])
             else: bad = str(check[0])
-        print("The following WDF arrays are not valid: " + bad)
+        print "The following WDF arrays are not valid: " + bad
         return None
 
-    keys = list(kwdefs.keys())
+    keys = kwargs.keys()
     okay = True
     attr_set = []
 
-    for k in keys:
-        val = res[k]
-        if val is None: continue
-        if type(val) is not str:  # all keyword args must be strings
-            okay = False
-            print("Supplied value for", k, "must be a string")
-        else:
-            sval = (attr_map[k],val)  ###repr(val)
-            if  k == 'xlabel' or k == 'ylabel':
-                sval = (attr_map[k],np.reshape(np.array([val]),(1,1)))
-        if okay:   attr_set.append(sval)
+    ##print "keys:",keys
 
-    ##print("attr_set:", okay, attr_set)
+    for k in keys:
+        mat = utils.findbestmatch(kwvalid,k)
+        lmat = len(mat)
+        if lmat != 1:
+            okay = False
+            if lmat == 0:
+                print "Could not match supplied keyword \"" + k + "\""
+                print "Valid keywords:",str(kwvalid)
+            else:
+                print "Could not uniquely match supplied keyword \"" + k + "\""
+                print "It potentially matches valid keywords",str(mat)
+        else:
+            mat = mat[0]
+            val = kwargs[k]
+            if type(val) is not types.StringType:
+                okay = False
+                print  "Supplied value for", mat, "must be a string"
+            else:
+                sval = repr(val)
+                if  mat == 'xlabel' or mat == 'ylabel':
+                    ts = attr_map[mat][:4]
+                    scmd = ts + " = np.reshape(np.array([" + sval + \
+                           "]),(1,1))"
+                    exec scmd
+                    sval = ts
+            if okay:
+                scmd = "dso." + attr_map[mat] + " = " + sval 
+                attr_set.append(scmd)
+
+    ##print "attr_set:", attr_set
 
     if not okay:
         return None
@@ -3578,7 +3301,6 @@ Return Value: If successful, the index of the output WDF array. Otherwise, None
     else:
         ds2 = w2i(wd2,copy=False)
         xcom, m1, m2 = get_common_time(wdout,wd2)
-        ##print('xcom',xcom,m1,m2,dso.typekey,ds2.typekey)
         if xcom is None:
             op2 = ds2.data[0]
         else:
@@ -3610,15 +3332,21 @@ Return Value: If successful, the index of the output WDF array. Otherwise, None
 
                 dso.fill_grid_range()
 
-    dso.data[0] = fctn(dso.data[0],op2)
+    if op == '+':
+        dso.data[0] = np.add(dso.data[0],op2)
+    elif op == '-':
+        dso.data[0] = np.subtract(dso.data[0],op2)
+    elif op == '*':
+        dso.data[0] = np.multiply(dso.data[0],op2)
+    elif op == '/':
+        dso.data[0] = np.divide(dso.data[0],op2)
+    elif op == '^':
+        dso.data[0] = np.power(dso.data[0],op2)
 
-    for attr,val in attr_set:
-        cmd = "dso." + attr + " = val"
-        ##print('cmd:',cmd)
-        exec(cmd)
+    for s in attr_set:  exec s
 
     if reset: _wdflist[wdout] = dso
-    ##print("bop returning", wdout)
+    ##print "bop returning", wdout
     return wdout
 
 __all__.append('getWdfWind')
@@ -3644,16 +3372,15 @@ Return value: If successful, returns array of ordinate values of the WDF array,
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + getWdfWind.__doc__)  ;  return None
+        print nl[res] + getWdfWind.__doc__  ;  return None
 
-    wdf = res['wdf']
-    zoom = res['zoom']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
-    ##for k in keys:   exec("print(k, " + k + ")")
-    if wdf not in _wdflist:
-        print(DN + ':',wdf, "does not have valid data")  ;  return None
+    ##for k in keys:   exec "print k, " + k
+    if not _wdflist.has_key(wdf):
+        print DN + ':',wdf, "does not have valid data"  ;  return None
 
     ds = _wdflist[wdf]
     try:
@@ -3690,16 +3417,16 @@ Return value: If successful, returns array of ordinate values of the WDF array,
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + getAxisWind.__doc__)  ;  return None
+        print nl[res] + getAxisWind.__doc__  ;  return None
 
-    azoom = res['azoom']
-    zoom = res['zoom']
-    ##keys = list(res.keys())
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
+
     #keys.sort()
-    #for k in keys:   exec("print(k, " + k + ")")
+    #for k in keys:   exec "print k, " + k
 
     if azoom is not None and zoom is not None:
-        print(DN + ": Invalid Syntax\n" + getAxisWind.__doc__)
+        print DN + ": Invalid Syntax\n" + getAxisWind.__doc__
         return None
     if azoom == 0: zoom = False
     elif azoom is not None or zoom is not None: zoom = True
@@ -3710,34 +3437,18 @@ Return value: If successful, returns array of ordinate values of the WDF array,
         tb = plt.get_current_fig_manager().toolbar
         if tb.mode == 'zoom rect': tb.zoom()
         elif tb.mode == 'pan/zoom': tb.pan()
-    print('Use cursor to select two WINDOW endpoints')
+    print 'Use cursor to select two WINDOW endpoints'
     w = plots.cur(2)[:,0]
     return np.array([w.min(),w.max()])
 
-def _n2u(dsin, xnew, alreadyfit=False):
-    '''\
-Support function for converting a 1D, single-block grid scalar dataset from
-non-uniform (NGD-11) to uniform (UF1).
-
-Usage:
-  _n2u(dsin, xnew, alreadyfit=False)
-
-Arguments:
-  dsin:       The non-uniform dataset to be converted.
-  xnew:       A 1D numpy array containing the uniform grid to be used.
-  alreadyfit: If True, the ordinate grid of the supplied dataset has
-              already been fit to the new uniform grid, so that step in
-              the conversion can be omitted.
-
-Return Value: If successful, the new uniform-grid dataset. Otherwise, None.
-'''
+def _n2u(dsin, xnew, alreadyuniform=False):
     if not isinstance(dsin,pff.NUNF_dataset):
-        print("_n2u: input DS not NONUNIFORM")
+        print "_n2u: input DS not NONUNIFORM"
         return None
     x0 = xnew[0]
     nx = len(xnew)
     rng = (xnew[-1] - x0)
-    if not alreadyfit:
+    if not alreadyuniform:
         dx = np.diff(xnew).min()
         nx = np.int64(round(rng/dx)) + 1
         xu = np.asarray(np.linspace(x0,xnew[-1],nx),dtype=pff.PFFnp_float)
@@ -3754,40 +3465,21 @@ Return Value: If successful, the new uniform-grid dataset. Otherwise, None.
              'data':[data], 'rawname':'UF1', 'rawtype':pff.UF1}
     for s in dirs:
         if s[0:2] == "__": continue
-        _lcls = locals()
-        exec("t = type(dsin." + s + ")",globals(),_lcls)
-        if _lcls['t'] is not types.MethodType:
+        exec "t = type(dsin." + s + ")"
+        if t is not types.MethodType:
             if s == 'x' or s == 'nx' or s == 'data' or s == 'rawname' or \
                s == 'typekey' or s == 'rawtype'  : continue
-            cmd = "udict['" + s + "'] = dsin." + s
-            ##print(cmd)
-            exec(cmd)
+            exec "udict['" + s + "'] = dsin." + s
 
     return pff.UNF_dataset(new=udict)
         
-def _u2n(dsin, xnew, alreadyfit=False):
-    '''\
-Support function for converting a 1D, single-block grid scalar dataset from
-uniform (UF1) to non-uniform (NGD-11).
-
-Usage:
-  _u2n(dsin, xnew, alreadyfit=False)
-
-Arguments:
-  dsin:       The uniform dataset to be converted.
-  xnew:       A 1D numpy array containing the non-uniform grid to be used.
-  alreadyfit: If True, the ordinate grid of the supplied dataset has
-              already been fit to the new uniform grid, so that step in
-              the conversion can be omitted.
-
-Return Value: If successful, the new uniform-grid dataset. Otherwise, None.
-'''
+def _u2n(dsin, xnew, alreadyuniform=False):
     if not isinstance(dsin,pff.UNF_dataset):
-        print("_u2n: input DS not UNIFORM")
+        print "_u2n: input DS not UNIFORM"
         return None
     nx = len(xnew)
 
-    if not alreadyfit:
+    if not alreadyuniform:
         data = _fit2grid(dsin.getx(),dsin.data[0],xnew)
     else:
         data = dsin.data[0]
@@ -3797,16 +3489,13 @@ Return Value: If successful, the new uniform-grid dataset. Otherwise, None.
              'data':[data], 'rawname':'NGD', 'rawtype':pff.NGD}
     for s in dirs:
         if s[0:2] == "__": continue
-        _lcls = locals()
-        exec("t = type(dsin." + s + ")",globals(),_lcls)
-        if _lcls['t'] is not types.MethodType:
+        exec "t = type(dsin." + s + ")"
+        if t is not types.MethodType:
             if s == 'x0' or s == 'dx' or s == 'nx' or s == 'data' or \
               s == 'rawname' or  s == 'typekey' or s == 'rawtype'  : continue
-            cmd = "ndict['" + s + "'] = dsin." + s
-            ##print(cmd)
-            exec(cmd)
+            exec "ndict['" + s + "'] = dsin." + s
 
-    ##print(ndict['nx'])
+    print ndict['nx']
     return pff.NUNF_dataset(new=ndict)
         
 def _fit2grid(oldx, oldy, newx):
@@ -3831,4 +3520,4 @@ try:
 except NameError:
     _wdflist = {}
 
-##print("1D loaded")
+##print "1D loaded"

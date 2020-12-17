@@ -19,6 +19,8 @@
 # Setup file for building pff_ext extension module
 #
 
+from __future__ import print_function
+
 from distutils.core import setup, Extension
 
 import os,sys,re
@@ -58,22 +60,26 @@ def get_shr_ext(sys_type):
     inl =  buf.find('\n',ist)
     return buf[ist:inl].split(' ')[-1]
 
-hl = os.getenv('HERMES_LIB')
-hst = os.getenv('HERMES_SYS_TYPE')
-incdir = os.path.join(hl,'pffc')
-libdir = os.path.join(hl,'debug',hst)
+if __name__ == '__main__':
+    hl = os.getenv('HERMES_LIB')
+    hst = os.getenv('HERMES_SYS_TYPE')
+    incdir = os.path.join(hl,'pffc')
+    libdir = os.path.join(hl,'debug',hst)
 
-##verstr = '.'.join([str(i) for i in sys.version_info[0:2]])
-deps = bld_def_list()
-print len(deps), 'dependencies found'
-##print len(deps), deps
+    ##verstr = '.'.join([str(i) for i in sys.version_info[0:2]])
+    deps = bld_def_list()
+    print(len(deps), 'dependencies found')
+    ##print len(deps), deps
+    defines = [('PY_MAJOR_VERSION',sys.version_info[0])]
+    ##print('defines:',defines)
     
-setup(name="pff_ext",version="1.0",
-      ext_modules=[Extension("pff_ext",["pff_ext.cc"],
-                             include_dirs=[incdir],
-                             library_dirs=[libdir],
-                             libraries=["pffc_pic"],
-                             undef_macros=['NDEBUG'],
-                             depends=deps,
-                             extra_compile_args=[])
-                   ])
+    setup(name="pff_ext",version="1.0",
+          ext_modules=[Extension("pff_ext",["pff_ext.cc"],
+                                 include_dirs=[incdir],
+                                 library_dirs=[libdir],
+                                 libraries=["pffc_pic"],
+                                 undef_macros=['NDEBUG'],
+                                 define_macros=defines,
+                                 depends=deps,
+                                 extra_compile_args=[])
+                       ])

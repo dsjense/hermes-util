@@ -36,14 +36,23 @@ MAKEFILE = GNUmakefile
 
 PYC_LIST = $(shell find . -name '*.pyc') 
 
-.PHONY : all extensions ext html clean htmlclean distclean
+ifneq ($(HERMES_PYTHON_TARGETS),)
+  PY_TARGS = $(subst :, ,$(HERMES_PYTHON_TARGETS))
+else
+  PY_TARGS = python
+endif
 
+.PHONY : all extensions ext html clean htmlclean distclean $(PY_TARGS)
 
 all:
-	@cd extensions; $(MAKE);  $(MAKE) html
+	@$(MAKE) $(PY_TARGS)
+	@cd extensions; $(MAKE) html
 
 ext extensions:
-	@cd extensions; $(MAKE)
+	@$(MAKE) $(PY_TARGS)
+
+$(PY_TARGS):
+	@cd extensions; $(MAKE) PYTHON_EXE=$@
 
 html:
 	@cd extensions; $(MAKE) html

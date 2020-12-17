@@ -16,28 +16,22 @@
 # Public License along with Hermes.  If not, see
 # <http://www.gnu.org/licenses/>.
 # 
-from __future__ import print_function, division, absolute_import
-
 import sys
 import pff
 import pff_ext as pex
-from . import plots
-from .plots import _ovrplt
-from . import utils
-from . import _1d
+import plots
+from plots import _ovrplt
+import utils
+import _1d
 import math
-##import types
+import types
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines
 import matplotlib.cm
-from matplotlib.colors import Colormap
 import matplotlib.patches
+from matplotlib.colors import Colormap
 import copy as cpy
-
-__doc__ = \
-'''Set of PFMPL functions for reading, writing, plotting, and otherwise
-manipulating multi-dimensional PFF datasets.'''
 
 __all__ = [ ]
 
@@ -66,13 +60,11 @@ Return value: If successful and STRUCT not specified, returns dataset read.
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + readgrd.__doc__)  ;  return None
+        print nl[res] + readgrd.__doc__  ;  return None
 
-    a1 = res['a1']
-    a2 = res['a2']
-    fileid = res['fileid']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
 
@@ -81,20 +73,20 @@ Return value: If successful and STRUCT not specified, returns dataset read.
     if a2 is None:  dsindex = a1
     else:
         dsindex = a2  ;  strnum = a1
-        if type(strnum) is not int:
-            print(DN + ": Supplied structure number (" + str(strnum) + \
-                   ") must be an integer")  ;  okay = False
-    if type(dsindex) is not int:
-        print(DN + ": Supplied dataset index (" + str(dsindex) + \
-              ") must be an integer")  ;  okay = False
+        if type(strnum) is not types.IntType:
+            print DN + ": Supplied structure number (" + str(strnum) + \
+                   ") must be an integer"  ;  okay = False
+    if type(dsindex) is not types.IntType:
+        print DN + ": Supplied dataset index (" + str(dsindex) + \
+              ") must be an integer"  ;  okay = False
 
     if not okay:
-        print("\n" + readgrd.__doc__)
+        print "\n" + readgrd.__doc__
         return
 
     ds = pff.read_dataset(dsindex,fileid)
     if _what_type(ds) != 'G':
-        print(DN + ": Unable to read dataset", dsindex, "from file", fileid)
+        print DN + ": Unable to read dataset", dsindex, "from file", fileid
         return None
 
     ##print dsindex, strnum, ds.adim, ds.sdim, ds.apptype
@@ -127,13 +119,11 @@ Return value: If successful and STRUCT not specified, returns dataset read.
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + readfld.__doc__)  ;  return None
+        print nl[res] + readfld.__doc__  ;  return None
 
-    a1 = res['a1']
-    a2 = res['a2']
-    fileid = res['fileid']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
 
@@ -142,36 +132,36 @@ Return value: If successful and STRUCT not specified, returns dataset read.
     if a2 is None:  dsindex = a1
     else:
         dsindex = a2  ;  strnum = a1
-        if type(strnum) is not int:
-            print(DN + ": Supplied structure number (" + str(strnum) + \
-                   ") must be an integer")  ;  okay = False
-    if type(dsindex) is str:
+        if type(strnum) is not types.IntType:
+            print DN + ": Supplied structure number (" + str(strnum) + \
+                   ") must be an integer"  ;  okay = False
+    if type(dsindex) is types.StringType:
         try:
             tmp = pex.getmatch(dsindex,fileid)
-        except pex.PFF_Error as e:
-            print(DN + ": Error:", e)
+        except pex.PFF_Error, e:
+            print DN + ": Error:", e
             return None
         if tmp[2] > 0:
             dsl = pff.buf2list(tmp)
             if len(dsl) != 1:
-                print(DN + ": Supplied string '" + dsindex + \
-                   "' must match a single dataset")  ;  okay = False
+                print DN + ": Supplied string '" + dsindex + \
+                   "' must match a single dataset"  ;  okay = False
             else: dsindex = dsl[0]
-            print(dsindex)
+            print dsindex
         else:
-            print(DN + ": No datasets matching \"" + dataset + "\" found")
+            print DN + ": No datasets matching \"" + dataset + "\" found"
             return 0
-    elif type(dsindex) is not int:
-        print(DN + ": Supplied dataset index (" + str(dsindex) + \
-              ") must be an integer")  ;  okay = False
+    elif type(dsindex) is not types.IntType:
+        print DN + ": Supplied dataset index (" + str(dsindex) + \
+              ") must be an integer"  ;  okay = False
 
     if not okay:
-        print("\n" + readfld.__doc__)
+        print "\n" + readfld.__doc__
         return None
 
     ds = pff.read_dataset(dsindex,fileid)
     if _what_type(ds) != 'F':
-        print(DN + ": Unable to read dataset", dsindex, "from file", fileid)
+        print DN + ": Unable to read dataset", dsindex, "from file", fileid
         return None
 
     if strnum is None:  return ds
@@ -205,13 +195,11 @@ Return value: If successful and STRUCT not specified, returns a quadlist3d
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + readcon.__doc__)  ;  return None
+        print nl[res] + readcon.__doc__  ;  return None
 
-    a1 = res['a1']
-    a2 = res['a2']
-    fileid = res['fileid']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
 
@@ -221,34 +209,34 @@ Return value: If successful and STRUCT not specified, returns a quadlist3d
     else:
         dsindices = a2  ;  strnum = a1
         dsindices = args[1]
-        if type(strnum) is not int:
-            print(DN + ": Supplied structure number (" + str(strnum) + \
-                   ") must be an integer")  ;  okay = False
+        if type(strnum) is not types.IntType:
+            print DN + ": Supplied structure number (" + str(strnum) + \
+                   ") must be an integer"  ;  okay = False
 
     t = type(dsindices)
-    if t is not list and t is not tuple:
-        if t is str:
+    if t is not types.ListType and t is not types.TupleType:
+        if t is types.StringType:
             try:
                 tmp = pex.getmatch(dsindices,fileid)
-            except pex.PFF_Error as e:
-                print(DN + ": Error:", e)
+            except pex.PFF_Error, e:
+                print DN + ": Error:", e
                 return None
             if tmp[2] > 0:
                 dsindices = pff.buf2list(tmp)
             else:
-                print(DN + ": No datasets matching \"" + dsindices + "\" found")
+                print DN + ": No datasets matching \"" + dsindices + "\" found"
                 return 0
         else:
             dsindices = [ dsindices ]
 
     ##print dsindices
     for ind in dsindices:
-        if type(ind) is not int:
-            print(DN + ": Supplied dataset index (" + str(ind) + \
-                  ") must be an integer")  ;  okay = False
+        if type(ind) is not types.IntType:
+            print DN + ": Supplied dataset index (" + str(ind) + \
+                  ") must be an integer"  ;  okay = False
         
     if not okay:
-        print("\n" + readcon.__doc__)
+        print "\n" + readcon.__doc__
         return
 
     dsout = None
@@ -261,7 +249,7 @@ Return value: If successful and STRUCT not specified, returns a quadlist3d
             if len(c.__dict__) == 0: okay = False
         elif rtype != 'Q': okay = False
         if not okay:
-            print(DN + ": Unable to read dataset", ind, "from file", fileid)
+            print DN + ": Unable to read dataset", ind, "from file", fileid
             return None
         if dsout is None:  dsout = c
         else:   dsout.append(c)
@@ -307,16 +295,11 @@ Note: If the number of attributes is three or larger, an additional attribute
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + readpar.__doc__)  ;  return None
+        print nl[res] + readpar.__doc__  ;  return None
 
-    a1 = res['a1']
-    a2 = res['a2']
-    amass = res['amass']
-    electron = res['electron']
-    fileid = res['fileid']
-    proton = res['proton']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
 
@@ -325,21 +308,21 @@ Note: If the number of attributes is three or larger, an additional attribute
     if a2 is None:  dsindex = a1
     else:
         dsindex = a2  ;  strnum = a1
-        if type(strnum) is not int:
-            print(DN + ": Supplied structure number (" + str(strnum) + \
-                   ") must be an integer")  ;  okay = False
-    if type(dsindex) is not int:
-        print(DN + ": Supplied dataset index (" + str(dsindex) + \
-              ") must be an integer")  ;  okay = False
+        if type(strnum) is not types.IntType:
+            print DN + ": Supplied structure number (" + str(strnum) + \
+                   ") must be an integer"  ;  okay = False
+    if type(dsindex) is not types.IntType:
+        print DN + ": Supplied dataset index (" + str(dsindex) + \
+              ") must be an integer"  ;  okay = False
 
     if not okay:
-        print("\n" + readpar.__doc__)
+        print "\n" + readpar.__doc__
         return
 
     ds = pff.read_dataset(dsindex,fileid)
     # Note _what_type() returns None if ds is None
     if _what_type(ds) != 'V':
-        print(DN + ": Unable to read dataset", dsindex, "from file", fileid)
+        print DN + ": Unable to read dataset", dsindex, "from file", fileid
         return None
 
     ##print dsindex, strnum, ds.nv, ds.adim, ds.sdim, ds.apptype
@@ -368,77 +351,20 @@ Note: If the number of attributes is three or larger, an additional attribute
         s = s.reshape((ds.nv,1),order='F')
         ds.data = np.append(data,s,axis=1)
         adim += 1
-        tmplab = ds.dlabels.tolist()
-        tmplab.append(lab)
-        ds.dlabels = np.array(tmplab)
+        tmplab = ds.dlabels
+        olen = int(str(tmplab.dtype)[2:])
+        nlen = max(olen,len(lab))
+        ##print "new dlabels", nlen
+        dt = 'a' + str(nlen)
+        newlab = np.empty((adim,),dtype=(dt))
+        ds.dlabels = newlab
+        newlab[:-1] = tmplab[...]
+        newlab[-1] = lab
         ds.adim = adim
         
     if strnum is None:  return ds
 
     _struclist[strnum] = ds  ;  return 0
-
-__all__.append('wristr')
-def wristr(*args, **kwargs):
-    '''Write a structure to an open pff file.
-
-Usage:
-  wristr(ds, [fileid=int], [precision=int], [full=bool], [reduced=bool] )
-
-Arguments:
-  ds:        PFF dataset (or structure index of dataset) to be changed.
-             Supported dataset types are:
-                pff.blkgrd_dataset
-                pff.VTX_dataset
-                pfmpl._2d.quadlist3d
-  fileid:    Index of PFF file from which to read dataset. If not supplied,
-             the current active file is used.
-  precision: Precision used to write dataset. Legal values are:
-               pff.FP_REDUCED, pff.FP_FULL, or pff.FP_ORDFULL
-  full:      If set, write precision will be pff.FP_FULL
-  reduced:   If set, write precision will be pff.FP_REDUCED
-
-Return value: If successful, returns 0. Otherwise, None is returned'''
-
-    DN = 'WRISTR'
-    argnames = [ 'ds' ]
-    optvals = [ ]
-    kwdefs = { 'fileid':0, 'precision':None,  'full':None, 'reduced':None }
-               ##, '':, '':, '':, '':, '':, '':,
-
-    res = utils.process_args(args, kwargs, DN, argnames, kwdefs, optvals,
-                             extra=False)
-
-    if res == 0 or res == 1:
-        nl = [ "", "\n" ]
-        print(nl[res] + wristr.__doc__)  ;  return None
-
-    ds = res['ds']
-    fileid = res['fileid']
-    precision = res['precision']
-    full = res['full']
-    reduced = res['reduced']
-
-    ##keys = list(res.keys())
-    ##keys.sort()
-    ##for k in keys:   exec "print k, " + k
-
-    ds, itype = process_ds(ds, DN, \
-                           (pff.blkgrid_dataset,pff.VTX_dataset,quadlist3d))
-    if ds is None: return None
-    cnt = 0
-    if precision is not None: cnt += 1
-    if full is not None:
-        if full: precision = pff.FP_FULL; cnt += 1
-    if reduced is not None:
-        if reduced: precision = pff.FP_REDUCED; cnt += 1
-    if cnt > 1:
-        print(DN + ": Only one of the keywords 'precision', 'full', " + \
-                   "or 'reduced' is permitted")
-
-    try: ds.write(id=fileid, precision=precision, ignore=True)
-    except pex.PFF_Error as e:
-        print(DN + ": Error:", e)
-        return None
 
 __all__.append('chastr')
 def chastr(*args, **kwargs):
@@ -497,20 +423,13 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
 
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + chastr.__doc__)  ;  return None
+        print nl[res] + chastr.__doc__  ;  return None
     wres = res[1]
     res = res[0]
 
-    ds = res['ds']
-    axdim = res['axdim']
-    clabel = res['clabel']
-    mxdim = res['mxdim']
-    scale = res['scale']
-    space = res['space']
-    vlabel = res['vlabel']
-    xlabel = res['xlabel']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
 
@@ -545,74 +464,72 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
         opkey = ww[0:ww.find('#')]
         wdim = dmap[opkey]
         ##print i, opkey, wdim
-        for k in list(wr.keys()):
+        for k in wr.keys():
             if k < 1 or k > wdim:
                 s = ww.replace('#',str(k))
                 if wdim == 0:  bad += [ s ]
                 else:
-                    print(DN + ": Illegal integer in", s + \
-                          ": it must be between 1 and",wdim)
+                    print DN + ": Illegal integer in", s + \
+                          ": it must be between 1 and",wdim
                 okay = False
     if len(bad) > 0:
         if len(bad) == 1:
-            print(DN + ": Keyword \'" +bad[0]+ "\' is invalid for this dataset")
+            print DN + ": Keyword \'" +bad[0]+ "\' is invalid for this dataset"
         else:
-            print(DN + ": Keywords", bad, "are invalid for this dataset")
+            print DN + ": Keywords", bad, "are invalid for this dataset"
         okay = False
 
     sp_func = False
     if adim != 0:
         if space is not None:
           t = type(space)
-          if t is str:
+          if t is types.StringType:
             tx = np.arange(1,2,dtype=pff.PFFnp_float)
             if utils.eval_numpy_function(tx,space,quiet=0) is None:
-                print(DN + ": provided SPACE string is not a valid function")
+                print DN + ": provided SPACE string is not a valid function"
                 okay = False
                 sp_func = True
-          elif t is not bool and t is not int:
-            print(DN + ": SPACE must True, False, an integer, or a string")
+          elif t is not bool and t is not types.IntType:
+            print DN + ": SPACE must True, False, an integer, or a string"
             okay = False
           fnd = False
           if scale is not None:
             fnd = True
-            if type(scale) is not int or scale < 1 or scale > sdim:
-              print(DN + \
-                  ": Keyword \'scale\' must be an integer between 1 and", sdim)
+            if type(scale) is not types.IntType or scale < 1 or scale > sdim:
+              print DN + \
+                  ": Keyword \'scale\' must be an integer between 1 and", sdim
               okay = False
           else:
             lc = wkeys.index('s#v')
             ww = wres[lc]
-            for j in list(ww.keys()):
+            for j in ww.keys():
               val = ww[j]
               fnd = True
-              if type(val) is not int or val < 1 or val > sdim:
-                print(DN + ": Keyword \'s" + str(j) + \
-                      "v\' must be an integer between 1 and", sdim)
+              if type(val) is not types.IntType or val < 1 or val > sdim:
+                print DN + ": Keyword \'s" + str(j) + \
+                      "v\' must be an integer between 1 and", sdim
                 okay = False
           if not fnd:
-            print(DN + ": Keyword \'space\' requires specifying \'scale\' " \
-                  "and/or \'s#v\', where 1 <= # <=", adim) 
+            print DN + ": Keyword \'space\' requires specifying \'scale\' " \
+                  "and/or \'s#v\', where 1 <= # <=", adim 
             okay = False
             
 
     if not okay:
-        print("\n" + chastr.__doc__)  ;  return None
+        print "\n" + chastr.__doc__  ;  return None
 
     if clabel is not None:  ds.title = clabel
     if xlabel is not None:
         tmplab = ds.glabels
         nlen = len(xlabel)
         olen = int(str(tmplab.dtype)[2:])
-        if nlen == olen: tmplab[...] = xlabel
-        else:
+        if nlen != olen:
+            ##print "new glabels"
+            dt = 'a' + str(nlen)
             sh = tmplab.shape
-            newlab = tmplab.tolist()
-            for j in range(sdim):
-                if nblk:
-                    for ib in range(nblk): newlab[ib][j] = xlabel
-                else: newlab[j] = xlabel
-            ds.glabels = np.array(newlab)
+            tmplab = np.empty(sh,dtype=(dt))
+            ds.glabels = tmplab
+        tmplab[...] = xlabel
     else:
         lc = wkeys.index('x#label')
         ww = wres[lc]
@@ -622,35 +539,33 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
             olen = int(str(tmplab.dtype)[2:])
             if lx == sdim: nlen = 0
             else:  nlen = olen
-            keys = list(ww.keys())
+            keys = ww.keys()
             for j in keys:  nlen = max(nlen,len(ww[j]))
-            ##print('nlen,olen:',nlen,olen,tmplab.dtype,tmplab)
-            if nlen == olen:
-                if nblk: dim0 = (slice(nblk), )
-                else: dim0 = ()
-                for j in keys:  tmplab[dim0 + (j-1, )] = ww[j]
-            else:
+            if nlen != olen:
+                ##print "new glabels", nlen
+                dt = 'a' + str(nlen)
                 sh = tmplab.shape
-                newlab = tmplab.tolist()
-                for j in keys:
-                    if nblk:
-                        for ib in range(nblk): newlab[ib][j-1] = ww[j]
-                    else: newlab[j-1] = ww[j]
-                ds.glabels = np.array(newlab)
+                newlab = np.empty(sh,dtype=(dt))
+                ds.glabels = newlab
+                newlab[...] = tmplab[...]
+                tmplab = newlab
+            ##print olen, nlen
+            if nblk: dim0 = (slice(nblk), )
+            else: dim0 = ()
+            for j in keys:  tmplab[dim0 + (j-1, )] = ww[j]
+            ##print tmplab, id(tmplab), id(ds.glabels)
             
     if vlabel is not None:
         tmplab = ds.dlabels
         nlen = len(vlabel)
         olen = int(str(tmplab.dtype)[2:])
-        if nlen == olen: tmplab[...] = vlabel
-        else:
+        if nlen != olen:
+            ##print "new dlabels"
+            dt = 'a' + str(nlen)
             sh = tmplab.shape
-            newlab = tmplab.tolist()
-            for j in range(sdim):
-                if nblk:
-                    for ib in range(nblk): newlab[ib][j] = xlabel
-                else: newlab[j] = vlabel
-            ds.dlabels = np.array(newlab)
+            tmplab = np.empty(sh,dtype=(dt))
+            ds.dlabels = tmplab
+        tmplab[...] = vlabel
     elif adim > 0:
         lc = wkeys.index('v#label')
         ww = wres[lc]
@@ -660,21 +575,20 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
             olen = int(str(tmplab.dtype)[2:])
             if lv == adim: nlen = 0
             else:  nlen = olen
-            keys = list(ww.keys())
+            keys = ww.keys()
             for j in keys:  nlen = max(nlen,len(ww[j]))
-            ##print('nlen,olen:',nlen,olen,tmplab.dtype,tmplab)
-            if nlen == olen:
-                if nblk: dim0 = (slice(nblk), )
-                else: dim0 = ()
-                for j in keys:  tmplab[dim0 + (j-1, )] = ww[j]
-            else:
+            if nlen != olen:
+                ##print "new dlabels", nlen
+                dt = 'a' + str(nlen)
                 sh = tmplab.shape
-                newlab = tmplab.tolist()
-                for j in keys:
-                    if nblk:
-                        for ib in range(nblk): newlab[ib][j-1] = ww[j]
-                    else: newlab[j-1] = ww[j]
-                ds.dlabels = np.array(newlab)
+                newlab = np.empty(sh,dtype=(dt))
+                ds.dlabels = newlab
+                newlab[...] = tmplab[...]
+                tmplab = newlab
+            ##print olen, nlen
+            if nblk: dim0 = (slice(nblk), )
+            else: dim0 = ()
+            for j in keys:  tmplab[dim0 + (j-1, )] = ww[j]
 
     reset = False
     if mxdim is not None:
@@ -694,7 +608,7 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
         ww = wres[lc]
         if len(ww):
             reset = not is_quad
-            keys = list(ww.keys())
+            keys = ww.keys()
             if is_blkgrd:
                 x = ds.x
                 for j in keys:
@@ -728,7 +642,7 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
         ww = wres[lc]
         if len(ww):
             reset = not is_quad
-            keys = list(ww.keys())
+            keys = ww.keys()
             if is_blkgrd:
                 x = ds.x
                 for j in keys:
@@ -778,7 +692,7 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
         lc = wkeys.index('s#v')
         ww = wres[lc]
         if len(ww):
-            keys = list(ww.keys())
+            keys = ww.keys()
             if is_blkgrd:
                 data = ds.data
                 if space is not None: x = ds.x
@@ -843,16 +757,15 @@ Return value: If successful, returns the dataset object corresponding to the
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + s2i.__doc__)  ;  return None
+        print nl[res] + s2i.__doc__  ;  return None
 
-    struct = res['struct']
-    copy = res['copy']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
-    if struct not in _struclist:
-        print(DN + ':',struct, "does not have valid data")
+    if not _struclist.has_key(struct):
+        print DN + ':',struct, "does not have valid data"
         return None
 
     if copy:  return  cpy.deepcopy(_struclist[struct])
@@ -884,21 +797,19 @@ Return value: None is returned'''
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]  ;  nr = [ 0,None ]
-        print(nl[res] + i2s.__doc__)  ;  return None
+        print nl[res] + i2s.__doc__  ;  return None
 
-    ds = res['ds']
-    struct = res['struct']
-    rcpy = res['copy']
-    ##for k in argnames:  exec(k + " = res[k]")
+    rcpy = res['copy']  ;  del res['copy']
+    for k in argnames:  exec k + " = res[k]"
 
     okay = True
     ds, itype = process_ds(ds, DN, \
                            (pff.blkgrid_dataset,pff.VTX_dataset,quadlist3d))
     if ds is None: okay = False
-    if struct is not None and type(struct) is not int:
-        print(DN + ": STRUCTURE must be an integer")  ;  okay = False
+    if struct is not None and type(struct) is not types.IntType:
+        print DN + ": STRUCTURE must be an integer"  ;  okay = False
     if not okay:
-        print("\n" + i2s.__doc__)  ;  return None
+        print "\n" + i2s.__doc__  ;  return None
 
     if ds is not None:
         if rcpy:   _struclist[struct] = cpy.deepcopy(ds)
@@ -964,48 +875,51 @@ Return value: If COPY is specified, or STRUCT is not, the PFF dataset
                                   extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]  ;  nr = [ 0,None ]
-        print(nl[res] + arr2str.__doc__)  ;  return None
+        print nl[res] + arr2str.__doc__  ;  return None
 
     # pop all the positional arguments from the key/value list
-    # as well as any key/value pairs that have a non-string value
-    try:
-        data = res.pop('data')
-        grid = res.pop('grid')
-        struct = res.pop('struct')
-        rcpy = res.pop('copy')
-        tspare = res.pop('spare')
-        apptype = res.pop('apptype')
-    except KeyError as e:
-        print("Error processing arguments --",e)
-        return None
+    for k in argnames:
+        exec k + " = res[k]"  ;  del res[k]
+
+    # next, pop any key/value pairs that have a non-string value
+    rcpy = res['copy']  ;  del res['copy']
+    tspare = res['spare']  ;  del res['spare']
+    apptype = res['apptype']  ;  del res['apptype']
 
     # now pop any pairs with a value of None
-    for k in list(res.keys()):
-        if res[k] is None: res.pop(k)
-    keys = list(res.keys())
+    for k in res.keys():
+        if res[k] is None: del res[k]
+    keys = res.keys()
     ##keys.sort()
-    ##for k in keys:   print(k, res[k])
+    ##for k in keys:   print k, res[k]
 
     okay = True
    
     gtypeMsg = \
         ": GRID must be a list of 1D NUMPY.NDARRAY object of numeric type"
-    if type(grid) is not list:
-        print(DN + gtypeMsg)
+    if type(grid) is not types.ListType:
+        print DN + gtypeMsg
         okay = False
     else:
         sdim = len(grid)
     try:
-        d = np.asarray(data,dtype=np.single,order='F')
-        dshp = np.array(d.shape,dtype=np.int64)
-        ndim = len(dshp)
+        if data is None:
+            d = data
+            adim = ndim = 0
+            dshp = np.arange(sdim)
+        else:
+            d = np.asarray(data,dtype=np.single,order='F')
+            dshp = np.array(d.shape,dtype=np.int64)
+            ndim = len(dshp)
+            adim = 1
+            if ndim == sdim + 1:
+                adim = dshp[-1]
+                ndim -= 1
     except ValueError:
-        print(DN + ": DATA must be a NUMPY.NDARRAY object of numeric type")
+        print DN + ": DATA must be a NUMPY.NDARRAY object of numeric type"
         okay = False
-    adim = 1
-    if ndim == sdim + 1: adim = dshp[-1]
-    elif ndim != sdim:
-        print(DN + ": DATA and GRID do not have consistant dimensions",ndim,sdim)
+    if ndim > 0 and ndim != sdim:
+        print DN + ": DATA and GRID do not have consistant dimensions",ndim,sdim
         okay = False
     if okay:
         tokay = True
@@ -1014,33 +928,34 @@ Return value: If COPY is specified, or STRUCT is not, the PFF dataset
             try:
                 x = np.asarray(xt,dtype=np.single)
                 grd[i] = x
+                if adim == 0: dshp[i] = len(x)
             except ValueError:
                 tokay = False
             if tokay:
                 if x.ndim != 1: tokay = False
             if not tokay:
-                print(DN + gtypeMsg)
+                print DN + gtypeMsg
             else:
                 nx = len(x)
-                if nx != dshp[i]:
+                if adim > 0 and nx != dshp[i]:
                     if nx == 2:
                         x0 = x[0] ; dx = x[1]  ; ny = dshp[i]
                         xnew = np.asarray(np.linspace(x0,x0+(ny-1)*dx,dshp[i]),
                                           np.single)
                         grd[i] = xnew
                     else:
-                        print(DN + \
-                        ": GRID in coord.",i+1,"is not consistent:",nx,dshp[i])
+                        print DN + \
+                        ": GRID in coord.",i+1,"is not consistent:",nx,dshp[i]
                         tokay = False
         if not tokay: okay = False
     if okay:
         if sdim < 2:
-            print(DN + ": DATA is 1D, use I2W instead")
+            print DN + ": DATA is 1D, use I2W instead"
             okay = False
     if struct is not None:
-        if type(struct) is not int:
-            print(DN + ": Supplied structure number (" + str(struct) + \
-                   ") must be an integer")  ;  okay = False
+        if type(struct) is not types.IntType:
+            print DN + ": Supplied structure number (" + str(struct) + \
+                   ") must be an integer"  ;  okay = False
 
     if tspare is None:
         spare = None
@@ -1048,8 +963,8 @@ Return value: If COPY is specified, or STRUCT is not, the PFF dataset
         try:
             spare = np.asarray(tspare,dtype=np.intc)
         except ValueError:
-            print(DN + \
-              ": Spare array must be a 1D NUMPY.NDARRAY object of integer type")
+            print DN + \
+              ": Spare array must be a 1D NUMPY.NDARRAY object of integer type"
             okay = False
    
     lablen = {'vlabel':adim, 'xlabel':sdim}
@@ -1057,18 +972,18 @@ Return value: If COPY is specified, or STRUCT is not, the PFF dataset
     for k in keys:
         # Right now, all keywords are strings, except possibly [vx]label
         if k != 'vlabel' and k != 'xlabel':
-            if type(res[k]) is not str:
-                print(DN + ":",k.upper(),"must be a string")  ;  okay = False
+            if type(res[k]) is not types.StringType:
+                print DN + ":",k.upper(),"must be a string"  ;  okay = False
         else:
             s = (1,lablen[k])
             try:
                 labs = np.asarray(res[k],dtype=np.str_).reshape(s)
                 labmap[k] = labs
             except ValueError:
-                print(DN + ":",k.upper(),"has improper shape") ;okay = False
+                print DN + ":",k.upper(),"has improper shape" ;okay = False
                     
     if not okay:
-        print("\n" + arr2str.__doc__)  ;  return None
+        print "\n" + arr2str.__doc__  ;  return None
 
     ##print d.shape, grd, struct
     ##if ds is None:   print x,y
@@ -1093,12 +1008,12 @@ Return value: If COPY is specified, or STRUCT is not, the PFF dataset
         elif k == 'vlabel':
             dict['dlabels'] = labmap[k]
 
-    if 'title' not in dict: dict['title'] = ''
-    if 'typename' not in dict: dict['typename'] = ''
-    if 'file' not in dict: dict['file'] = ''
-    if 'glabels' not in dict:  dict['glabels'] = \
+    if not dict.has_key('title'): dict['title'] = ''
+    if not dict.has_key('typename'): dict['typename'] = ''
+    if not dict.has_key('file'): dict['file'] = ''
+    if not dict.has_key('glabels'):  dict['glabels'] = \
             np.fromiter(('' for i in range(sdim)),dtype='|S1').reshape(1,sdim)
-    if 'dlabels' not in dict:  dict['dlabels'] = \
+    if not dict.has_key('dlabels'):  dict['dlabels'] = \
             np.fromiter(('' for i in range(adim)),dtype='|S1').reshape(1,adim)
 
     ds = pff.NUNF_dataset(new=dict)
@@ -1157,31 +1072,13 @@ Return value: If successful, returns the number of grid blocks in the plot.
                              extra=True)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + plotgrd.__doc__)  ;  return None
+        print nl[res] + plotgrd.__doc__  ;  return None
     lineargs = res[1]
     res = res[0]
 
-    g = res['g']
-    x = res['x']
-    y = res['y']
-    znormal = res['znormal']
-    aspect = res['aspect']
-    charsize = res['charsize']
-    cndargs = res['cndargs']
-    conductor = res['conductor']
-    draw = res['draw']
-    lw = res['lw']
-    outline = res['outline']
-    overplot = res['overplot']
-    polar = res['polar']
-    title = res['title']
-    use_fig = res['use_fig']
-    xlabel = res['xlabel']
-    xrange = res['xrange']
-    ylabel = res['ylabel']
-    yrange = res['yrange']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
     ##print "lineargs:"
@@ -1190,21 +1087,21 @@ Return value: If successful, returns the number of grid blocks in the plot.
     g, itype = process_ds(g, DN, pff.blkgrid_dataset)
     if g is None: return None
 
-    if g.adim != 0 or g.sdim//2 != 1:
-        print(DN + ": provided grid is not recognized")  ;  return None
+    if g.adim != 0 or g.sdim/2 != 1:
+        print DN + ": provided grid is not recognized"  ;  return None
 
     sdim = g.sdim
     nblk = g.nblk
     typekey = g.typekey
 
     if overplot and _ovrplt.x is None:
-        print(DN + \
-            ": previous plot status unknown -- overplot option not allowed")
+        print DN + \
+            ": previous plot status unknown -- overplot option not allowed"
         return None
     if x is None or y is None:
         if not overplot:
-            if sdim == 2: print(DN + ": X and Y required if not overplot plot")
-            else: print(DN + ": X, Y, and ZNORMAL required if not overplot plot")
+            if sdim == 2: print DN + ": X and Y required if not overplot plot"
+            else: print DN + ": X, Y, and ZNORMAL required if not overplot plot"
             return None
         if x is None:
             x = _ovrplt.x
@@ -1214,10 +1111,10 @@ Return value: If successful, returns the number of grid blocks in the plot.
             znormal = _ovrplt.znorm
 
     if x < 1 or x > sdim:
-        print(DN + ": X must be in range 1-" + str(sdim))
+        print DN + ": X must be in range 1-" + str(sdim)
         return None
     if y < 1 or y > sdim:
-        print(DN + ": Y must be in range 1-" + str(sdim))
+        print DN + ": Y must be in range 1-" + str(sdim)
         return None
     ix = x - 1
     iy = y - 1
@@ -1227,7 +1124,7 @@ Return value: If successful, returns the number of grid blocks in the plot.
         znormal = g.x[0][iz][0]
         test = [ i for i in nblk if nx[i][iz] != 1 or g.x[i][iz][0] != znormal ]
         if len(test):
-            print(DN + ": ZNORMAL required if not overplot plot")
+            print DN + ": ZNORMAL required if not overplot plot"
             return None
     if znormal is None:
         if overplot: znormal = _ovrplt.znorm
@@ -1237,16 +1134,17 @@ Return value: If successful, returns the number of grid blocks in the plot.
     for b in range(nblk):
         rng = g.g_range[b,:,:]
         eps = g.g_eps[b,:]
+        print b,rng,eps,znormal
         if sdim > 2 and \
           (rng[iz,0] > znormal+eps[iz] or rng[iz,1] < znormal-eps[iz]): continue
         blks.append(b)
 
     npblks = len(blks)
     if npblks == 0:
-        print(DN + ": No grid defined for coordinate", iz+1, "at", znormal)
+        print DN + ": No grid defined for coordinate", iz+1, "at", znormal
         return None
         
-    if 'color' not in lineargs: lineargs['color'] = 'k'
+    if not lineargs.has_key('color'): lineargs['color'] = 'k'
     if not overplot:
         f,ax = plots.adv_frame(use_fig=use_fig)
         if xrange is None or yrange is None:
@@ -1255,7 +1153,7 @@ Return value: If successful, returns the number of grid blocks in the plot.
                 grange[:,0] = np.min(g.g_range[blks,:,0],axis=0)
                 grange[:,1] = np.max(g.g_range[blks,:,1],axis=0)
 
-            ##print blks,grange
+            print blks,grange
             if xrange is None:
                 xrange = utils.nice_bounds(grange[ix,0],grange[ix,1])[0:2]
             if yrange is None:
@@ -1325,14 +1223,14 @@ Return value: If successful, returns the number of grid blocks in the plot.
                     ##print tlow,thigh,d,ib,ie,xn[ib],xn[ie]
                     _fastgrid(mode,ax,xn[ib:ie+1],ya,**lineargs)
 
-    except AttributeError as e:
-        print(DN + ": Error drawing gridlines:",e)  ;  return None
+    except AttributeError, e:
+        print DN + ": Error drawing gridlines:",e  ;  return None
     if conductor is not None:
         try:     #  Now try to overplot conductor
             plotcon(conductor,x, y, znormal, over=True, use_fig=use_fig, 
                     draw=draw, **cndargs)
-        except AttributeError as e:
-            print(DN + ": Error overplotting conductor:",e)  ;  return None
+        except AttributeError, e:
+            print DN + ": Error overplotting conductor:",e  ;  return None
             
     if draw:  f.canvas.draw()
 
@@ -1345,8 +1243,7 @@ def plotcon(*args, **kwargs):
 
 Usage:
   plotcon(cond, [x, y, znormal], [xrange=list], [yrange=list], [xlabel=str], \\
-          [ylabel=str], [title=str], [overplot=bool], [aspect=bool|float],
-          [polar=bool, [dtmax=float]])
+          [ylabel=str], [title=str], [overplot=bool], [aspect=bool|float] )
 
 Arguments:
   cond:       PFF dataset containing conductor data, or structure index of
@@ -1363,11 +1260,6 @@ Arguments:
   title:      Title for plot
   overplot:   If possible, plot grid over the previous plot
   aspect:     Aspect ratio of plot
-  polar:      If True, assume `x' and `y' are the polar coordinates r an theta,
-              respectively, and plot the conductors in polar coordinates.
-  dtmax:      If polar is True, and the grid spacing in the `y' coordinate is
-              greater than `dtmax', intermediate data is interpolated such that
-              the maximum grid spacing is <= `dtmax'. Default value is pi/30.
 
 Return value: If successful, returns 0. Otherwise, None is returned'''
 
@@ -1384,37 +1276,20 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
                              extra=True)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + plotcon.__doc__)  ;  return None
+        print nl[res] + plotcon.__doc__  ;  return None
     lineargs = res[1]
     res = res[0]
 
-    cond = res['cond']
-    x = res['x']
-    y = res['y']
-    znormal = res['znormal']
-    aspect = res['aspect']
-    boxlw = res['boxlw']
-    charsize = res['charsize']
-    draw = res['draw']
-    dtmax = res['dtmax']
-    overplot = res['overplot']
-    polar = res['polar']
-    title = res['title']
-    use_fig = res['use_fig']
-    xlabel = res['xlabel']
-    xrange = res['xrange']
-    xypolar = res['xypolar']
-    ylabel = res['ylabel']
-    yrange = res['yrange']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
     ##print "lineargs:"
     ##for k in lineargs.keys(): print k, lineargs[k]
 
     quit = False
-    if type(cond) is list:  clist = cond
+    if type(cond) is types.ListType:  clist = cond
     else: clist = [ cond ]
     qlist = []
     titles = []
@@ -1437,19 +1312,19 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
                 qlist.append(qcond)
                 titles.append(qcond.title)
             else:
-                print(DN + ": provided conductor is not recognized")
+                print DN + ": provided conductor is not recognized"
 
         if not okay: quit = True
     if quit:
-        print("\n" + plotcon.__doc__)  ;  return None
+        print "\n" + plotcon.__doc__  ;  return None
 
     if overplot and _ovrplt.x is None:
-        print(DN + \
-            ": previous plot status unknown -- overplot option not allowed")
+        print DN + \
+            ": previous plot status unknown -- overplot option not allowed"
         okay = False
     if x is None or y is None or znormal is None:
         if not overplot:
-            print(DN + ": X, Y, and ZNORMAL required if not overplot plot")
+            print DN + ": X, Y, and ZNORMAL required if not overplot plot"
             okay = False
         if x is None:
             x = _ovrplt.x
@@ -1459,20 +1334,20 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
             znormal = _ovrplt.znorm
 
     if x < 1 or x > 3:
-        print(DN + ": X must be 1, 2, or 3")
+        print DN + ": X must be 1, 2, or 3"
         okay = False
     if y < 1 or y > 3:
-        print(DN + ": Y must be 1, 2, or 3")
+        print DN + ": Y must be 1, 2, or 3"
         okay = False
 
     if not okay:
-        print("\n" + plotcon.__doc__)  ;  return None
+        print "\n" + plotcon.__doc__  ;  return None
 
     ix = x - 1
     iy = y - 1
     iz = 3 - ix - iy
 
-    if 'lw' not in lineargs: lineargs['lw'] = 3
+    if not lineargs.has_key('lw'): lineargs['lw'] = 3
     if not overplot:
         polarAxes = not xypolar
         pflag = polar and polarAxes
@@ -1513,9 +1388,7 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
         yrange = _ovrplt.yr
         ax =  _ovrplt.ax
         polar = _ovrplt.polar
-        polarAxes = type(ax.patch) is matplotlib.patches.Circle or \
-                    type(ax.patch) is matplotlib.patches.Wedge
-    ##print(overplot,xrange,yrange,polar,polarAxes)
+        polarAxes = type(ax.axesPatch) is matplotlib.patches.Circle
         
     for qcond in qlist:
         if qcond.nqs:
@@ -1599,8 +1472,8 @@ Return value: If successful, returns 0. Otherwise, None is returned'''
                                 ya1 = xa*np.sin(ya)
                                 l = matplotlib.lines.Line2D(xa1,ya1,**lineargs)
                         ax.add_line(l)
-    except AttributeError as e:
-        print(DN + ": Error drawing conductor:",e)  ;  return None
+    except AttributeError, e:
+        print DN + ": Error drawing conductor:",e  ;  return None
     
     if draw: f.canvas.draw()
 
@@ -1613,7 +1486,7 @@ _plotflddefs = dict(xrange=None, yrange=None, nlevel=20, levels=None,
                     polar=False, cmap=None, dtmax=np.pi/30.0)
 _pfdopts_cur = {}
 _pfdchmx = 0
-for i in list(_plotflddefs.keys()):
+for i in _plotflddefs.keys():
     _pfdchmx = max(_pfdchmx, len(i))
     _pfdopts_cur[i] = _plotflddefs[i]
 
@@ -1632,7 +1505,7 @@ Usage:
           [unset=bool], [xline=float|list], [yline=float|list], \\
           [hline=float|list], [vline=float|list], [pline=bool], [out=int], \\
           [xintegrate=bool|int], [yintegrate=bool|int], [reverse=bool], \\
-          [start=int], [polar=bool, [dtmax=float]] )
+          [start=int] )
 
 Arguments:
   ds:           PFF dataset containing field data, or structure index of
@@ -1684,13 +1557,6 @@ Arguments:
                 the `X0' key in the dataset's spare word array, if it
                 has one, or as a last resort, will be computed using a
                 safe (but possibly inaccurate) algorithm.
-  polar:        If True, assume `x' and `y' are the polar coordinates r and
-                theta, respectively, and plot the conductors in polar
-                coordinates.
-  dtmax:        If polar is True, and the grid spacing in the `y' coordinate is
-                greater than `dtmax', intermediate data is interpolated so that
-                the maximum grid spacing is <= `dtmax'. Default value is pi/30.
-
   setdefault:   If set, provided option values will be made default
   showtdefault: If set, current default option values will be printed
   unset:        If set, default option values will be reset to original values
@@ -1738,97 +1604,56 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
                              extra=True)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + plotfld.__doc__)  ;  return None
+        print nl[res] + plotfld.__doc__  ;  return None
     kwextra = res[1]
     res = res[0]
 
-    ds = res['ds']
-    a1 = res['a1']
-    a2 = res['a2']
-    a3 = res['a3']
-    aspect = res['aspect']
-    block = res['block']
-    c_colors = res['c_colors']
-    cbar = res['cbar']
-    cbtitle = res['cbtitle']
-    charsize = res['charsize']
-    cmap = res['cmap']
-    cntour = res['cntour']
-    conductor = res['conductor']
-    dtmax = res['dtmax']
-    histogram = res['histogram']
-    hline = res['hline']
-    levels = res['levels']
-    lw = res['lw']
-    multiply = res['multiply']
-    nlevel = res['nlevel']
-    out = res['out']
-    overplot = res['overplot']
-    pline = res['pline']
-    polar = res['polar']
-    return_slice = res['return_slice']
-    reverse = res['reverse']
-    setdefault = res['setdefault']
-    showdefault = res['showdefault']
-    start = res['start']
-    title = res['title']
-    transpose = res['transpose']
-    unset = res['unset']
-    use_fig = res['use_fig']
-    vline = res['vline']
-    xintegrate = res['xintegrate']
-    xlabel = res['xlabel']
-    xline = res['xline']
-    xrange = res['xrange']
-    yintegrate = res['yintegrate']
-    ylabel = res['ylabel']
-    yline = res['yline']
-    yrange = res['yrange']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    keys = list(res.keys())
-    keys.sort()
+    ##keys.sort()
     ##for k in keys:   exec "print k, " + k
     ##print "kwextra:"
     ##for k in kwextra.keys(): print k, kwextra[k]
 
     if unset:
-        for k in list(_plotflddefs.keys()):
+        for k in _plotflddefs.keys():
             _pfdopts_cur[k] = _plotflddefs[k]
         return
 
     if setdefault:
         for k in keys:
-            if k in _pfdopts_cur: exec("_pfdopts_cur[k] = " + k)
+            if _pfdopts_cur.has_key(k): exec "_pfdopts_cur[k] = " + k
         if not showdefault:
             return
 
     if showdefault:
         blnk = ''
         for i in range(_pfdchmx):  blnk += ' '
-        print("Default parameters for the PLOTFLD command are:")
-        dkeys = list(_pfdopts_cur.keys())  ; dkeys.sort()
+        print "Default parameters for the PLOTFLD command are:"
+        dkeys = _pfdopts_cur.keys()  ; dkeys.sort()
         for i in dkeys:
             l = len(i)
             tmp = "   " + i + blnk[l:] + " = "
             if i == 'cmap' and isinstance(_pfdopts_cur[i],Colormap):
                 ostr = _pfdopts_cur[i].name
             else: ostr = str(_pfdopts_cur[i])
-            print(tmp + ostr)
+            print tmp + ostr
         return
 
     if ds is None:
-        print(DN + ": No dataset or structure index provided")  ;  return None
+        print DN + ": No dataset or structure index provided"  ;  return None
     ds, itype = process_ds(ds, DN, pff.blkgrid_dataset)
     if ds is None: return None
 
     if ds.sdim < 2 or ds.adim == 0:
-        print(DN +  ''': DS must have at least two spatial dimensions and
-         at least one attribute''')
+        print DN +  ''': DS must have at least two spatial dimensions and
+         at least one attribute'''
         return None
 
     if overplot and _ovrplt.x is None:
-        print(DN + \
-            ": previous plot status unknown -- overplot option not allowed")
+        print DN + \
+            ": previous plot status unknown -- overplot option not allowed"
         return None
 
     if ds.rawname == 'NI3':
@@ -1864,7 +1689,7 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
 
     ##print cargs, carg, minargs, sdim_act
     if minargs > 4 or (minargs > 1 and cargs[minargs-2] is None):
-        print(DN + ":", minargs, "positional parameters are required")
+        print DN + ":", minargs, "positional parameters are required"
         return None
     for i in range(2,sdim_act):
         kvals.append(cargs[carg])
@@ -1877,14 +1702,14 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
         cokay = True
         t = type(comp)
         slcomp = 'mag'
-        if t is str:
+        if t is types.StringType:
             if comp[:3] != 'mag':  cokay = False
             else: cmpid = 'mag'
-        elif t is list or t is tuple:
+        elif t is types.ListType or t is types.TupleType:
             used = [ 0 for i in range(adim+1) ]
             cmpid = []
             for c in comp:
-                if type(c) is not int: cokay = False
+                if type(c) is not types.IntType: cokay = False
                 else:
                     cmpid.append(c-1)
                     if c > adim: c = 0
@@ -1895,35 +1720,35 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
                 cmpid = 'mag'
                 slcomp = 'mag'
             elif len(comp) == 1:  slcomp = comp[0]
-        elif t is int:
+        elif t is types.IntType:
             if comp < 1 or comp > adim: cmpid = 'mag'
             else: cmpid = comp - 1 ;  slcomp = comp
         else:   cokay = False
         if not cokay:
-            print(DN + ": Illegal value (',comp,') supplied for the component")
+            print DN + ": Illegal value (',comp,') supplied for the component"
             okay = False
     if levels is not None:
         t = type(levels)
-        if (t is not list and t is not tuple) or \
+        if (t is not types.ListType and t is not types.TupleType) or \
            len(levels) == 1:
-            print(DN+": Illegal value (',levels,') supplied for LEVELS keyword")
+            print DN+": Illegal value (',levels,') supplied for LEVELS keyword"
             okay = False
  
     if cbar is not None:
         t = type(cbar)
         cbloc = None
         cborient = None
-        if t is str:
+        if t is types.StringType:
             c = cbar[0].lower()
             if c == 'h':   cborient = 'horizontal'
             elif c == 'v': cborient = 'vertical'
-        if t is list or t is tuple or t is np.ndarray:
+        if t is types.ListType or t is types.TupleType or t is np.ndarray:
             if (t is np.ndarray and cbar.ndim != 1) or len(cbar) != 4:
-                print(DN + ": colorbar box format is: [x0,y0,dx,dy]")
+                print DN + ": colorbar box format is: [x0,y0,dx,dy]"
                 okay = False
             cbloc = cbar
-        if cbtitle is not None and type(cbtitle) is not str:
-            print(DN + ": Supplied colorbar title must be a string")
+        if cbtitle is not None and type(cbtitle) is not types.StringType:
+            print DN + ": Supplied colorbar title must be a string"
             okay = False
 
     n_out = 0
@@ -1932,14 +1757,14 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
         tokay = True
         isnum, t = utils.is_number(xline)
         if isnum: xline = [ xline ]
-        elif t is list or t is tuple:
+        elif t is types.ListType or t is types.TupleType:
             xline = list(xline)
             for xl in xline:
                 isnum, tdum = utils.is_number(xl)
                 if not isnum: tokay = False
         else: tokay = False
         if not tokay:
-            print(DN + ": xline must be a number or list of numbers")
+            print DN + ": xline must be a number or list of numbers"
             okay = False
         else: n_out += len(xline)
     if vline is not None: yline = vline
@@ -1947,50 +1772,50 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
         tokay = True
         isnum, t = utils.is_number(yline)
         if isnum: yline = [ yline ]
-        elif t is list or t is tuple:
+        elif t is types.ListType or t is types.TupleType:
             yline = list(yline)
             for yl in yline:
                 isnum, tdum = utils.is_number(yl)
                 if not isnum: tokay = False
         else: tokay = False
         if not tokay:
-            print(DN + ": yline must be a number or list of numbers")
+            print DN + ": yline must be a number or list of numbers"
             okay = False
         else: n_out += len(yline)
     if xintegrate != 0:
         t = type(xintegrate)
         if t is bool: xintegrate = 1
-        elif t is int:
+        elif t is types.IntType:
             if xintegrate < 0 or xintegrate > 3:
-                print(DN + ": Invalid value: 0 <= XINTEGRATE <= 3")
+                print DN + ": Invalid value: 0 <= XINTEGRATE <= 3"
                 okay = False
         else:
-            print(DN + ": XINTEGRATE must be bool or integer between 0 and 3")
+            print DN + ": XINTEGRATE must be bool or integer between 0 and 3"
             okay = False
     if yintegrate != 0:
         t = type(yintegrate)
         if t is bool: yintegrate = 1
-        elif t is int:
+        elif t is types.IntType:
             if yintegrate < 0 or yintegrate > 3:
-                print(DN + ": Invalid value: 0 <= YINTEGRATE <= 3")
+                print DN + ": Invalid value: 0 <= YINTEGRATE <= 3"
                 okay = False
         else:
-            print(DN + ": YINTEGRATE must be bool or integer between 0 and 3")
+            print DN + ": YINTEGRATE must be bool or integer between 0 and 3"
             okay = False
     if yintegrate or xintegrate:
         if reverse is not None:
             t = type(reverse)
-            if t is not bool and t is not int:
-                print(DN + ": REVERSE must be bool or integer")
+            if t is not bool and t is not types.IntType:
+                print DN + ": REVERSE must be bool or integer"
                 okay = False
         if start is not None:
-            if type(start) is not int or \
+            if type(start) is not types.IntType or \
                _1d.get_empty_wdf(start,start):
-                print(DN + ": START must specify a WDF array")
+                print DN + ": START must specify a WDF array"
                 okay = False
             wmin,wmax = _1d.getXRange(start)
         if yintegrate and xintegrate:
-            print(DN + ": XINTEGRATE and YINTEGRATE cannot both be specified")
+            print DN + ": XINTEGRATE and YINTEGRATE cannot both be specified"
             okay = False
             
     nblk = ds.nblk
@@ -2007,26 +1832,26 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
                nbtmp != np.unique(tblock).size: raise ValueError
             nublk = nbtmp
         except ValueError:
-            print(DN + ": Illegal value for BLOCK keyword")
+            print DN + ": Illegal value for BLOCK keyword"
             okay = False
-    lstBlkMap = list(range(nublk))
+    lstBlkMap = range(nublk)
     rect_plot = False
     if histogram is not None:
         try:
             x0hist = np.asarray(histogram,dtype=np.single)
             ndim,shp = (x0hist.ndim, x0hist.shape)
-            if ndim == 0: raise ValueError(0)
-            if ndim > 2 or shp[-1] != sdim: raise ValueError(1)
-            if nublk > 1 and ndim != 2: raise ValueError(1)
-            if ndim == 2 and shp[0] != nublk: raise ValueError(1)
+            if ndim == 0: raise ValueError, 0
+            if ndim > 2 or shp[-1] != sdim: raise ValueError, 1
+            if nublk > 1 and ndim != 2: raise ValueError, 1
+            if ndim == 2 and shp[0] != nublk: raise ValueError, 1
             if ndim == 1: x0hist = x0hist.reshape((1,sdim))
             histogram = True
-        except ValueError as e:
+        except ValueError, e:
             x0hist = []
             t = type(histogram)
-            if e.args[0] == 1 or t == list or t == tuple:
-                print(DN + ": Supplied HISTOGRAM value must be a scalar " + \
-                       "or ("+str(nublk)+" x "+str(sdim)+") array of floats")
+            if e.message == 1 or t == types.ListType or t == types.TupleType:
+                print  DN + ": Supplied HISTOGRAM value must be a scalar " + \
+                       "or ("+str(nublk)+" x "+str(sdim)+") array of floats"
                 okay = False
             else:
                 if histogram:
@@ -2039,8 +1864,7 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
                             for i in range(sdim):
                                 bxh[i] = pff.i2f(sx0[3*i:3*i+3])
                         x0hist.append(bxh)
-                    x0hist = np.asarray(x0hist,dtype=np.single)
-                
+               
                 else: histogram = None
 
         if okay and histogram:
@@ -2052,14 +1876,16 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
                 for i in range(sdim):
                     xh = ds.x[b][i]
                     bx.append(utils.XfFromXh(xh,x0[i]))
+                    if x0[i] is None: x0hist[b][i] = bx[-1][0]
                 xfhist.append(bx)
+            x0hist = np.asarray(x0hist,dtype=np.single)
             
             ##print xfhist
         ##print okay, histogram, x0hist
         ##return
 
     if not okay:
-        print("\n" + plotfld.__doc__)  ;  return None
+        print "\n" + plotfld.__doc__  ;  return None
 
     ##print comp, slcomp, cmpid, kvals, vals, kwextra, okay
 
@@ -2076,9 +1902,9 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
             x1o,x2o,zno = (_ovrplt.x - 1, _ovrplt.y - 1, _ovrplt.znorm)
             if normid is not None:
                 if x1 != x1o or x2 != x2o or vals[0] != zno:
-                    print('''
+                    print '''
 WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
-         consistent with previous plot. Previous settings will be used.''')
+         consistent with previous plot. Previous settings will be used.'''
                     vals[0] = zno
                     kvals[0] = 4 - x1o - x2o
             else:
@@ -2094,7 +1920,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         else: zntcpt = vals[0]
         sl = ds.get_slice(zntcpt,comp=slcomp,coord=kvals[0],block=block)
         if sl is None:
-            print(DN + ": Error slicing dataset")
+            print DN + ": Error slicing dataset"
             return None
         if histogram:
             lstBlkMap = pff.getLastSliceBlkMap()
@@ -2117,21 +1943,21 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         vals = [ ds.x[0][normid][0] ]
         kvals = [ normid+1 ]
         ##sl = cpy.deepcopy(ds)
-        if type(cmpid) is list: tcomp = comp
+        if type(cmpid) is types.ListType: tcomp = comp
         else: tcomp = slcomp
         ##print cmpid,slcomp,tcomp
         if ds.adim > 1: sl = ds.scalarize(comp=tcomp,block=block)
         else: sl = ds
         cmpid = 0
 
-        ##if type(slcomp) is not int:
-            ##print(DN + ": Not implemented yet)"
+        ##if type(slcomp) is not types.IntType:
+            ##print DN + ": Not implemented yet"
             ##return None
     else:
         x1 = sh
         x2 = 1 - sh
         normid = -1
-        if type(cmpid) is list: tcomp = comp
+        if type(cmpid) is types.ListType: tcomp = comp
         else: tcomp = slcomp
         ##print cmpid,slcomp,tcomp
         if ds.adim > 1: sl = ds.scalarize(comp=tcomp,block=block,quiet=True)
@@ -2178,13 +2004,12 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
                 yrp[0] = min(yrp[0],xfhist[b][x2][0])
                 yrp[1] = max(yrp[1],xfhist[b][x2][-1])
         else:
-            xrp = np.asarray(grm[x1,:],dtype=float)
-            yrp = np.asarray(grm[x2,:],dtype=float)
+            xrp = grm[x1,:]
+            yrp = grm[x2,:]
 
         if xrange is not None: xrp = np.array(xrange)
         elif polar and cntour != 2:
             if xrp[0] < 0.7*xrp[1]: xrp =np.array([0.0,xrp[1]])
-
         if yrange is not None: yrp = np.array(yrange)
         if polar and cntour != 2:
             twopi =  2.0*np.pi
@@ -2270,7 +2095,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         if aspect is not None: ax.set_aspect(aspect)
 
     data = sl.data
-    if type(cmpid) is list:
+    if type(cmpid) is types.ListType:
         nc = len(cmpid)
         c0 = cmpid[0]
         for b in range(nbsl):
@@ -2290,7 +2115,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         if start:
             gr = sl.g_range[-1,x2,:]
             if wmin > gr[0] or wmax < gr[1]:
-                print(DN+": START array's range insufficient for selected slice")
+                print DN+": START array's range insufficient for selected slice"
                 return None
         _integrate_2d(sl,x1,x2,xintegrate,reverse,start)
         data = sl.data
@@ -2298,7 +2123,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         if start:
             gr = sl.g_range[-1,x1,:]
             if wmin > gr[0] or wmax < gr[1]:
-                print(DN+": START array's range insufficient for selected slice")
+                print DN+": START array's range insufficient for selected slice"
                 return None
         _integrate_2d(sl,x2,x1,yintegrate,reverse,start)
         data = sl.data
@@ -2322,11 +2147,11 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             ##print 'CLIPPING',vlow,vhi,vmin,vmax
             tdata = []
             for b in range(nbsl):  tdata.append(np.clip(data[b],vlow,vhi))
-    ##print vlow,vhi,vmin,vmax
+    ##print vlow,vhi,vmin,vmax,rect_plot
     ##print 'ID:',id(ds.data[0]),id(sl.data[0]),id(data[0]),id(tdata[0])
 
     if rect_plot:
-        if type(cmap) is str: cmap = plt.get_cmap(cmap)
+        if type(cmap) is types.StringType: cmap = plt.get_cmap(cmap)
         elif cmap is None: cmap = plt.get_cmap()
         smap = matplotlib.cm.ScalarMappable(cmap=cmap)
         smap.set_clim(vlow,vhi)
@@ -2351,7 +2176,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
                 if nx[i] == 1: slc[i] = 0
             d = sl.data[b]
             x,y = (xfhist[b][x1],xfhist[b][x2])
-            cols = smap.to_rgba(d[tuple(slc)])
+            cols = smap.to_rgba(d[slc])
             if imtrans: cols = np.transpose(cols,(1,0,2))
             dx,dy = (np.diff(x),np.diff(y))
             for i in range(nx[x1]):
@@ -2368,17 +2193,17 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             funct = "contourf"  ;  extra=",extend=\'both\'"
         if c_colors is not None:
             t = type(c_colors)
-            if t is list or t is tuple:
+            if t is types.ListType or t is types.TupleType:
                 c_colors = tuple(c_colors)
             else: c_colors = (c_colors,)
             extra += ",colors=c_colors"
         else:
             extra += ",cmap=cmap"
-            if type(cmap) is str: cmap = plt.get_cmap(cmap)
+            if type(cmap) is types.StringType: cmap = plt.get_cmap(cmap)
         dvl = (vhi - vlow)/max(nlevel,1)
         ##vlev = np.arange(vlow+0.5*dvl, vhi, dvl)
         vlev = np.linspace(vlow, vhi, max(nlevel,1)+1)
-        ##print('vlev',vlev, c_colors)
+        ##print 'vlev',vlev, c_colors
         for b in range(nbsl):
             dat = tdata[b].squeeze()
             x = sl.x[b]
@@ -2391,11 +2216,8 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
                 else: to,dato = x[x2],dat
             else:
                 xys = "x[x1],x[x2]"  ;  dato = dat
-            cmd = "im = ax." + funct + "(" + xys + ",dato,vlev" + extra + ")"
-            ##print('cmd:',cmd)
-            _lcls = locals()
-            exec(cmd, globals(), _lcls)
-            im = _lcls['im']
+            ##print "im = ax." + funct + "(" + xys + ",dato,vlev" + extra + ")"
+            exec "im = ax." + funct + "(" + xys + ",dato,vlev" + extra + ")"
     elif cntour == 2:
         vdef = 2.0*vlow - vhi
         if polar:
@@ -2439,8 +2261,8 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             nl = min(2,n_out)
             if n_out == 1: tail = " " + str(out)
             else: tail = "s " + str(out) + "-" + str(out+n_out-1)
-            print("Lineout" + tail[:nl] + "will be written to WDF array" + tail)
-        if cmpid == 'mag' or type(cmpid) is list:
+            print "Lineout" + tail[:nl] + "will be written to WDF array" + tail
+        if cmpid == 'mag' or type(cmpid) is types.ListType:
             dlab = ''.join(ds.dlabels[0,0])
         else: dlab = ''.join(ds.dlabels[0,cmpid])
         ##print sl.dlabels,dlab
@@ -2454,18 +2276,15 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         dirs = [normid,x2]
         if normid < 0: dirs = [x2]
         elif x2 < normid: dirs = [x2,normid]
-
         for yint in xline:
-            ##print(yint,x1,x2)
-
+            ##print yint,x1,x2
             if histogram:
                 yval = _getHistogramIntercept(sl,xfhist,x2,yint)
             else:
                 yval = yint
-            ##print(yint,yval)
+            ##print yint,yval
             xyolst = _gen_lineout(sl,con_ord,x1,x2,yval,axes=loax,
                                   polar=polar,histogram=histogram)
-
             if normid < 0: dlm = ''
             else: dlm = '('
             cstr,lstr = ('','')
@@ -2480,12 +2299,11 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             clab = clstr + ds.title
             xlab = str(ax.get_xlabel())
             multi = len(xyolst) - 1
-            ##print(multi)
-
+            ##print multi
             if multi < 0:
-                print(DN + " Warning: XLINE="+str(yint)+" outside plot range")
+                print DN + " Warning: XLINE="+str(yint)+" outside plot range"
             for i,t in enumerate(xyolst):
-                ##print(t)
+                ##print t
                 xout, yout, fblk = t
                 #print 'xout:', xout.shape,xout
                 #print 'yout:', yout.shape,yout
@@ -2493,12 +2311,12 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
                 else: clb = clab
                 if histogram:
                     spr = np.concatenate((pspare,pff.f2i(xfhist[fblk][x1][0])))
-                    ##print(x1, xfhist[fblk][x1][0])
-
+                    ##print x1, xfhist[fblk][x1][0]
                 _1d.i2w(xout,yout,out,clab=clb,xlab=xlab,ylab=dlab,
                         file=ds.file,spare=spr)
                 out += 1
                 
+
     if yline is not None:
         con_ord = slfg.connect_order(x2+1)
         ##print con_ord
@@ -2506,12 +2324,12 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         if normid < 0: dirs = [x1]
         elif x1 < normid: dirs = [x1,normid]
         for xint in yline:
-            ##print(xint,x1,x2)
+            ##print xint,x1,x2
             if histogram:
                 xval = _getHistogramIntercept(sl,xfhist,x1,xint)
             else:
                 xval = xint
-            ##print(xint,xval)
+            ##print xint,xval
             xyolst = _gen_lineout(sl,con_ord,x2,x1,xval,axes=loax,dir='y',
                                   polar=polar,histogram=histogram)
             if normid < 0: dlm = ''
@@ -2528,9 +2346,9 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             clab = clstr + ds.title
             xlab = str(ax.get_ylabel())
             multi = len(xyolst) - 1
-            ##print(multi)
+            ##print multi
             for i,t in enumerate(xyolst):
-                ##print(t)
+                ##print t
                 xout, yout, fblk = t
                 #print 'xout:', xout.shape,xout
                 #print 'yout:', yout.shape,yout
@@ -2538,7 +2356,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
                 else: clb = clab
                 if histogram:
                     spr = np.concatenate((pspare,pff.f2i(xfhist[fblk][x2][0])))
-                    ##print(x2, xfhist[fblk][x2][0])
+                    ##print x2, xfhist[fblk][x2][0]
                 _1d.i2w(xout,yout,out,clab=clb,xlab=xlab,ylab=dlab,
                         file=ds.file,spare=spr)
                 out += 1
@@ -2547,8 +2365,8 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         try:     #  Now try to overplot conductor
             plotcon(conductor,x1+1, x2+1, vals[0], over=True, use_fig=use_fig,
                     **kwextra)
-        except AttributeError as e:
-            print(DN + ": Error overplotting conductor:",e)  ;  return None
+        except AttributeError, e:
+            print DN + ": Error overplotting conductor:",e  ;  return None
             
     f.canvas.draw()
 
@@ -2562,7 +2380,7 @@ _plotvecdefs = dict(xrange=None, yrange=None, levels=None,
                     polar=False, npmax=20, xygrid=None)
 _pvdopts_cur = {}
 _pvdchmx = 0
-for i in list(_plotvecdefs.keys()):
+for i in _plotvecdefs.keys():
     _pvdchmx = max(_pvdchmx, len(i))
     _pvdopts_cur[i] = _plotvecdefs[i]
 
@@ -2579,7 +2397,7 @@ Usage:
           [xygrid=bool], [complist=list], [color=int|str], [levels=list], \\
           [cmap=str|cmap], [cbar=str|list], [cbtitle=str], \\
           [setdefault=bool], [showdefault=bool], [unset=bool], \\
-          [return_slice=bool], [variable=bool] )
+          [return_slice=bool], [variable=bool]  )
 
 Arguments:
   ds:           PFF dataset containing field data, or structure index of
@@ -2669,88 +2487,56 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
                              extra=True)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + plotvec.__doc__)  ;  return None
+        print nl[res] + plotvec.__doc__  ;  return None
     kwextra = res[1]
     res = res[0]
 
-    ds = res['ds']
-    a1 = res['a1']
-    a2 = res['a2']
-    aspect = res['aspect']
-    block = res['block']
-    c_colors = res['c_colors']
-    cbar = res['cbar']
-    cbtitle = res['cbtitle']
-    charsize = res['charsize']
-    cmap = res['cmap']
-    cndargs = res['cndargs']
-    color = res['color']
-    complist = res['complist']
-    conductor = res['conductor']
-    levels = res['levels']
-    lw = res['lw']
-    multiply = res['multiply']
-    npmax = res['npmax']
-    overplot = res['overplot']
-    polar = res['polar']
-    return_slice = res['return_slice']
-    setdefault = res['setdefault']
-    showdefault = res['showdefault']
-    title = res['title']
-    transpose = res['transpose']
-    unset = res['unset']
-    use_fig = res['use_fig']
-    xlabel = res['xlabel']
-    xrange = res['xrange']
-    xygrid = res['xygrid']
-    ylabel = res['ylabel']
-    yrange = res['yrange']
-    variable = res['variable']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    keys = list(res.keys())
     keys.sort()
     ##for k in keys:   exec "print k, " + k
     ##print "kwextra:"
     ##for k in kwextra.keys(): print k, kwextra[k]
 
     if unset:
-        for k in list(_plotvecdefs.keys()):
+        for k in _plotvecdefs.keys():
             _pvdopts_cur[k] = _plotvecdefs[k]
         return
 
     if setdefault:
         for k in keys:
-            if k in _pvdopts_cur: exec("_pvdopts_cur[k] = " + k)
+            if _pvdopts_cur.has_key(k): exec "_pvdopts_cur[k] = " + k
         if not showdefault:
             return
 
     if showdefault:
         blnk = ''
         for i in range(_pvdchmx):  blnk += ' '
-        print("Default parameters for the PLOTVEC command are:")
-        dkeys = list(_pvdopts_cur.keys())  ; dkeys.sort()
+        print "Default parameters for the PLOTVEC command are:"
+        dkeys = _pvdopts_cur.keys()  ; dkeys.sort()
         for i in dkeys:
             l = len(i)
             tmp = "   " + i + blnk[l:] + " = "
             if i == 'cmap' and isinstance(_pvdopts_cur[i],Colormap):
                 ostr = _pvdopts_cur[i].name
             else: ostr = str(_pvdopts_cur[i])
-            print(tmp + ostr)
+            print tmp + ostr
         return
 
     if ds is None:
-        print(DN + ": No dataset or structure index provided")  ;  return None
+        print DN + ": No dataset or structure index provided"  ;  return None
     ds, itype = process_ds(ds, DN, pff.blkgrid_dataset)
     if ds is None: return None
 
     if ds.sdim < 2 or ds.adim != ds.sdim:
-        print(DN +  ''': DS must have at least two spatial dimensions and
-         the same number of attributes''')
+        print DN +  ''': DS must have at least two spatial dimensions and
+         the same number of attributes'''
         return None
 
     if overplot and _ovrplt.x is None:
-        print(DN + \
-            ": previous plot status unknown -- overplot option not allowed")
+        print DN + \
+            ": previous plot status unknown -- overplot option not allowed"
         return None
 
     minargs = 1
@@ -2778,7 +2564,7 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
 
     ##print cargs, carg, minargs, sdim_act
     if minargs > 3 or (minargs > 1 and cargs[minargs-2] is None):
-        print(DN + ":", minargs, "positional parameters are required")
+        print DN + ":", minargs, "positional parameters are required"
         return None
     if not overplot or cargs[carg+1] is not None:
         for i in range(2,sdim_act):
@@ -2791,7 +2577,7 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
     if complist is not None:
         t = type(complist)
         cokay = True
-        if t is list or t is tuple:
+        if t is types.ListType or t is types.TupleType:
             slcomp = list(complist)
             if len(slcomp) != 2: cokay = False
             else:
@@ -2802,37 +2588,37 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
                     if used[0] or len([s for s in used if s>1]):
                         cokay = False
         if not cokay:
-            print(DN + ": Illegal COMPLIST specification")  ;  okay = False
+            print DN + ": Illegal COMPLIST specification"  ;  okay = False
 
         ##print 'COKAY:',cokay
         ##print okay,slcomp
 
     if levels is not None:
         t = type(levels)
-        if (t is not list and t is not tuple) or \
+        if (t is not types.ListType and t is not types.TupleType) or \
            len(levels) == 1:
-            print(DN+": Illegal value (',levels,') supplied for LEVELS keyword")
+            print DN+": Illegal value (',levels,') supplied for LEVELS keyword"
             okay = False
  
     cbloc = None
     if cbar is not None:
         t = type(cbar)
         cborient = None
-        if t is str:
+        if t is types.StringType:
             c = cbar[0].lower()
             if c == 'h':   cborient = 'horizontal'
             elif c == 'v': cborient = 'vertical'
-        if t is list or t is tuple or t is np.ndarray:
+        if t is types.ListType or t is types.TupleType or t is np.ndarray:
             if (t is np.ndarray and cbar.ndim != 1) or len(cbar) != 4:
-                print(DN + ": colorbar box format is: [x0,y0,dx,dy]")
+                print DN + ": colorbar box format is: [x0,y0,dx,dy]"
                 okay = False
             cbloc = cbar
-        if cbtitle is not None and type(cbtitle) is not str:
-            print(DN + ": Supplied colorbar title must be a string")
+        if cbtitle is not None and type(cbtitle) is not types.StringType:
+            print DN + ": Supplied colorbar title must be a string"
             okay = False
 
     if not okay:
-        print("\n" + plotvec.__doc__)  ;  return None
+        print "\n" + plotvec.__doc__  ;  return None
 
     ##print comp, slcomp, cmpid, kvals, vals, kwextra, okay
 
@@ -2852,9 +2638,9 @@ Return value: If error encountered, returns None. If RETURN_SLICE is True,
             x1o,x2o,zno = (_ovrplt.x - 1, _ovrplt.y - 1, _ovrplt.znorm)
             if normid is not None:
                 if x1 != x1o or x2 != x2o or vals[0] != zno:
-                    print('''
+                    print '''
 WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
-         consistent with previous plot. Previous settings will be used.''')
+         consistent with previous plot. Previous settings will be used.'''
                     vals[0] = zno
                     kvals[0] = 4 - x1o - x2o
             else:
@@ -2873,7 +2659,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             if transpose:  slcomp.reverse()
         sl = ds.get_slice(vals[0],comp=slcomp,coord=kvals[0],block=block)
         if sl is None:
-            print(DN + ": Error slicing dataset")
+            print DN + ": Error slicing dataset"
             return None
     elif sdim > 2:
         normid = degen[0]
@@ -2882,8 +2668,8 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         vals = [ ds.x[0][normid][0] ]
         ##print normid,x1,x2,vals
         sl = ds
-        ##if type(slcomp) is not int:
-        ##    print(DN + ": Not implemented yet")
+        ##if type(slcomp) is not types.IntType:
+        ##    print DN + ": Not implemented yet"
         ##    return None
         rcomps = (x1+1,x2+1)
     else:
@@ -2891,7 +2677,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         ##x2 = 1 - sh
         ##sl = ds
         ##vals = [ 0.0 ]
-        print(DN + ": Not implemented for sdim < 3")
+        print DN + ": Not implemented for sdim < 3"
         return None
     
     imtrans = x1 < x2
@@ -2955,9 +2741,11 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         yrp = _ovrplt.yr
         polar = 0
         if _ovrplt.polar:
-            if type(ax.patch) is matplotlib.patches.Rectangle: polar = 2
+            if type(ax.axesPatch) is matplotlib.patches.Rectangle: polar = 2
             else: polar = 1
     ##print "AX:", ax
+
+    ##print polar,type(ax.axesPatch),ax.get_xlim(),ax.get_ylim()
 
     xrr = cpy.deepcopy(grm[x1,:])
     yrr = cpy.deepcopy(grm[x2,:])
@@ -2975,7 +2763,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
 
     if color == 'mag':
         if variable is None: variable = False
-        if type(cmap) is str: cmap = plt.get_cmap(cmap)
+        if type(cmap) is types.StringType: cmap = plt.get_cmap(cmap)
         elif cmap is None: cmap = plt.get_cmap()
         smap = matplotlib.cm.ScalarMappable(cmap=cmap)
         fake = np.zeros((2,2))
@@ -2987,7 +2775,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
                 xg = yg = None
                 if xclip: xg = xrr
                 if yclip: yg = yrr
-                dlow,dhi = slice_data_range(sl,x1,x2,xg,yg,list(range(2)))
+                dlow,dhi = slice_data_range(sl,x1,x2,xg,yg,range(2))
                 ##print dlow,dhi
     
             if cbloc is None:
@@ -3025,13 +2813,14 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         datlims[:,1] = ax.get_ylim()
         dislims = ax.transData.transform(datlims)
         axpix = np.diff(dislims,axis=0)[0]
-        pixrate = np.divide(axpix,np.diff(datlims,axis=0))[0]
         px,py = axpix
+        pixrate = np.divide(axpix,np.diff(datlims,axis=0))[0]
     else:
         fpix = np.array(f.canvas.get_width_height())
         px = fpix[0]*ax.figbox.width
         py = fpix[1]*ax.figbox.height
         axpix = np.array((px,py))
+
     if cbloc is not None:
         bnds = np.asarray(ax.figbox.bounds)
         xcb = np.asarray(cbloc)
@@ -3058,7 +2847,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         xshape = np.array(npmax*axpix/pixmax + 0.499,dtype='i4')
         pixlen = (axpix/xshape).min()
         hplen = 0.5*0.9*pixlen
-        #print('h',axpix,npmax,pixmax,xshape,pixlen,xrr,yrr,hplen)
+        #print 'h',axpix,npmax,pixmax,xshape,pixlen,xrr,yrr,hplen
     else:
         if xygrid:
             delt = np.array([xrr[1] - xrr[0], yrr[1] - yrr[0]])/npmax
@@ -3067,17 +2856,14 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             else:
                 xshape = np.array([ int(delt[0]/delt[1] + .499), 
                                     npmax])
-            ##print('hh',delt,npmax,xshape,xrr,yrr)
-
+            ##print 'hh',delt,npmax,xshape,xrr,yrr
         else:
             rtst = max(0.25*xrr[1],xrr[0])
             lrt = np.array([np.diff(xrr)[0],rtst*np.diff(yrr)[0]])
             lmax = lrt.max()
             xshape = np.array((npmax/lmax)*lrt,dtype='i4')
-            ##print('ph2',xrr,rtst,lrt,lmax,xshape)
             
-
-    ##print('z',npmax,axpix,xshape,pixmax/xshape,hplen,complist)
+    ##print npmax,axpix,xshape,pixmax/xshape,hplen,complist
 
     prflag = polar and xygrid
     if polar != 0:
@@ -3088,16 +2874,15 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             rmin = (1.-f1)*xrr[0]+f1*xrr[1]
             ylen *= rmin 
         hxlen = 0.5*0.9*min(hxlen,ylen)
-        ##print('hxlen:',variable,xrr,yrr,xshape,hxlen)
+        ##print 'hxlen:',variable,xrr,yrr,xshape,hxlen
     
     if imtrans:
         imshape = tuple(xshape) ; xg = xrr ; yg = yrr
     else:
         imshape = tuple(np.flipud(xshape)) ; xg = yrr ; yg = xrr
 
-    ##print('rast',imshape,xg,yg)
     rast = rasterize(sl,imshape,vdef=vdef,xr=xg,yr=yg,polar=prflag,
-                   polarLims=polarLims,complist=rcomps)
+                     polarLims=polarLims,complist=rcomps)
     if not imtrans:
         r1 = rast ; rast = ()
         for r in r1: rast += ( np.transpose(r), )
@@ -3110,7 +2895,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
     for i,g in enumerate(lims):
         s = xshape[i]
         grds += ( (g[1]-g[0])/s*np.arange(0.5,s,dtype=pff.PFFnp_float)+g[0], )
-        ##print('grids',i,g,s,grds[i])
+    ##print grds
 
     ##nvecs = w[0].size
     if polar == 1:
@@ -3130,7 +2915,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
     xg,yg = grds
     ex,ey = rast
     emag = np.sqrt(np.add(np.square(ex),np.square(ey)))
-    ##print('emag',emag.shape,emag[w].size,emag[w].min(),emag[w].max())
+    ##print emag.shape,emag[w].size,emag[w].min(),emag[w].max()
     emagmax = emag[w].max()
     emaglow = 5.0e-5*emagmax
     notzero = np.where(emag[w] > emaglow)[0]
@@ -3199,8 +2984,6 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
                                   np.sqrt(np.sum(np.square(ptmp),axis=1))]) )
     
         col = cols[k]
-        ##print('q',polar,k,i,j,p1,p2,xg[i],yg[j])
-        ##print('qq',alp,emag[i,j])
         ax.annotate('',p1,p2,arrowprops=dict(arrowstyle='->', \
                     color=col),xycoords=anno_mode)
 
@@ -3212,8 +2995,8 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
         try:     #  Now try to overplot conductor
             plotcon(conductor,x1+1, x2+1, vals[0], over=True, use_fig=use_fig,
                      **cndargs)
-        except AttributeError as e:
-            print(DN + ": Error overplotting conductor:",e)  ;  return None
+        except AttributeError, e:
+            print DN + ": Error overplotting conductor:",e  ;  return None
             
     f.canvas.draw()
     if return_slice: return sl
@@ -3224,8 +3007,8 @@ def plotpar(*args, **kwargs):
     '''Plot various data from a particle dataset.
 
 Usage:
-  plotpar(ds, [x, y] , [weight], [xrange=list], [yrange=list], [xlabel=str],
-          [ylabel=str], [title=str], [overplot=bool], [aspect=bool|float],
+  plotpar(ds, [x, y] , [weight], [xrange=list], [yrange=list], [xlabel=str], \\
+          [ylabel=str], [title=str], [overplot=bool], [aspect=bool|float], \\
           [polar=bool], [zrange=list], [zscale=float], [zplane=float],
           [conductor=ds|list], [color=int|str], [cmap=str|cmap],
           [cbar=str|list], [cbtitle=str]], [psymbol=str|int], [symsize=int],
@@ -3293,7 +3076,7 @@ Return value: If successful, returns number of particles plotted. Otherwise,
                'zscale':None, 'zplane':None, 'conductor':None, 'cmap':None, \
                'cbar':None, 'cbtitle':None, 'psymbol':'o', 'symsize':9, \
                'edgecolors':'none', 'lw':None, 'charsize':None, 'use_fig':None,
-               'color':'k', 'polar':False }
+               'color':'k', 'polar':False}
                ##, '':, '':, '':, '':, '':, '':, 
     wkeys = [ 'w#' ]
 
@@ -3302,40 +3085,14 @@ Return value: If successful, returns number of particles plotted. Otherwise,
 
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + plotpar.__doc__)  ;  return None
+        print nl[res] + plotpar.__doc__  ;  return None
     wres = res[1]
     scatterargs = res[2]
     res = res[0]
 
-    ds = res['ds']
-    a1 = res['a1']
-    a2 = res['a2']
-    a3 = res['a3']
-    aspect = res['aspect']
-    cbar = res['cbar']
-    cbtitle = res['cbtitle']
-    charsize = res['charsize']
-    color = res['color']
-    cmap = res['cmap']
-    conductor = res['conductor']
-    edgecolors = res['edgecolors']
-    lw = res['lw']
-    overplot = res['overplot']
-    polar = res['polar']
-    psymbol = res['psymbol']
-    psymbol = res['psymbol']
-    symsize = res['symsize']
-    title = res['title']
-    use_fig = res['use_fig']
-    xlabel = res['xlabel']
-    xrange = res['xrange']
-    ylabel = res['ylabel']
-    yrange = res['yrange']
-    zplane = res['zplane']
-    zrange = res['zrange']
-    zscale = res['zscale']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
 
@@ -3357,33 +3114,33 @@ Return value: If successful, returns number of particles plotted. Otherwise,
         t = type(cbar)
         cbloc = None
         cborient = None
-        if t is str:
+        if t is types.StringType:
             c = cbar[0].lower()
             if c == 'h':   cborient = 'horizontal'
             elif c == 'v': cborient = 'vertical'
-        if t is list or t is tuple or t is np.ndarray:
+        if t is types.ListType or t is types.TupleType or t is np.ndarray:
             if (t is np.ndarray and cbar.ndim != 1) or len(cbar) != 4:
-                print(DN + ": colorbar box format is: [x0,y0,dx,dy]")
+                print DN + ": colorbar box format is: [x0,y0,dx,dy]"
                 okay = False
             cbloc = cbar
-        if cbtitle is not None and type(cbtitle) is not str:
-            print(DN + ": Supplied colorbar title must be a string")
+        if cbtitle is not None and type(cbtitle) is not types.StringType:
+            print DN + ": Supplied colorbar title must be a string"
             okay = False
 
     if not okay:
-        print("\n" + plotpar.__doc__)  ;  return None
+        print "\n" + plotpar.__doc__  ;  return None
 
     x = None  ;  y = None  ;  weight = None
     cargs = [ a1, a2, a3 ]  ;  carg = 0
     nargs = len([ i for i in cargs if i is not None])
     ##print nargs
     if nargs < 2 and not overplot:
-        print(DN + ": invalid # of positional arguments:",nargs+1)
-        print("\n" + plotpar.__doc__)  ;  return None
+        print DN + ": invalid # of positional arguments:",nargs+1
+        print "\n" + plotpar.__doc__  ;  return None
 
     if overplot and _ovrplt.x is None:
-        print(DN + \
-            ": previous plot status unknown -- overplot option not allowed")
+        print DN + \
+            ": previous plot status unknown -- overplot option not allowed"
         return None
 
     if not overplot: pflag = polar
@@ -3409,8 +3166,8 @@ Return value: If successful, returns number of particles plotted. Otherwise,
     elif y < 0:
         if -y > adim or pflag: yokay =False
         else: iy = -y - 1
-    if not xokay:  print(DN + ": X argument is not valid")
-    if not yokay:  print(DN + ": Y argument is not valid")
+    if not xokay:  print DN + ": X argument is not valid"
+    if not yokay:  print DN + ": Y argument is not valid"
     if weight is not None:
         w = weight
         if w == 0: wokay = False
@@ -3420,7 +3177,7 @@ Return value: If successful, returns number of particles plotted. Otherwise,
         elif w < 0:
             if -w > adim: wokay =False
             else: iw = -w - 1
-        if not wokay:  print(DN + ": WEIGHT argument is not valid")
+        if not wokay:  print DN + ": WEIGHT argument is not valid"
     if not xokay or not yokay or not wokay:
         return None
     ##print x,y,ix,iy,weight
@@ -3445,9 +3202,12 @@ Return value: If successful, returns number of particles plotted. Otherwise,
                 else:
                     d = data[:,iy]  ;  yr = [d.min(), d.max()]
                 yrng = utils.nice_bounds(yr[0],yr[1])[0:2]
+        ax.set_xlim(xrng)
+        ax.set_ylim(yrng)
         if polar:
             yr = np.asarray(yr)/np.pi
             yrng = np.asarray(utils.nice_bounds(yr[0],yr[1])[0:2])*np.pi
+            print('yr',yr,yrng)
             ax.set_xlim(yrng)
             ax.set_ylim(xrng)
         else:
@@ -3476,7 +3236,7 @@ Return value: If successful, returns number of particles plotted. Otherwise,
         _ovrplt.set(x,y,zplane,xrng, yrng,ax,polar=polar)
     else:
         f = plt.gcf()
-        ax = _ovrplt.ax
+        ax =  _ovrplt.ax
         xrng = _ovrplt.xr
         yrng = _ovrplt.yr
         polar = 0
@@ -3493,7 +3253,7 @@ Return value: If successful, returns number of particles plotted. Otherwise,
         else:     xd = data[indo,ix]
         nind = np.where(xd > xrng[0])[0]
         if len(nind) == 0:
-            print(DN + ": No particles meet filtering criteria")  ;  return 0
+            print DN + ": No particles meet filtering criteria"  ;  return 0
         if ind is None: ind = nind
         else: ind = ind[nind]
         ##print 'x0:',len(ind)
@@ -3501,7 +3261,7 @@ Return value: If successful, returns number of particles plotted. Otherwise,
         else:     xd = data[ind,ix]
         nind = np.where(xd < xrng[1])[0]
         if len(nind) == 0:
-            print(DN + ": No particles meet filtering criteria")  ;  return 0
+            print DN + ": No particles meet filtering criteria"  ;  return 0
         ind = ind[nind]
         ##print 'x0:',len(ind)
     if yrange is not None:
@@ -3511,7 +3271,7 @@ Return value: If successful, returns number of particles plotted. Otherwise,
         else:     yd = data[indo,iy]
         nind = np.where(yd > yrng[0])[0]
         if len(nind) == 0:
-            print(DN + ": No particles meet filtering criteria")  ;  return 0
+            print DN + ": No particles meet filtering criteria"  ;  return 0
         if ind is None: ind = nind
         else: ind = ind[nind]
         ##print 'y0:',len(ind)
@@ -3519,7 +3279,7 @@ Return value: If successful, returns number of particles plotted. Otherwise,
         else:     yd = data[ind,iy]
         nind = np.where(yd < yrng[1])[0]
         if len(nind) == 0:
-            print(DN + ": No particles meet filtering criteria")  ;  return 0
+            print DN + ": No particles meet filtering criteria"  ;  return 0
         ind = ind[nind]
         ##print 'y1:',len(ind)
 
@@ -3538,7 +3298,7 @@ Return value: If successful, returns number of particles plotted. Otherwise,
             if zmlt: xd = np.multiply(xd,zscale)
             nind = np.where(xd > lims[0])[0]
             if len(nind) == 0:
-                print(DN + ": No particles meet filtering criteria")  ;  return 0
+                print DN + ": No particles meet filtering criteria"  ;  return 0
             if ind is None: ind = nind
             else: ind = ind[nind]
             ##print 'x'+str(itmp)+'0:',len(ind)
@@ -3547,14 +3307,14 @@ Return value: If successful, returns number of particles plotted. Otherwise,
             if zmlt: xd = np.multiply(xd,zscale)
             nind = np.where(xd < lims[1])[0]
             if len(nind) == 0:
-                print(DN + ": No particles meet filtering criteria")  ;  return 0
+                print DN + ": No particles meet filtering criteria"  ;  return 0
             ind = ind[nind]
             ##print 'x'+str(itmp)+'1:',len(ind)
 
     indo = ind
     if ind is None:  indo = slice(npar)
 
-    if polar == 0:  #FIXME for polar, x & y must be > 0
+    if polar == 0:
         if x > 0: xd = xdata[ix,indo]
         else:     xd = data[indo,ix]
         if y > 0: yd = xdata[iy,indo]
@@ -3573,6 +3333,7 @@ Return value: If successful, returns number of particles plotted. Otherwise,
         if not overplot and xrange is None:
             if polar:
                 ax.set_ylim(utils.nice_bounds(yd.min(),yd.max())[0:2])
+                print('q',yd.min(),yd.max())
             else:
                 ax.set_xlim(utils.nice_bounds(xd.min(),xd.max())[0:2])
         if not overplot and yrange is None:
@@ -3584,7 +3345,9 @@ Return value: If successful, returns number of particles plotted. Otherwise,
             else:
                 ax.set_ylim(utils.nice_bounds(yd.min(),yd.max())[0:2])
     if weight is None:
+        ##if cmap is not None: scatterargs['c'] = cmap
         if type(color) == int: color = plots.bld_map(color-1)
+
         sc = ax.scatter(xd,yd,s=symsize,marker=psymbol,edgecolors=edgecolors, \
                         c=color,**scatterargs)
     else:
@@ -3656,20 +3419,17 @@ Return value: Returns 0 if successful, or None on error'''
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + shelp.__doc__)  ;  return None
+        print nl[res] + shelp.__doc__  ;  return None
 
-    first = res['first']
-    last = res['last']
-    file = res['file']
-    full = res['full']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
 
     detailed = False
-    if type(first) == int and first <= 0:
-        slist = list(_struclist.keys())
+    if type(first) == types.IntType and first <= 0:
+        slist = _struclist.keys()
         slist.sort()
     else:
         slist = utils.parsewsl(_struclist, first, last, name='STRUCT', \
@@ -3677,12 +3437,12 @@ Return value: Returns 0 if successful, or None on error'''
         if slist is None:
             return None
 
-        if (type(first) == int and last is None) or \
-           type(first) == list:
+        if (type(first) == types.IntType and last is None) or \
+           type(first) == types.ListType:
             detailed = True
 
     if len(slist) == 0:
-        print('Specified STRUCT arrays are empty')
+        print 'Specified STRUCT arrays are empty'
         return None
 
     if full is not None:
@@ -3691,59 +3451,59 @@ Return value: Returns 0 if successful, or None on error'''
 
     if detailed:
         for i in slist:
-            print(" -----------------")
-            print("Structure array number" , i)
+            print " -----------------"
+            print "Structure array number" , i
             ds = _struclist[i]
             ds, itype = process_ds(ds, DN, \
                            (pff.blkgrid_dataset,pff.VTX_dataset,quadlist3d))
             if ds is None:
-                print("Unknown dataset type")
+                print "Unknown dataset type"
             else:
                 if itype == 0:
                     adim = ds.adim ; sdim = ds.sdim ; nblk = ds.nblk
-                    if adim == 0:  print("GRID STRUCTURE")
-                    else:  print("FIELD STRUCTURE")
+                    if adim == 0:  print "GRID STRUCTURE"
+                    else:  print "FIELD STRUCTURE"
                 elif itype == 1:
                     adim = ds.adim  ;  sdim = ds.sdim
-                    print("PARTICLE STRUCTURE")
+                    print "PARTICLE STRUCTURE"
                 else:
                     adim = 0  ;  sdim = 3
-                    print("CONDUCTOR STRUCTURE")
-                print(" Dataset Type:", ds.typename)
-                print(" Dataset Comment:", ds.title)
-                print(" File:", ds.file)
-                print(' Number of spatial dimensions:', sdim)
+                    print "CONDUCTOR STRUCTURE"
+                print " Dataset Type:", ds.typename
+                print " Dataset Comment:", ds.title
+                print " File:", ds.file
+                print ' Number of spatial dimensions:', sdim
                 gl = ds.glabels  ;  gr = ds.g_range
                 if itype == 0:
                     gl = gl[0]  ;  gr = gr[nblk]
-                print(" Spatial labels:",gl)
-                print(" Range in each Spatial dimension:")
+                print " Spatial labels:",gl
+                print " Range in each Spatial dimension:"
                 fmt = "   %" + str(gl.dtype)[2:] + "s    %s"
-                for i in range(sdim): print(fmt % (gl[i], gr[i]))
+                for i in range(sdim): print fmt % (gl[i], gr[i])
                 if itype == 0:
-                    print(' Number of blocks:',nblk)
-                    print(' Size of the spatial arrays for each block:')
-                    print('   Block    Size of each dimension')
-                    for i in range(nblk):  print("%7d      %s" % (i+1,ds.nx[i]))
-                    if adim: print(' Number of vector components:', adim)
+                    print ' Number of blocks:',nblk
+                    print ' Size of the spatial arrays for each block:'
+                    print '   Block    Size of each dimension'
+                    for i in range(nblk):  print "%7d      %s" % (i+1,ds.nx[i])
+                    if adim: print ' Number of vector components:', adim
                     if adim:
-                        print(" Range of data in each vector dimension:")
+                        print " Range of data in each vector dimension:"
                         data = ds.data ; s1 = "" ; s2 = "" ; s3 = "" ; sl = ""
                         mnmx = np.empty((adim,2),dtype=data[0].dtype)
                         if adim > 1: sl = ",i"
                         for b in range(nblk):
                             bdat = data[b]
                             for i in range(adim):
-                              exec("mnmx[i,0] = "+s1+"bdat[..."+sl+"].min()"+s3)
-                              exec("mnmx[i,1] = "+s2+"bdat[..."+sl+"].max()"+s3)
+                              exec "mnmx[i,0] = "+s1+"bdat[..."+sl+"].min()"+s3
+                              exec "mnmx[i,1] = "+s2+"bdat[..."+sl+"].max()"+s3
                             if b == 0:
                                 s1 = "min(mnmx[i,0],"
                                 s2 = "max(mnmx[i,1],"  ;  s3 = ")"
                 elif itype == 1:
-                    print(' Number of particles:', ds.nv)
-                    print(' Number of attributes:', adim)
+                    print ' Number of particles:', ds.nv
+                    print ' Number of attributes:', adim
                     if adim:
-                        print(" Range of data in each attribute:")
+                        print " Range of data in each attribute:"
                         data = ds.data
                         mnmx = np.empty((adim,2),dtype=data.dtype)
                         for i in range(adim):
@@ -3751,18 +3511,18 @@ Return value: Returns 0 if successful, or None on error'''
                             mnmx[i,1] = data[:,i].max()
                 elif itype == 2:
                     cnts = np.diff(ds.locx)
-                    print(' Number of slant surfaces:', ds.nqs)
-                    print(' Number of surfaces normal to X-axis:', cnts[0])
-                    print(' Number of surfaces normal to Y-axis:', cnts[1])
-                    print(' Number of surfaces normal to Z-axis:', cnts[2])
-                    print(' Total number of conductor surfaces:', ds.nq + ds.nqs)
+                    print ' Number of slant surfaces:', ds.nqs
+                    print ' Number of surfaces normal to X-axis:', cnts[0]
+                    print ' Number of surfaces normal to Y-axis:', cnts[1]
+                    print ' Number of surfaces normal to Z-axis:', cnts[2]
+                    print ' Total number of conductor surfaces:', ds.nq + ds.nqs
                 if adim:
-                    for i in range(adim):   print("%5d   %s" % (i+1,mnmx[i,:]))
+                    for i in range(adim):   print "%5d   %s" % (i+1,mnmx[i,:])
     else:
-        print("Structures with Valid Data are Listed:")
-        print("Structure   Comment", end=' ')
-        if file: print(": File")
-        else: print("")
+        print "Structures with Valid Data are Listed:"
+        print "Structure   Comment",
+        if file: print ": File"
+        else: print ""
         jd = max(int(math.log10(max(slist)))+1,5)
         fmt="%"+str(jd)+"d"
         for i in range(12-jd): fmt += " "
@@ -3770,7 +3530,7 @@ Return value: Returns 0 if successful, or None on error'''
         for i in slist:
             fstr = ''
             if file: fstr = ": " + _struclist[i].file
-            print(fmt % ( i, _struclist[i].title, fstr ))
+            print fmt % ( i, _struclist[i].title, fstr )
     return 0
 
 
@@ -3807,16 +3567,15 @@ Return value: If successful, returns the number of Structure arrays deleted,
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + delstr.__doc__)  ;  return None
+        print nl[res] + delstr.__doc__  ;  return None
 
-    first = res['first']
-    last = res['last']
-    quiet = res['quiet']
-    ##keys = list(res.keys())
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
+
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
 
-    if type(first) == int and first <= 0:
+    if type(first) == types.IntType and first <= 0:
         dlen = len(_struclist)  ;  _struclist.clear()
     else:
         dlist = utils.parsewsl(_struclist, first, last, name='STRUCT', \
@@ -3825,7 +3584,7 @@ Return value: If successful, returns the number of Structure arrays deleted,
         dlen = len(dlist)
         for w in dlist:  del _struclist[w]
 
-    if not quiet:  print(dlen, 'Structure Arrays have been Cleared')
+    if not quiet:  print dlen, 'Structure Arrays have been Cleared'
 
     return dlen
     
@@ -3858,13 +3617,11 @@ Return value: If successful, returns the index of the first empty
                              extra=False)
     if res == 0 or res == 1:
         nl = [ "", "\n" ]
-        print(nl[res] + get_empty_str.__doc__)  ;  return None
+        print nl[res] + get_empty_str.__doc__  ;  return None
 
-    first = res['first']
-    count = res['count']
-    last = res['last']
+    keys = res.keys()
+    for k in keys: exec k + " = res[k]"
 
-    ##keys = list(res.keys())
     ##keys.sort()
     ##for k in keys:   exec "print k, " + k
 
@@ -3877,24 +3634,24 @@ def rasterize(sl,shape,vdef=-1.0e30,xr=None,yr=None,block=None,polar=False,
               polarLims=None,complist=None):
     ##print "rasterize:",shape,vdef,xr,yr,block
     if not isinstance(sl,pff.blkgrid_dataset):
-        print("SL must be a PFF Block-Grid Dataset")
+        print "SL must be a PFF Block-Grid Dataset"
         return None
     t = type(shape)
-    if (t is not list and t is not tuple) or \
+    if (t is not types.ListType and t is not types.TupleType) or \
        len(shape) != 2:
-        print("SHAPE must be a 2-element list or tuple of integers")
+        print "SHAPE must be a 2-element list or tuple of integers"
         return None
     nblk = sl.nblk
     sdim = sl.sdim
     t = type(block)
     okay = True
     if block is None or block == 'all':
-        useblks = list(range(nblk))
+        useblks = range(nblk)
     else:
-        if t is int:
+        if t is types.IntType:
             if block < 1 or block >= nblk: okay = False
             else: useblks = [block - 1]
-        elif t is list or t is tuple:
+        elif t is types.ListType or t is types.TupleType:
             useblks = list(np.subtract(block,1))
             useblks.sort()
             used = [ 0 for i in range(nblk+1) ]
@@ -3904,7 +3661,7 @@ def rasterize(sl,shape,vdef=-1.0e30,xr=None,yr=None,block=None,polar=False,
                 if used[nblk] or len([s for s in used if s>1]): okay = False
         else: okay = False
     if not okay:
-        print("Illegal BLOCK specification")
+        print "Illegal BLOCK specification"
         return None
 
     keep = [] ; degen = []
@@ -3913,11 +3670,11 @@ def rasterize(sl,shape,vdef=-1.0e30,xr=None,yr=None,block=None,polar=False,
     if len(sh) == sdim + 1:
         if complist is None:
             multi = sh[-1]
-            complist = list(range(multi))
+            complist = range(multi)
         else:
             t = type(complist)
-            if t is int: complist = [complist]
-            elif t is not list and t is not tuple:
+            if t is types.IntType: complist = [complist]
+            elif t is not types.ListType and t is not types.TupleType:
                 okay = False
             if okay:
                 shextra = sh[-1]
@@ -3927,7 +3684,7 @@ def rasterize(sl,shape,vdef=-1.0e30,xr=None,yr=None,block=None,polar=False,
                     okay = False
                 else: complist = (tst - 1).tolist()
             if not okay:
-                print("Error in COMPLIST specification")
+                print "Error in COMPLIST specification"
                 return None
         sh = sh[:-1]
     else:  multi = 0
@@ -3967,7 +3724,7 @@ def rasterize(sl,shape,vdef=-1.0e30,xr=None,yr=None,block=None,polar=False,
                 if sh[i] == 1: idg += 1
                 else: ik += 1
     if not okay or len(keep) != 2:
-        print("Supplied dataset is not a scalar 2D slice")
+        print "Supplied dataset is not a scalar 2D slice"
         return None
     if xr is None: xr = gr[keep[0],:]
     if yr is None: yr = gr[keep[1],:]
@@ -4079,8 +3836,6 @@ def rasterize(sl,shape,vdef=-1.0e30,xr=None,yr=None,block=None,polar=False,
                 sh2d = tuple([i for i in data.shape if i>1 ])
                 ##print sh2d
                 d2d =  np.reshape(data,sh2d,order='A')
-                ##if b == 0: print('d2d',b,com,d2d.shape,d2d[9,0])
-                ##else: print('d2d',b,com,d2d.shape,d2d[0,15])
                 wx = np.where(xind != -1)[0]
                 wy = np.where(yind != -1)[0]
                 ##print np.where(xind == -1)[0]
@@ -4102,23 +3857,35 @@ def rasterize(sl,shape,vdef=-1.0e30,xr=None,yr=None,block=None,polar=False,
     return rval
     
 
-def process_ds(ds, DN, ok_types):
-    if type(ds) is int:
-        if ds in _struclist:  ds = _struclist[ds]
+def process_ds(ds, DN, ok_types=None):
+
+    if type(ds) is types.IntType:
+        if _struclist.has_key(ds):  ds = _struclist[ds]
         else:
-            print(DN + ": Struct",ds,"is empty")  ;  return (None,None)
-    t = type(ok_types)
-    if t is not list and t is not tuple: ok_types = [ok_types]
-    for i,ty in enumerate(ok_types):
-        if isinstance(ds,ty): return (ds,i)
-    print(DN + ": DS must be a Supported Dataset")
+            print DN + ": Struct",ds,"is empty"  ;  return (None,None)
+    if ok_types is None:
+        if type(ds) is not types.InstanceType:
+            print DN + ": Struct has invalid type:",type(ds)
+            return (None,None)
+        return (ds,0)
+    else:
+        t = type(ok_types)
+        if t is not types.ListType and t is not types.TupleType:
+            ok_types = [ok_types]
+        for i in range(len(ok_types)):
+            ty = ok_types[i]
+            if type(ty) is not types.ClassType:
+                print DN + ":", ty, "is not a class"  ;  return (None,None)
+            if isinstance(ds,ty):
+                return (ds,i)
+    print DN + ": DS must be a Supported Dataset"
     return (None,None)
 
 
 def grid_match(ds1,ds2):
     if not isinstance(ds1,pff.blkgrid_dataset) or \
        not isinstance(ds1,pff.blkgrid_dataset):
-        print("GRID_MATCH: Datasets must be instances of pff.blkgrid_dataset")
+        print "GRID_MATCH: Datasets must be instances of pff.blkgrid_dataset"
         return None
     nblk = ds1.nblk  ;  sdim = ds1.sdim
     # number of blocks and spatial dimensionality must match
@@ -4149,7 +3916,6 @@ def _integrate_2d(sl,xi,xt,itype,reverse,start):
         sh = od.shape
         zloc = [ slice(sh[i]) for i in range(od.ndim) ]
         zloc[xi] = iz
-        zloc = tuple(zloc)
         nd = np.empty(sh,order='F',dtype=pff.PFFnp_float)
         if not start: nd[zloc] = 0.0
         else:
@@ -4173,8 +3939,6 @@ def _integrate_2d(sl,xi,xt,itype,reverse,start):
         sl0 = [ slice(sh[i]) for i in range(od.ndim) ]  ;  sl1 = sl0[:]
         sl0[xi] = slice(0,-1)
         sl1[xi] = slice(1,None)
-        sl0 = tuple(sl0)
-        sl1 = tuple(sl1)
         if reverse: wslice = sl0
         else: wslice = sl1
         ##print sl0,sl1,wslice
@@ -4190,9 +3954,7 @@ def _integrate_2d(sl,xi,xt,itype,reverse,start):
         nd[wslice] = np.multiply(mlt,np.add(od[sl0],od[sl1]))
         cnd = nd
         if reverse:
-            tmp = list(wslice)
-            tmp[xi] = slice(None,None,-1)
-            wslice = tuple(tmp)
+            wslice[xi] = slice(None,None,-1)
             cnd = nd[wslice]
         np.cumsum(cnd,axis=xi,out=cnd) 
         clist = con[1]
@@ -4216,12 +3978,12 @@ def _gen_lineout(sl,con_ord,xldir, xidir, xival, axes=None,dir='x',polar=False,
     xvlst = np.asarray(xival,dtype=np.single)
     if xvlst.ndim == 0: xvlst = [ xival for i in range(lastblk) ]
     xyolst = []
-    ##print(con_ord)
+    ##print con_ord
     for con in con_ord:
         b = con[0]
         xval = xvlst[b]
         lo = sl.get_slice(xval,coord=xidir+1,block=b+1,quiet=True)
-        ##if lo is None: print(b,'lo is none')
+        ##if lo is None: print b,'lo is none'
         if lo is not None:
             ##print lo.nblk,len(lo.x),len(lo.x[0]),b,x1
             x = lo.x[0][xldir]
@@ -4233,7 +3995,7 @@ def _gen_lineout(sl,con_ord,xldir, xidir, xival, axes=None,dir='x',polar=False,
                 fblk = b
             else:
                 clist = con[1]
-                print('bc',b,clist)
+                print 'bc',b,clist
                 for c in clist:
                     if c[0] == lastblk:
                         connected = True  ;  break
@@ -4265,7 +4027,7 @@ def _gen_lineout(sl,con_ord,xldir, xidir, xival, axes=None,dir='x',polar=False,
                         yout = np.append(yout,yap,axis=0)
             lastblk = b
             if axes:
-                ##print('HC',histogram,connected,b,lo.g_range.shape)
+                ##print 'HC',histogram,connected,b,lo.g_range.shape
                 if (dir == 'x' and not polar) or (dir != 'x' and polar):
                     if histogram and connected:
                         xhc,yhc = \
@@ -4273,7 +4035,7 @@ def _gen_lineout(sl,con_ord,xldir, xidir, xival, axes=None,dir='x',polar=False,
                         if abs(xval-lastplp[1]) < lo.g_eps[0,xldir]:
                             lnsty = '-'
                         else: lnsty = '--'
-                        ##print('lnsty1',lnsty)
+                        ##print 'lnsty1',lnsty
                     if polar:
                         th,junk = ThetaFill(lo.g_range[0,xldir,:],0.03*np.pi)
                         rv = xval + np.zeros((len(th),))
@@ -4288,7 +4050,7 @@ def _gen_lineout(sl,con_ord,xldir, xidir, xival, axes=None,dir='x',polar=False,
                         if abs(xval-lastplp[0]) < lo.g_eps[0,xldir]:
                             lnsty = '-'
                         else: lnsty = ':'
-                        ##print('lnsty2',lnsty)
+                        ##print 'lnsty2',lnsty
                     l = matplotlib.lines.Line2D([xval,xval],
                                                 lo.g_range[0,xldir,:],c='w')
                     lastplp = (xval,lo.g_range[0,xldir,-1])
@@ -4314,7 +4076,7 @@ def _getHistogramIntercept(ds,xflst,crdid,xval,block='all'):
             if tblock.min() < 0 or tblock.max() >=nblk or \
                tblock.size != np.unique(tblock).size: raise ValueError
         except ValueError:
-            print(DN + ": Illegal value for BLOCK keyword")
+            print DN + ": Illegal value for BLOCK keyword"
             return None
     nb = tblock.size
     xhlst = ds.x
@@ -4331,7 +4093,7 @@ def _getHistogramIntercept(ds,xflst,crdid,xval,block='all'):
                 if type(x) is not np.ndarray: raise ValueError
                 if xh.size > 1 and x.size != xh.size+1:  raise ValueError
     except ValueError:
-        print(DN + ": Illegal value for XFLST argument")
+        print DN + ": Illegal value for XFLST argument"
         return None
 
     xilist = []
@@ -4354,10 +4116,10 @@ def _getHistogramIntercept(ds,xflst,crdid,xval,block='all'):
         xilist.append(xv)
 
     return xilist
-            
+
 def _what_type(ds):
     if isinstance(ds,pff.blkgrid_dataset):
-        if ds.adim == 0 and ds.sdim//2 == 1: return 'G'
+        if ds.adim == 0 and ds.sdim/2 == 1: return 'G'
         else: return 'F'
     elif isinstance(ds,pff.VTX_dataset):
         return 'V'
@@ -4374,7 +4136,7 @@ def _fastgrid(mode,ax,xi,yi,**lineargs):
     xo = np.empty(npts,dtype=pff.PFFnp_float)
     yo = np.empty(npts,dtype=pff.PFFnp_float)
     ytmpl = yi[[0,-1,-1,0]]
-    nrep = npts//4
+    nrep = npts/4
     ntile = 4*nrep
     yo[0:ntile] = np.tile(ytmpl,nrep)
     if npts > ntile:  yo[-2:npts] = ytmpl[0:2]
@@ -4393,11 +4155,11 @@ def ThetaFill(t,dtmax,f=None):
         fout = None  ;  nr = 0
     else:
         if f.ndim != 2:
-            print("ThetaFill: Supplied F must be 2-dimensional")
+            print "ThetaFill: Supplied F must be 2-dimensional"
             return (None,None)
         nr, c0t  = f.shape
         if c0t != c0:
-            print("ThetaFill: Supplied F dimensions are not consistent with T")
+            print "ThetaFill: Supplied F dimensions are not consistent with T"
             return (None,None)
     c0 = len(t)
     dt = np.diff(t)
@@ -4467,13 +4229,12 @@ def slice_data_range(sl,x1,x2,xg,yg,comps):
     sdim = sl.sdim
     sh = sl.data[0].shape
     shextra = 0
-    ##print('yyy',sh,sdim,comps)
     if len(sh) > sdim:
         shextra = sh[sdim]
         t = type(comps)
-        if t is int: comps = [comps]
-        elif t is not list and t is not tuple:
-            print('slice_data_range: Bad COMPS',b,x1,x2,sh,i)
+        if t is types.IntType: comps = [comps]
+        elif t is not types.ListType and t is not types.TupleType:
+            print 'slice_data_range: Bad COMPS',b,x1,x2,sh,i
             return
 
     for b in range(nblk):
@@ -4485,7 +4246,7 @@ def slice_data_range(sl,x1,x2,xg,yg,comps):
             x = sl.x[b][x1]
             x1slice = np.where(np.logical_and(xg[0] <= x, x <= xg[1]))[0]
             if len(x1slice) == 0:
-                print("X-skip block",b)
+                print "X-skip block",b
                 continue
         if yg is None:
             x2slice = slice(nx[x2])
@@ -4493,10 +4254,10 @@ def slice_data_range(sl,x1,x2,xg,yg,comps):
             x = sl.x[b][x2]
             x2slice = np.where(np.logical_and(yg[0] <= x, x <= yg[1]))[0]
             if len(x2slice) == 0:
-                print("Y-skip block",b)
+                print "Y-skip block",b
                 continue
 
-        ##print(b,x1slice,x2slice)
+        ##print b,x1slice,x2slice
 
         sdim = sl.sdim
         dim = ()
@@ -4506,14 +4267,11 @@ def slice_data_range(sl,x1,x2,xg,yg,comps):
             elif ( i == x2 ): dim += ( x2slice, )
             elif ( sh[i] == 1 ): dim += ( 0, )
             else:
-                print('slice_data_range: Bad Slice',b,x1,x2,sh,i)
+                print 'slice_data_range: Bad Slice',b,x1,x2,sh,i
                 return
-        ##print('xxx',sh,dim,comps)
-        if len(sh) > sdim: dim += (comps,)
-        ##print('zzz',dim)
+        if len(sh) > dim: dim += (comps,)
 
         if shextra and len(comps) > 1:
-            ##print('qqq',data[dim].shape)
             atmp = np.sqrt(np.sum(np.square(data[dim]),axis=-1))
         else:
             atmp = data[dim]
@@ -4521,7 +4279,6 @@ def slice_data_range(sl,x1,x2,xg,yg,comps):
         if b == 0:  dmin,dmax = ( atmp.min(), atmp.max() )
         else:
             dmin,dmax = ( min(dmin,atmp.min()), max(dmax,atmp.max()) )
-        ##print('ddd',dmin,dmax)
 
     return (dmin,dmax)
 
@@ -4550,12 +4307,12 @@ class quadlist3d:
             v = vrtx_ds
             if not isinstance(v,pff.VTX_dataset) or (v.nv % 4) != 0 or \
                v.sdim != 3 or v.adim != 0:
-              print("QUADLIST3D: " + \
-                    "Supplied Vertex Dataset does not define a legal conductor")
+              print "QUADLIST3D: " + \
+                    "Supplied Vertex Dataset does not define a legal conductor"
               return None
             self.rawname = 'QLIST'
             nv = v.nv
-            nq = nv//4
+            nq = nv/4
             x = v.x
             dt = x.dtype
             pds = np.empty((2,3,nq),dtype=dt,order='F')
@@ -4685,10 +4442,10 @@ class quadlist3d:
                 f = __builtin__.open(f,'w')
                 needClose = True
             except IOError as e:
-                print("quadlist3d.printall:",e,file=sys.stderr)
+                print >>sys.stderr, "quadlist3d.printall:",e
                 return
 
-        print(self.info_string(True),file=f)
+        print >>f, self.info_string(True)
         if needClose: f.close()
 
     def info_string(self,full=False):
@@ -4708,9 +4465,9 @@ class quadlist3d:
         if isnum:
             mlt = [ factor for i in range(3) ]
             inds = [ i for i in range(3) ]
-        elif t is list or t is tuple:
+        elif t is types.ListType or t is types.TupleType:
             if len(factor) != 3:
-                print("FACTOR list must have 3 elements")
+                print "FACTOR list must have 3 elements"
                 okay = False
             else:
                 mlt = list(factor)
@@ -4718,10 +4475,10 @@ class quadlist3d:
                 for i in inds:
                     isnum, t = utils.is_number(mlt[i])
                     if not isnum:
-                        print("FACTOR[" + str(i) + "] is not a number")
+                        print "FACTOR[" + str(i) + "] is not a number"
                         okay = False
         else:
-            print("FACTOR must be an scalar number or a 3-element list")
+            print "FACTOR must be an scalar number or a 3-element list"
             okay = False
 
         if not okay:
@@ -4767,9 +4524,9 @@ class quadlist3d:
         if isnum:
             plus = [ factor for i in range(3) ]
             inds = [ i for i in range(3) ]
-        elif t is list or t is tuple:
+        elif t is types.ListType or t is types.TupleType:
             if len(factor) != 3:
-                print("FACTOR list must have 3 elements")
+                print "FACTOR list must have 3 elements"
                 okay = False
             else:
                 plus = list(factor)
@@ -4777,10 +4534,10 @@ class quadlist3d:
                 for i in inds:
                     isnum, t = utils.is_number(plus[i])
                     if not isnum:
-                        print("FACTOR[" + str(i) + "] is not a number")
+                        print "FACTOR[" + str(i) + "] is not a number"
                         okay = False
         else:
-            print("FACTOR must be an scalar number or a 3-element list")
+            print "FACTOR must be an scalar number or a 3-element list"
             okay = False
 
         if not okay:
@@ -4818,7 +4575,7 @@ class quadlist3d:
     def append(self,quadlist,title=None):
         t = type(quadlist)
         okay = True
-        if t is list or t is tuple:
+        if t is types.ListType or t is types.TupleType:
             qlist = list(quadlist)
             for q in qlist:
                 if not isinstance(q,quadlist3d):  okay = False
@@ -4828,7 +4585,7 @@ class quadlist3d:
             okay = False
 
         if not okay:
-            print("Supplied argument/s not all QUADLIST3D objects")
+            print "Supplied argument/s not all QUADLIST3D objects"
             return 1
 
         alist = [ self ] + qlist
@@ -4882,7 +4639,7 @@ class quadlist3d:
             ##print cnts
             ##print locn,pos,nq,nqs
             nbnds = np.empty((2,3,nqs),dtype=pff.PFFnp_float,order='F')
-            extr = list(range(nqs))
+            extr = range(nqs)
             for i in range(nlist):
                 q = alist[i]
                 if q.nqs > 0:
@@ -4909,7 +4666,7 @@ class quadlist3d:
         same = ['apptype', 'file', 'title', 'typename' ]
         same += ['g_eps', 'g_range', 'glabels', 'spare' ]
 
-        for k in same: exec("new[\'" + k + "\']= self." + k)
+        for k in same: exec "new[\'" + k + "\']= self." + k
 
         nq = self.nq
         nqs = self.nqs
@@ -4977,8 +4734,8 @@ class quadlist3d:
         ##for k in keys: print repr(k) + ":", repr(new[k])
         return pff.VTX_dataset(new=new)
 
-    def write(self,id=0,precision=None,ignore=None):
-        self.VTX_dataset().write(id=id,precision=precision,ignore=ignore)
+    def write(self,id=0,precision=None):
+        self.VTX_dataset().write(id=id,precision=precision)
 
 
 try:

@@ -15,25 +15,24 @@
 # You should have received a copy of the GNU Lesser General
 # Public License along with Hermes.  If not, see
 # <http://www.gnu.org/licenses/>.
-#
-from __future__ import print_function, division
+# 
+import exceptions
 
 __doc__ = \
 '''Set of PFMPL functions for reading, writing, plotting, and otherwise
 manipulating PFF datasets.'''
 
-class PFMPL_Error(Exception):
+class PFMPL_Error(exceptions.Exception):
     def __init__(self, value="PFMPL error"):
         self.value = value
     def __str__(self):
         return repr(self.value)
 
 _load_list = [ '_1d',  '_2d', 'files', 'plots' ]
-##_load_list = [ 'utils', 'files'] ##, 'plots' ]
 
 import os.path
 
 _pkg_name = os.path.basename(__path__[0])
 for _mod in _load_list:
-    ##print('from %s.%s import *' % (_pkg_name, _mod))
-    exec('from %s.%s import *' % (_pkg_name, _mod))
+    ##print 'from %s.%s import *' % (_pkg_name, _mod)
+    exec 'from %s.%s import *' % (_pkg_name, _mod)

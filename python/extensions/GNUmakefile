@@ -31,6 +31,7 @@
 #    HERMES_GLOBAL      'hermes_root'/bin/hermesenv.[sh|csh]
 #
 PRODUCT = pythonext
+PYTHON_EXE = python
 PLATFORM = $(HERMES_SYS_TYPE)
 MAKEFILE = GNUmakefile
 BLD_SRC_EXTS = -scc
@@ -40,7 +41,7 @@ LGRPFLAGS =
 LIST_NAME = $(PRODUCT)
 MACRO_LIST_FILE = $(LIST_NAME)_macro_list
 DEP_LIST_FILE = $(LIST_NAME)_dep_list
-PY_VER = $(basename $(word 2,$(shell python -V 2>&1)))
+PY_VER = $(basename $(word 2,$(shell $(PYTHON_EXE) -V 2>&1)))
 BLDDIR = $(HERMES_SYS_TYPE)-$(PY_VER)
 HTMLDIR = ../html
 TOOLDIR = ../tools
@@ -61,8 +62,8 @@ FULL_TARGETS = $(foreach targ,$(TARGETS),$(BLDDIR)/$(targ).$(SHR_EXT))
 
 $(BLDDIR)/%.$(SHR_EXT) : %.cc
 	@if [ ! -d $(BLDDIR) ]; then mkdir $(BLDDIR); fi
-	python $(basename $(notdir $<))_setup.py build --build-lib $(BLDDIR) \
-	       --build-temp=$(BLDDIR)/tmp -g
+	$(PYTHON_EXE) $(basename $(notdir $<))_setup.py build \
+	       --build-lib $(BLDDIR) --build-temp=$(BLDDIR)/tmp -g
 
 start :
 	@$(MAKE) -f $(MAKEFILE) depend all
