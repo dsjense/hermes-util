@@ -79,7 +79,7 @@ def set_frame_props(ax,lw,charsize,right=None):
 class _overplot:
 
     def __init__(self):
-        print('in overplot init')
+        ##print('in overplot init')
         self.x = None
         self.polar = False
 

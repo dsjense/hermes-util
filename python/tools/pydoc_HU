@@ -22,24 +22,58 @@
 # HTML documentation
 #
 
-import sys,os,pydoc
+V2_files = ':PortabilityTools2_5.py:'
+V25_dirs = [ 'modules2.5' ]
 
-argc = len(sys.argv)
+import sys,os
+import chkversion
 
-if argc == 2:
-   module = sys.argv[1]
-   out = None
-elif argc == 3:
-   module = sys.argv[1]
-   out = sys.argv[2]
+vi = list(sys.version_info)
+py_ver = vi[2] + 100*(vi[1] +100*vi[0])
+maj_ver = sys.version_info[0]
+if maj_ver < 3:
+    from PortabilityTools2_5 import ptPrint
 else:
-    print 'Usage: ' + os.path.basename(sys.argv[0]) + ' module [outfile]'
-    sys.exit(1)
+    from PortabilityTools import ptPrint
 
-pydoc.writedoc(module)
+ver25exe, ver2exe, ver3exe = chkversion.getPythonExecutables()
 
-if out is not None:
-    hname = module + '.html'
-    os.rename(hname,out)
+if ver3exe is not None:
+    defexe = ver3exe
+else:
+    defexe = ver2exe
+##ptPrint(sys.version_info)
+##ptPrint(ver25exe,ver2exe,ver3exe,defexe)
 
-sys.exit(0)
+base = os.path.basename(sys.argv[1])
+
+exe = None
+arg3 = ''
+##ptPrint('base:',base)
+if V2_files.find(':'+base+':') >= 0:
+    ##ptPrint('found',base)
+    if ver2exe is not None: exe = ver2exe
+    elif ver25exe is not None: exe = ver25exe
+    else: sys.exit(0)
+else:
+    for dirname in V25_dirs:
+        ##ptPrint(sys.argv[1],sys.argv[1].find(os.path.sep+dirname+os.path.sep))
+        if sys.argv[1].find(os.path.sep+dirname+os.path.sep) >= 0:
+            ##ptPrint('found',dirname)
+            if ver25exe is None:
+                ##ptPrint('NONE:',ver25exe)
+                sys.exit(0)
+            exe = ver25exe
+            arg3 = ' v2.5'
+            ##ptPrint('found v2.5 for',sys.argv[1])
+    if exe is None: exe = ver3exe
+
+##ptPrint('xxx',os.path.dirname(sys.argv[0]))
+
+full_py = os.path.join(os.path.dirname(sys.argv[0]),'pydoc_HU.py' )
+
+cmd = exe + ' ' + full_py + ' ' + ' '.join(sys.argv[2:]) + arg3
+##ptPrint('cmd:',cmd)
+os.system(cmd)
+
+                                

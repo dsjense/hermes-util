@@ -31,7 +31,13 @@ chkversion.checkExtensionPath()
 
 import pff_ext as pex
 
-__doc__ = '''Module pff'''
+__doc__ = '''\
+The pff module encapsulates the functionality of the PFF (Portable File Format)
+C library provided with Hermes Utilities. That functionality includes:
+    - Functions for opening and closing PFF files,
+    - Functions listing open PFF files and examining the contents of such files,
+    - Classes which encapsulate the various dataset types provide by PFF, and
+    - Other various functions provided for manipulation of datasets.'''
 
 _py_maj_vers = sys.version_info[0]
 if _py_maj_vers <3: _empty_byte = ''

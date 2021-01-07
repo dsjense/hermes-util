@@ -109,17 +109,15 @@ executables that are 2.6 or later.
 
 If for some reason it is necessary to use an older version, an
 unsupported, legacy version of the Hermes python tools is provided in
-the directory `python/modules2.5` directory. If you are ONLY using a
-pre-2.6 version of python, you need to change the definition of the
-definition of the variable mod_dir in hermesenv.sh to be to
-"$pbase/modules2.5". If you plan to use BOTH pre-2.6 and post-2.5
-versions, you need to make sure that a post-2.5 version is listed
-first in the HERMES_PYTHON_TARGETS environment variable, then define
-the PYTHONSTARTUP variable in hermesenv.sh, if it is not already in
-your environment. This variable provides the name of a python script
-that will be run before starting python. This startup script should
-include the following snippet of code, which will make sure that the
-appropriate module directory is in python search path:
+the directory `python/modules2.5` directory. If you plan to use BOTH
+pre-2.6 and post-2.5 versions, you need to make sure that a post-2.5
+version is listed first in the HERMES_PYTHON_TARGETS environment
+variable, then define the PYTHONSTARTUP variable in hermesenv.sh, if
+it is not already in your environment. This variable provides the name
+of a python script that will be run before starting python. This
+startup script should include the following snippet of code, which
+will make sure that the appropriate module directory is in python
+search path:
 
          import os
          # if in hermes environment need to check if paths are correct

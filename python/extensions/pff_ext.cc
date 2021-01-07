@@ -1746,7 +1746,7 @@ extern "C" {
     struct termios old_tio, new_tio;
     unsigned char c;
 
-    printf(prompt);
+    printf(prompt,"%s");
     //system("/bin/stty  -icanon min 1 time 0");
     /* get the terminal settings for stdin */
     tcgetattr(STDIN_FILENO,&old_tio);

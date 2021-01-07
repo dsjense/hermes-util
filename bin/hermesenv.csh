@@ -29,8 +29,10 @@
 ### setenv HERMES_ROOT /users/user/hermes
 
 if ( $?HERMES_ROOT == 0 ) then
-  echo "hermesenv.csh: Warning: Not customized for this installation !!" 2>&1
-  return 1
+  cat <<EOF > /dev/stderr
+hermesenv.csh: Warning: Not customized for this installation!!
+EOF
+  exit 1
 endif
 
 #
@@ -215,50 +217,107 @@ if ( $?MPI_ROOT != 0 ) then
   endif
 endif
 
-# Define list of python executables that will be used with PFF extension module
-# Not needed if only one python executable which is accessed via "python"
-# NOTE: If multiple python executables are specified, make sure that the
-#       version of the first one listed is NOT earlier than version 2.6 
-### setenv HERMES_PYTHON_TARGETS=python:python3.7
+# Define list of python executables that will use the Hermes' python tools.
+# If you don't plan to use Hermes' python tools, leave HERMES_PYTHON_TARGETS
+# undefined.
+# WARNING: Do NOT use the target "python" in this list; use only
+# version-qualified python executable names.
+# NOTE: If multiple python executables are specified, make sure that the first
+#       listed is NOT earlier than version 2.6 
+### setenv HERMES_PYTHON_TARGETS=python3.7:python2.7
 
-set pyexe = python
 if ( $?HERMES_PYTHON_TARGETS != 0 ) then
-  set pyexe = `echo "$HERMES_PYTHON_TARGETS" | awk -F: '{print $1}'`
-endif
-echo "primary Python executable: $pyexe"
-
-# Add Hermes python modules to PYTHONPATH
-#
-which $pyexe >& /dev/null
-if ( $status == 0 && -d $HERMES_ROOT/python ) then
-  set pbase = $HERMES_ROOT/python
-  set mod_dir = $pbase/modules
-  set pver = `$pyexe -V |& awk '{split($2,a,".");print a[1] "." a[2]}'`
-  if ( $?PYTHONPATH == 0 ) then
-    setenv PYTHONPATH $mod_dir:$pbase/extensions/$HERMES_SYS_TYPE-$pver
-  else
-    set pypath = $PYTHONPATH
-    set mods = 0
-    foreach p ($pbase/extensions/$HERMES_SYS_TYPE-$pver $mod_dir)
-      echo "\:$pypath\:" | grep "\:$p\:" > /dev/null
-      if ( $status != 0) then
-        set pypath = $p\:$pypath
-        set mods = 1
+  if ( "$HERMES_PYTHON_TARGETS" != "" ) then
+    set versions = ""
+    set tlist = `echo $HERMES_PYTHON_TARGETS | \
+                 awk -F: '{s="";for(i=1; i<=NF; ++i) s = s " " $i; print s}'`
+    set pre26ver = 0
+    set post25ver = 1
+    set bad_exe = ""
+    foreach t  ($tlist)
+      which $t  >& /dev/null
+      if ( $? != 0 ) then
+        set bad_exe = "$bad_exe $t"
+      else
+        set tmp = `$t -V >& /dev/stdout`
+        set nv = `echo $tmp | \
+                  awk '{split($2,a,"."); print a[3]+100*(a[2]+100*a[1]) }'`
+        if ( $nv < 20600 ) then
+          set pre26ver = 1
+        else if ( $nv >= 20600 ) then
+          set post25ver = 1
+        endif
+        set versions = $versions':'$nv
       endif
-    end
-    if ( $mods != 0 ) then
-      setenv PYTHONPATH $pypath
+    end 
+
+    if ( "$bad_exe" != "" ) then
+      cat <<EOF
+
+WARNING: The following Python executables could not be found and will be
+         removed from HERMES_PYTHON_TARGETS:
+             $bad_exe
+             
+EOF
+      set tlist = ':'$HERMES_PYTHON_TARGETS':'
+      foreach bad ($bad_exe)
+        set tlist = `echo $tlist | awk '{sub(":" "'$bad'",""); print}'`
+      end
+      unset bad
+      setenv HERMES_PYTHON_TARGETS `echo $tlist | \
+                                    awk '{sub("^:","");sub(":$","");print}'`
     endif
+    setenv HERMES_PYTHON_VERSIONS `echo $versions | awk '{sub(":",""); print}'`
+
+    set pyexe = `echo "$HERMES_PYTHON_TARGETS" | awk -F: '{print $1}'`
+
+    # This provides the python version that python shell scripts invoked with
+    # the the first line of the executable file containing
+    # "#!/usr/bin/env python"
+    if ( ! -f $HERMES_BIN/python ) then
+      setPythonLink $pyexe
+    endif
+
+    echo "primary Python executable: $pyexe"
+
+    # Add Hermes python modules to PYTHONPATH
+    #
+    set pbase = $HERMES_ROOT/python
+    set mod_dir = $pbase/modules
+    # if the only python version specified is pre-2.6, then need to use
+    # Hermes' pre-2.6 modules directory
+    if ( $pre26ver == 1 && $post25ver == 0 ) then
+      set mod_dir = $pbase/modules2.5
+    endif
+    set pver = `$pyexe -V |& awk '{split($2,a,".");print a[1] "." a[2]}'`
+    set needed = "$pbase/extensions/$HERMES_SYS_TYPE-$pver $mod_dir"
+    if ( $?PYTHONPATH == 0 ) then
+      setenv PYTHONPATH `echo $needed | \
+                  awk '{s=$NF; for(i=NF-1;i>0;--i) s = s ":" $i; print s}'`
+    else
+      set pypath = $PYTHONPATH
+      set mods = 0
+      foreach p ($needed)
+        echo "\:$pypath\:" | grep "\:$p\:" > /dev/null
+        if ( $status != 0) then
+          set pypath = $p\:$pypath
+          set mods = 1
+        endif
+      end
+      if ( $mods != 0 ) then
+        setenv PYTHONPATH $pypath
+      endif
+    endif
+
+    # If you plan to use both pre-2.6 and post-2.5 versions of python,
+    # you need to define the PYTHONSTARTUP variable in hermesenv.sh,
+    # if it is not already in your environment. The specified startup
+    # file should contain code to make sure the proper hermes module
+    # directory is on the python path, following the directions provided
+    # in $HERMES_ROOT/README.
+    ### setenv PYTHONSTARTUP $HOME/.pythonrc
+
   endif
-
-  # If you plan to use both pre-2.6 and post-2.5 versions of python,
-  # you need to define the PYTHONSTARTUP variable in hermesenv.sh,
-  # if it is not already in your environment. The specified startup
-  # file should contain code to make sure the proper hermes module
-  # directory is on the python path, following the directions provided
-  # in $HERMES_ROOT/README.
-  ### setenv PYTHONSTARTUP $HOME/.pythonrc
-
 endif
 #
 #  IDL/PFIDL environmental variables
@@ -290,7 +349,7 @@ set tiohelp = $HERMES_ROOT/doc/Tiolib.pdf
 if ( -f $tiohelp ) then
   setenv TIOhelp $tiohelp
 endif
-# if acroread is not available, set this variable to an alternate PDF reader
+# if acroread is not available, set TIO_help_reader to an alternate PDF reader
 ##setenv TIO_help_reader okular
 
 set bldpffhelp = $HERMES_ROOT/doc/Bldpff.pdf

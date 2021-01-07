@@ -25,8 +25,93 @@
 import os, sys
 from glob import glob
 import re
-from HTMLParser import HTMLParser
-from urllib2 import urlopen, URLError
+
+if sys.version_info[0] < 3:
+    from HTMLParser import HTMLParser
+    from urllib2 import urlopen, URLError
+    from PortabilityTools2_5 import ptPrint, pathWalk, ptExec
+else:
+    from html.parser import HTMLParser
+    from urllib.request import urlopen
+    from urllib.error import URLError
+    from PortabilityTools import ptPrint, pathWalk, ptExec
+
+def myWalk(arg,dname,names):
+# need to set DocStr to None before each pathWalk call !!!
+    global DocStr
+
+    ##ptPrint('myWalk',dname)
+    
+    if DocStr is not None: return
+
+    modfile = arg[0] + '.py'
+    try:
+        loc = names.index(modfile)
+        src = os.path.join(dname,modfile)
+        DocStr = getDocString(src)
+    except ValueError:
+        pass
+
+def getDocString(fname):
+    redoc = re.compile('__doc__ *= ')
+    f = open(fname)
+    line = f.readline()
+    nline = 1
+    while line != '':
+        m = redoc.match(line)
+        if m:
+            l = line.find("'")
+            ##ptPrint(nline,l,line)
+            while l < 0 and (len(line) > 1 and line[-2] == '\\'):
+                ##ptPrint('skip',line)
+                line = f.readline() ; nline += 1
+                l = line.find("'")
+            if l < 0:
+                ##ptPrint('bad')
+                return None
+            ##ptPrint('a',line[l:l+3])
+            if line[l:l+3] == "'''":
+                endst = "'''"
+                line = line[l+3:]
+            else:
+                endst = "'"
+                line = line[l+1:]
+            docstr = ''
+            ##ptPrint('b',endst,line)
+            if len(line) > 1 and line[-2] == '\\':
+                ##ptPrint('slash',"'"+line+"'")
+                docstr = line[:-2]
+                line = f.readline() ; nline += 1
+            l = line.find(endst)
+            ##ptPrint('c',l)
+            while l < 0:
+                docstr += line
+                line = f.readline() ; nline += 1
+                l = line.find(endst)
+            docstr += line[:l]
+            f.close()
+            return docstr
+
+        line = f.readline() ; nline += 1
+        
+    return None
+
+def handleNewlines(desc):
+    renl = re.compile("\n *")
+    pos = 0
+    new = desc
+    while True:
+        m = renl.search(new,pos)
+        if m is None: break
+        nstr = "<BR>"
+        g = m.group()
+        for i in range(1,len(g)): nstr += '&nbsp;'
+        pos = m.end() + len(nstr)
+        nstr += '\n'
+        new = new[:m.start()] + nstr + new[m.end():]
+
+    return new
+    
 
 def chkURL(url):
     try:
@@ -55,7 +140,7 @@ class AnchorStripper(HTMLParser):
             hr = [ (i,j) for i,j in attrs if i == 'href' ]
             if hr:
                 ref = hr[0][1]
-                ##print self.getpos(),ref
+                ##ptPrint(self.getpos(),ref)
                 if self.nindex is not None and ref == '.':
                     txt = self.get_starttag_text()
                     cnt = txt.count('\n')
@@ -68,18 +153,18 @@ class AnchorStripper(HTMLParser):
                         lst = txt.rfind('\n')
                         endp = (tup[0][0]+cnt,l-lst-2)
                     tup += (endp,ntxt)
-                    ##print tup
+                    ##ptPrint(tup)
                     self.dumpList.append(tup)
                 else:
                     self.in_drop = self.DropAnchor(ref)
                     if self.in_drop:
-                        #print "In <a>:",self.getpos(),hr[0],self.get_starttag_text()
+                        #ptPrint("In <a>:",self.getpos(),hr[0],self.get_starttag_text())
                         self.start_loc = self.getpos()
     def handle_endtag(self, tag):
         if tag == 'a':
             if self.in_drop:
                 self.in_drop = False
-                #print "End Anchor:", self.getpos()
+                #ptPrint("End Anchor:", self.getpos())
                 self.dumpList.append((self.start_loc,self.getpos(),self.data))
                 
     def handle_data(self,data):
@@ -91,7 +176,7 @@ class AnchorStripper(HTMLParser):
         if re.match('\w+:',hr):
             if hr[:5] == "file:":     href = href.replace("file:","")
             else:   return not chkURL(hr)
-        ##if hr.find('#'): print 'DA:',hr,href
+        ##if hr.find('#'): ptPrint('DA:',hr,href)
         return not os.path.exists(href)
 
     def GetDumpList(self):
@@ -106,7 +191,7 @@ def chk_lnks(indx=None, backup=False, skplist=['index.html']):
     flist = glob('*.html')
     for df in skplist:
         if flist.count(df) > 0: flist.remove(df)
-    ##print flist,backup
+    ##ptPrint(flist,backup)
     for file in flist:
         f = open(file)
         
@@ -136,7 +221,7 @@ def chk_lnks(indx=None, backup=False, skplist=['index.html']):
                 line = lines[lline]
                 lcol = line.find('>',lst) + 1
                 if lcol == 0:
-                    print 'BAD'
+                    ptPrint('BAD')
                 partial = (line[lcol:],lcol)
                 next_line = last[0]
             if partial: g.write(partial[0])
@@ -155,7 +240,7 @@ def unique(seq):
    keys = {}
    for e in seq:
        keys[e] = 1
-   return keys.keys()
+   return list(keys.keys())
 
 def htmlLook():
     hlist = glob('*.html')
@@ -170,7 +255,7 @@ def htmlLook():
         if cnt[i] == 0: mods.append(h)
         if cnt[i] == 1: pmods.append(re2.sub("",h))
 
-    #print mods,pmods
+    #ptPrint(mods,pmods)
 
     pkgs = unique(pmods)
     for p in pkgs:
@@ -179,6 +264,8 @@ def htmlLook():
     return mods,pkgs
 
 def writeIndex(f=None):
+    global DocStr
+
     if f is None: f = sys.stdout
     td1start = '<td width="10%" valign=top><font face="helvetica, arial">'
     td2start = '<td><font face="helvetica, arial">'
@@ -225,17 +312,29 @@ def writeIndex(f=None):
 '''
 
     mods,pkgs = htmlLook()
-    ##print mods,pkgs
+    ##ptPrint(mods,pkgs)
     f.write(preamble)
     for mod in mods:
+        skip = False
         try:
-            exec 'import ' +  mod
+            ##ptPrint('a',mod,type(mod))
+            cmd = 'import ' +  mod + '; mod = ' + mod
+            mod_obj = ptExec('import ' +  mod + '; mod_obj = '+mod)['mod_obj']
+            ##ptPrint('b',mod_obj,type(mod_obj))
+            desc = '&nbsp;'
+            if mod_obj.__doc__: desc = handleNewlines(mod_obj.__doc__)
+        except ImportError:
+            skip = True
+        except SyntaxError:
+            ##ptPrint('module',mod, 'has syntax error')
+            DocStr = None
+            pathWalk('../modules',myWalk,(mod,))
+            if DocStr is not None: desc = handleNewlines(DocStr)
+        if not skip:
             f.write(td1start)
             f.write('<a href="'+mod+'.html">'+mod+'</a>\n')
             f.write(tdend)
             f.write(td2start)
-            desc = '&nbsp;'
-            exec 'if ' + mod + '.__doc__: desc = ' + mod + '.__doc__'
             ll = len(desc)
             iloc = desc.find('\n---')
             if iloc < 0: iloc = ll
@@ -245,20 +344,20 @@ def writeIndex(f=None):
             if iloc < ll: desc = desc[:iloc]
             f.write(desc)
             f.write(tdend+'</tr>')
-        except ImportError:
-            pass
+
     f.write(tblclose + '<p/>')
 
     f.write(pkghdr)
     for pkg in pkgs:
         try:
-            exec 'import ' +  pkg
+            cmd = 'import ' +  pkg + '; pkg = ' + pkg
+            pkg_obj = ptExec('import ' +  pkg + '; pkg_obj = '+pkg)['pkg_obj']
             f.write(td1start)
             f.write('<a href="'+pkg+'.html">'+pkg+'</a>\n')
             f.write(tdend)
             f.write(td2start)
             desc = '&nbsp;'
-            exec 'if ' + pkg + '.__doc__: desc = ' + pkg + '.__doc__'
+            if pkg_obj.__doc__: desc = pkg_obj.__doc__
             ll = len(desc)
             iloc = desc.find('\n---')
             if iloc < 0: iloc = ll
@@ -282,14 +381,19 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     try:
         opts,pargs = getopt.getopt(args, 'RbiI:d:')
-    except getopt.GetoptError, e:
-        print e
+    except getopt.GetoptError as e:
+        ptPrint(e)
         sys.exit(1)
+
+    # need to make sure that the proper extension modules are found for the
+    # Python version being used. chkversion.checkExtensionPath does this.
+    import chkversion
+    chkversion.checkExtensionPath()
 
     restore = False
     bak = False
     findex = None
-    hdir = '../html'
+    HDirBase = '../html'
     skplist = []
     for f,v in opts:
         if f == '-R':     restore = True
@@ -298,28 +402,39 @@ if __name__ == "__main__":
         elif f == '-I':   findex = v
         elif f == '-d':   hdir = v
 
+    ver25exe, ver2exe, ver3exe = chkversion.getPythonExecutables()
+
+    hDirlist = []
+    if ver2exe is not None or ver3exe is not None: hDirlist.append(HDirBase)
+    if ver25exe is not None:
+        if len(hDirlist) == 0: hDirlist.append(HDirBase)
+        else:                  hDirlist.append(HDirBase + '2.5')
+
+    ##ptPrint(ver25exe,ver2exe,ver3exe,hDirlist)
 
     sdir = os.getcwd()
-    os.chdir(hdir)
-    if restore:
-        blist = glob('*.html.bak')
-        if len(blist):
-            reg = re.compile('\.bak$')
-            for b in blist:
-                new = reg.sub("",b)
-                os.rename(b,new)
-    else:
-        touched = False
-        if findex is not None:
-            if skplist.count(findex) == 0: skplist.append(findex)
-            if not os.path.exists(findex): # so we don't remove a link to it
-                f = open(findex,'w') ; f.close() ; touched = True
-        chk_lnks(findex, bak, skplist)
-        if touched: os.unlink(findex)
-        if findex is not None:
-            if bak and os.path.exists(findex):  os.rename(findex,findex+'.bak')
-            f = open(findex,'w')
-            writeIndex(f)
-            f.close()
+    for hdir in hDirlist:
+        os.chdir(hdir)
+        if restore:
+            blist = glob('*.html.bak')
+            if len(blist):
+                reg = re.compile('\.bak$')
+                for b in blist:
+                    new = reg.sub("",b)
+                    os.rename(b,new)
+        else:
+            touched = False
+            if findex is not None:
+                if skplist.count(findex) == 0: skplist.append(findex)
+                if not os.path.exists(findex): # so we don't remove a link to it
+                    f = open(findex,'w') ; f.close() ; touched = True
+            chk_lnks(findex, bak, skplist)
+            if touched: os.unlink(findex)
+            if findex is not None:
+                if bak and os.path.exists(findex):
+                    os.rename(findex,findex+'.bak')
+                f = open(findex,'w')
+                writeIndex(f)
+                f.close()
 
     os.chdir(sdir)

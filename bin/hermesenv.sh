@@ -219,35 +219,84 @@ if [ -n "$MPI_ROOT" -a -d "$MPI_ROOT" ]; then
   fi
 fi
 
-# Define list of python executables that will be used with PFF extension module
-# Not needed if only one python executable which is accessed via "python"
+# Define list of python executables that will use the Hermes' python tools.
+# If you don't plan to use Hermes' python tools, leave HERMES_PYTHON_TARGETS
+# blank or undefined.
+# WARNING: Do NOT use the target "python" in this list; use only
+# version-qualified python executable names.
 # NOTE: If multiple python executables are specified, make sure that the first
 #       listed is NOT earlier than version 2.6 
-### HERMES_PYTHON_TARGETS=python:python3.7; export HERMES_PYTHON_TARGETS
+### HERMES_PYTHON_TARGETS=python3.7:python2.7; export HERMES_PYTHON_TARGETS
 
-pyexe=python
-if [ -n "$HERMES_PYTHON_TARGETS" ]; then
+if [ -n "$HERMES_PYTHON_TARGETS" -a -d $HERMES_ROOT/python ]; then
+
+  versions=""
+  tlist=`echo $HERMES_PYTHON_TARGETS | \
+         awk -F: '{s="";for(i=1; i<=NF; ++i) s = s " " $i; print s}'`
+  pre26ver=0
+  post25ver=1
+  bad_exe=""
+  for t in $tlist; do
+    which $t >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+      bad_exe="$bad_exe $t"
+    else
+      nv=`$t -V 2>&1 | awk '{split($2,a,"."); print a[3]+100*(a[2]+100*a[1]) }'`
+      if [ $nv -lt 20600 ]; then pre26ver=1
+      elif [ $nv -ge 20600 ]; then post25ver=1; fi
+      versions=$versions:$nv
+    fi
+  done
+  if [ -n "$bad_exe" ]; then
+    echo "WARNING: The following Python executables could not be found and will
+         be removed from HERMES_PYTHON_TARGETS:
+             $bad_exe"
+    tlist=":$HERMES_PYTHON_TARGETS:"
+    for bad in $bad_exe; do
+      tlist=`echo $tlist | awk '{sub(":" "'$bad'",""); print}'`
+    done
+    unset bad
+    HERMES_PYTHON_TARGETS=`echo $tlist | \
+                           awk '{sub("^:","");sub(":$","");print}'`
+  fi    
+  HERMES_PYTHON_VERSIONS=`echo $versions | awk '{sub(":",""); print}'`
+  export HERMES_PYTHON_TARGETS HERMES_PYTHON_VERSIONS
+
   pyexe=`echo "$HERMES_PYTHON_TARGETS" | awk -F: '{print $1}'`
-fi
-echo "primary Python executable: $pyexe"
 
-# Add Hermes python modules to PYTHONPATH
-#
-which $pyexe >/dev/null 2>&1
-if [ $? -eq 0 -a -d $HERMES_ROOT/python ]; then
+  # This provides the python version that python shell scripts invoked with
+  # the the first line of the executable file containing "#!/usr/bin/env python"
+  if [ ! -f $HERMES_BIN/python ]; then
+    setPythonLink $pyexe
+  fi
+
+  echo "primary Python executable: $pyexe"
+
+  # Add Hermes python modules to PYTHONPATH
+  #
   pbase=$HERMES_ROOT/python
   mod_dir=$pbase/modules
+  # if the only python version specified is pre-2.6, then need to use
+  # Hermes' pre-2.6 modules directory
+  if [ $pre26ver -eq 1 -a $post25ver -eq 0 ]; then
+    mod_dir=$pbase/modules2.5
+  fi
   pver=`$pyexe -V 2>&1| awk '{split($2,a,".");print a[1] "." a[2]}'`
+  needed="$pbase/extensions/$HERMES_SYS_TYPE-$pver $mod_dir"
   if [ -z "$PYTHONPATH" ]; then
-     PYTHONPATH=$mod_dir:$pbase/extensions/$HERMES_SYS_TYPE-$pver
+    PYTHONPATH=`echo $needed | \
+                awk '{s=$NF; for(i=NF-1;i>0;--i) s = s ":" $i; print s}'`
   else
-    for p in $pbase/extensions/$HERMES_SYS_TYPE-$pver $mod_dir; do
+    for p in $needed; do
       if ! echo ":$PYTHONPATH:" | grep ":$p:" >/dev/null; then
         PYTHONPATH=$p:$PYTHONPATH
       fi
     done
+    unset p
   fi
   export PYTHONPATH
+  unset pxexe needed pver mod_dir pbase bad_exe pre26ver post25ver versions
+  unset tlist t nv
 
   # If you plan to use both pre-2.6 and post-2.5 versions of python,
   # you need to define the PYTHONSTARTUP variable in hermesenv.sh,
@@ -287,7 +336,7 @@ tiohelp=$HERMES_ROOT/doc/Tiolib.pdf
 if [ -f $tiohelp ]; then
   TIOhelp=$tiohelp; export TIOhelp
 fi
-# if acroread is not available, set this variable to an alternate PDF reader
+# if acroread is not available, set TIO_help_reader to an alternate PDF reader
 ##TIO_help_reader=okular; export TIO_help_reader
 
 bldpffhelp=$HERMES_ROOT/doc/Bldpff.pdf

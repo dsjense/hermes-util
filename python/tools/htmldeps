@@ -24,13 +24,19 @@
 
 import os,sys,re
 
+maj_ver = sys.version_info[0]
+if maj_ver < 3:
+    from PortabilityTools2_5 import ptPrint, pathWalk
+else:
+    from PortabilityTools import ptPrint, pathWalk
+
 def mywalk(arg,dname,names):
     global TargList
     global StartPath
     global HDir
     out = arg[0] ; mode = arg[1]
     ist = len(StartPath.split(os.sep))
-    ##print 'skip: ',ist
+    ##ptPrint('skip: ',ist)
     if mode == 'packages':
         try:
             loc = names.index('__init__.py')
@@ -38,11 +44,11 @@ def mywalk(arg,dname,names):
             dsplt = dname.split(os.sep)
             module = '.'.join(dsplt[ist:])
             targ =  os.path.join(HDir, module + '.html')
-            print >>out, targ + " : " + src
-            print >>out, "\t$(PYDOC_HU) %s %s" % (module,targ)
+            ptPrint(targ + " : " + src,file=out)
+            ptPrint("\t$(PYDOC_HU) %s %s %s" % (src,module,targ),file=out)
             TargList.append(targ)
         except ValueError:
-            ##print dname, 'fail'
+            ##ptPrint(dname, 'fail')
             pass
         return
 
@@ -51,22 +57,29 @@ def mywalk(arg,dname,names):
     else:
         reg = re.compile('\.'+mode+'$')
         mode = 'extensions'
-        ##print 'xxx',reg
+        ##ptPrint('xxx',reg)
 
     for f in names:
         if mode == 'modules' and f == '__init__.py': continue
         if reg.search(f) is not None:
             dsplt = dname.split(os.sep)
-            ##print dname,dsplt
             src = os.path.join(dname,f)
             dsplt = os.path.splitext(src)[0].split(os.sep)
-            ##print ist,dsplt
-            module = '.'.join(dsplt[ist:])
+            if mode == 'extensions':
+                fsp = f.split('.')
+                if len(fsp) > 2:
+                    f = '.'.join([fsp[0],fsp[-1]])
+            ##ptPrint(ist,dsplt)
+            if mode == 'extensions':
+                module = fsp[0]
+            else:
+                module = '.'.join(dsplt[ist:])
             targ =  os.path.join(HDir, module + '.html')
-            print >>out, targ + " : " + src
-            print >>out, "\t$(PYDOC_HU) %s %s" % (module,targ)
+            ptPrint(targ + " : " + src,file=out)
+            ptPrint("\t$(PYDOC_HU) %s %s %s" % (src,module,targ),file=out)
             TargList.append(targ)
 
+import chkversion
 
 usage = '''usage: htmldeps sys_type [htmldir="../html" ] [share_ext="so"]
        [macfile=sys.stdout] [depfile=macfile]'''
@@ -74,7 +87,7 @@ usage = '''usage: htmldeps sys_type [htmldir="../html" ] [share_ext="so"]
 ##sys_type = 'linux_x86_64_intel-2.7'
 shr_ext = 'so'
 mout,dout = (sys.stdout,sys.stdout) 
-HDir = '../html'
+HDirBase = '../html'
 argc = len(sys.argv)
 if argc == 6 and sys.argv[5] != '-':
    if sys.argv[4] != '-': mout = open(sys.argv[4],'w')
@@ -85,22 +98,36 @@ if argc == 5 and sys.argv[4] != '-':
 if argc >= 4:   shr_ext = sys.argv[3]
 if argc >= 3:   HDir = sys.argv[2]
 if argc < 2 or argc > 6:
-    print usage
+    ptPrint(usage)
     sys.exit(1)
 
 sys_type = sys.argv[1]
 
-###print 'args:',sys_type,HDir, shr_ext, mout, dout
+ver25exe, ver2exe, ver3exe = chkversion.getPythonExecutables()
+
+hDirlist = []
+if ver2exe is not None or ver3exe is not None: hDirlist.append(HDirBase)
+if ver25exe is not None:
+    if len(hDirlist) == 0: hDirlist.append(HDirBase)
+    else:                  hDirlist.append(HDirBase + '2.5')
+
+###ptPrint(ver25exe,ver2exe,ver3exe,hDirlist)
+
+###ptPrint('args:',sys_type,HDirBase, shr_ext, mout, dout)
 TargList = []
 
-StartPath = '../modules'
-os.path.walk(StartPath,mywalk,(dout,'modules'))
-StartPath = '../extensions/'+sys_type
-os.path.walk(StartPath,mywalk,(dout,shr_ext))
-StartPath = '../modules'
-os.path.walk(StartPath,mywalk,(dout,'packages'))
+for HDir in hDirlist:
+    StartPath = '../modules'
+    if HDir[-3:] == '2.5': StartPath += '2.5'
+    pathWalk(StartPath,mywalk,(dout,'modules'))
 
-if not os.path.exists(HDir):
-    os.mkdir(HDir)
+    pathWalk(StartPath,mywalk,(dout,'packages'))
 
-print >>mout, "TARGETS = " + ' '.join(TargList)
+    StartPath = '../extensions/'+sys_type
+    pathWalk(StartPath,mywalk,(dout,shr_ext))
+
+
+    if not os.path.exists(HDir):
+        os.mkdir(HDir)
+
+ptPrint("TARGETS = " + ' '.join(TargList),file=mout)

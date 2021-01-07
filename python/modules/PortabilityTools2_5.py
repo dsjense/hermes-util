@@ -1,10 +1,11 @@
 import exceptions
 import types
+import os.path
 
 __doc__ = \
 '''Portable versions of various python 3 functions that were implemented
 as statements in python 2. This module provides versions that work in
-python 2'''
+python 2.'''
 
 def ptPrint(*args,**kwargs):
     '''\
@@ -39,3 +40,21 @@ version 2 syntax'''
         # Note print statement will trap errors if f is not an open file
         ##print 'to',f.name
         print >>f, s,
+
+def pathWalk(path, visitfunc, arg):
+    '''\
+Implementation of a portable version-2-syntax path.walk function'''
+
+    os.path.walk(path, visitfunc, arg)
+
+def ptExec(_strng):
+    '''\
+Implementation of a portable compromise between version-2 exec and version-3
+exec. This method takes a string containing a python command and returns a
+directory containing the local namespace of the exec. This allows the caller
+to access any variables set by the command string. For example,
+     var1 = ptExec('var1 = 45.5')['var1']'''
+
+    exec _strng
+    del _strng
+    return locals()

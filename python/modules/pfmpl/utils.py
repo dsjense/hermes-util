@@ -386,7 +386,7 @@ def log_bounds(x):
 def nice_bounds(axis_start, axis_end, num_ticks=10, log=False):
     '''
     nice_bounds(axis_start, axis_end, num_ticks=10) -> tuple
-    @return: tuple as (nice_axis_start, nice_axis_end, nice_tick_width)
+    return: tuple as (nice_axis_start, nice_axis_end, nice_tick_width)
     '''
     if log:
         lims = np.log10([axis_start,axis_end])
@@ -522,7 +522,8 @@ where Fs = 1/dx is the sampling rate for the discretely-sampled waveform'''
     return yout
 
 def BoxcarFun(N, hOmega, att):
-    '''/Residual of the transfer function for a boxcar filter with N samples
+    '''\
+Residual of the transfer function for a boxcar filter with N samples
 in its moving average.
 
     N     - # of sample points in moving average
@@ -533,6 +534,6 @@ in its moving average.
     return N*att*math.sin(hOmega) - np.sin(hOmega*N)
 
 def BoxcarFunPrime(N, hOmega, att):
-    '''/The derivative w.r.t. N of BoxcarFun'''
+    '''The derivative w.r.t. N of BoxcarFun'''
 
     return att*math.sin(hOmega) - hOmega*np.cos(hOmega*N)

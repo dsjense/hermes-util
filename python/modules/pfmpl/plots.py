@@ -22,6 +22,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines
 
+__doc__ = \
+'''Set of PFMPL functions for managing plots, including multiple axes per
+figure, and obtaining coordinates from a "cursor click".'''
+
 def cur(multi=1,fig=None):
     '''\
 Function to select x,y data points from a figure using the cursor.
@@ -263,7 +267,7 @@ class _multiplot:
                 print('RIGHT plot must follow a LEFT plot')
                 return (None,None)
 
-            if self.row_major: cnt = self.current
+            if self.row_major: cnt = self.current + 1
             else:
                 ic = nplt % self.ncols
                 ir = nplt//self.ncols
