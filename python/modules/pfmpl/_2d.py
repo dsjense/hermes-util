@@ -2428,7 +2428,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
             else: cborient = 'vertical'
             cax = f.add_axes(xab)
             ##print "CAX:", cax
-        cb = f.colorbar(im,cax,orientation=cborient,extend='neither')
+        cb = f.colorbar(im,cax,orientation=cborient)
         if cbtitle is not None:
             cb.ax.set_title(cbtitle)
         plots.set_frame_props(cb.ax,lw,charsize)
@@ -3205,7 +3205,7 @@ WARNING: Supplied slice orientation and normal for an OVERPLOT plot are not
                     color=col),xycoords=anno_mode)
 
     if color == 'mag' and cbar is not None:
-        cb.set_clim(0.,emagmax)
+        im.set_clim(0.,emagmax)
         if len(ax.images): del ax.images[-1]
     if conductor is not None:
         ##print 'CONDUCTOR',x1,x2,vals,use_fig,cndargs
