@@ -614,7 +614,7 @@ Return value:
                 hdr['rfu'] = None
 
         return hdr
-    except pex.PFF_Error as e:
+    except (pex.PFF_Error, TypeError) as e:
         print("Error:",e)
 
 def read_dataset(dsindex=0, id=0):
@@ -652,7 +652,7 @@ Return value:
 
             pex.advance_ds_pointer(id)
             return ds
-
+        
     finally:
         if handle: pex.releaseDSHandle(handle)
 
