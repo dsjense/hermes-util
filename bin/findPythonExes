@@ -21,24 +21,10 @@
 #
 
 cmd=`basename $0`
-usage="Usage: $cmd python_executable"
+usage="Usage: $cmd"
 
-if [ $# -ne 1 ]; then
-  echo "$cmd requires 1 argument"
-  echo $usage
-  exit 1
-fi
-
-exe=`which $1 2>/dev/null`
-if [ $? -ne 0 ]; then
-  echo "$1 not found"
-  echo $usage
-  exit 1
-fi
-
-ver_info=`$exe -V 2>&1 | head -1`
-if ! echo $ver_info | grep '^Python ' >/dev/null; then
-  echo "$1 not a Python executable"
+if [ $# -ne 0 ]; then
+  echo "$cmd requires no arguments"
   echo $usage
   exit 1
 fi
@@ -48,13 +34,16 @@ if [ -z "$HERMES_ROOT" ]; then
   exit 1
 fi
 
-cd $HERMES_ROOT/bin
-if [ -L python ]; then
-  echo "removing old python symbolic link"
-  rm python
-elif [ -f python ]; then
-  echo "Warning: $HERMES_ROOT should not contain a regular file named 'python'"
-  exit 1
-fi
+# list of possible executables + other stuff 
+maybeList=`whereis python | awk '{$1="";print}'`
+# get the subset that are executable and regular files
+# (or links to regular files), then sort
+elist=`find $maybeList -maxdepth 0 -name 'python*' -executable -xtype f | grep -v 'config' | grep -v "$HERMES_ROOT/bin" | sort`
 
-ln -s $exe python
+exeList=""
+sp=""
+for f in $elist; do
+    exeList="${exeList}${sp}`basename $f`"
+    sp=" "
+done
+echo "$exeList"

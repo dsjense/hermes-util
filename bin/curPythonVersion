@@ -17,28 +17,14 @@
 # Public License along with Hermes.  If not, see
 # <http://www.gnu.org/licenses/>.
 # 
-# This script links $HERMES_BIN/python to a specified python executable
+# This script the version of the current python linked to $HERMES_BIN/python
 #
 
 cmd=`basename $0`
-usage="Usage: $cmd python_executable"
+usage="Usage: $cmd"
 
-if [ $# -ne 1 ]; then
-  echo "$cmd requires 1 argument"
-  echo $usage
-  exit 1
-fi
-
-exe=`which $1 2>/dev/null`
-if [ $? -ne 0 ]; then
-  echo "$1 not found"
-  echo $usage
-  exit 1
-fi
-
-ver_info=`$exe -V 2>&1 | head -1`
-if ! echo $ver_info | grep '^Python ' >/dev/null; then
-  echo "$1 not a Python executable"
+if [ $# -ne 0 ]; then
+  echo "$cmd requires no arguments"
   echo $usage
   exit 1
 fi
@@ -49,12 +35,9 @@ if [ -z "$HERMES_ROOT" ]; then
 fi
 
 cd $HERMES_ROOT/bin
-if [ -L python ]; then
-  echo "removing old python symbolic link"
-  rm python
-elif [ -f python ]; then
-  echo "Warning: $HERMES_ROOT should not contain a regular file named 'python'"
+if [ ! -e python ]; then
+  echo 'No python found in $HERMES_ROOT/bin'
   exit 1
 fi
 
-ln -s $exe python
+./python -V
