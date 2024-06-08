@@ -2,25 +2,25 @@
 c
 c***********************************************************************
 c     $Id$
-c     
+c
 c     Copyright (2008) Sandia Corporation. Under the terms of
 c     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
 c     Government retains certain rights in this software.
-c     
+c
 c     Hermes is free software: you can redistribute it and/or modify
 c     it under the terms of the GNU Lesser General Public License as
 c     published by the Free Software Foundation, either version 3 of
 c     the License, or (at your option) any later version.
-c     
+c
 c     Hermes is distributed in the hope that it will be useful, but
 c     WITHOUT ANY WARRANTY; without even the implied warranty of
 c     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c     GNU Lesser General Public License for more details.
-c     
+c
 c     You should have received a copy of the GNU Lesser General
 c     Public License along with Hermes.  If not, see
 c     <http://www.gnu.org/licenses/>.
-c     
+c
 C_Groups @(#)
 c***********************************************************************
 c
@@ -107,7 +107,7 @@ c ... External Block Data
       external  pffbd
 c
 c     Internal
-      integer   i, iertmp, ifrm, nullen
+      integer   i, iertmp, ifrm, ifrm_arr(1), nullen
       HU_FPOS_TYPE nloc
       integer   buf(3)
       HU_FPOS_TYPE pfutel
@@ -137,7 +137,9 @@ c
 c
 c ... Read framing word
 c
-      call pfusio (fid, RE, 1, ifrm, ierr)
+      ifrm_arr = ifrm
+      call pfusio (fid, RE, 1, ifrm_arr, ierr)
+      ifrm = ifrm_arr(1)
       if ( ierr.ne.0 ) goto 20
 c
 c ... if this wasn't a framing word, need to look further
@@ -158,7 +160,9 @@ c
             nloc = lstadr + nullen
 c
             call pfusek (fid, nloc, ierr )
-            call pfusio (fid, RE, 1, ifrm, ierr)
+            ifrm_arr = ifrm
+            call pfusio (fid, RE, 1, ifrm_arr, ierr)
+            ifrm = ifrm_arr(1)
 c
             if (ifrm.eq.EOFFLG) then
               ierr = -1

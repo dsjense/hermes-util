@@ -158,7 +158,7 @@ c
 c
 c ... Write framing word
 c
-      call pfusio (fid, WR, 1, DFRAME, ierr)
+      call pfusio (fid, WR, 1, (/DFRAME/), ierr)
       if ( ierr.ne.0 ) goto 999
 c
       if ( lds.gt.0 ) then

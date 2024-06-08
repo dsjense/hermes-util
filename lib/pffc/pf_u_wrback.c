@@ -26,6 +26,7 @@
 */
 
 #include "pff.h"
+#include <stdlib.h>
 
 /*  Declare function */
 
@@ -111,8 +112,13 @@ int      *iarr, *ierr;
     pf_wr_err ( module, *ierr, fid, "FSEEK error" );
   }
 
-  /* Set internal buffer to first part of source buffer */
-  buf = (short int *) iarr;
+  /* allocate an internal buffer */
+  buf = (short int *) malloc(len*sizeof(short int));
+  if ( buf == NULL )  {
+    *ierr = 4;
+    pf_wr_err ( module, *ierr, fid, "Error allocating array");
+    return;
+  }
 
   /* Pack source array into internal buffer values */
   for (i=0; i<len; ++i)
@@ -129,6 +135,7 @@ int      *iarr, *ierr;
     *ierr = 4;
     pf_wr_err ( module, *ierr, fid, 
                             "Error encountered while writing to file" );
+    free(buf);
     return;
   }
 
@@ -139,6 +146,7 @@ int      *iarr, *ierr;
 #else
     iarr[i] = buf[i];
 #endif
+  free(buf);
 
   /* Go back to original position in file */
   if ( fseek( stream, 2*fid->position, SEEK_SET ) != 0 )  {

@@ -5,25 +5,25 @@
 c
 c***********************************************************************
 c     $Id$
-c     
+c
 c     Copyright (2008) Sandia Corporation. Under the terms of
 c     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
 c     Government retains certain rights in this software.
-c     
+c
 c     Hermes is free software: you can redistribute it and/or modify
 c     it under the terms of the GNU Lesser General Public License as
 c     published by the Free Software Foundation, either version 3 of
 c     the License, or (at your option) any later version.
-c     
+c
 c     Hermes is distributed in the hope that it will be useful, but
 c     WITHOUT ANY WARRANTY; without even the implied warranty of
 c     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c     GNU Lesser General Public License for more details.
-c     
+c
 c     You should have received a copy of the GNU Lesser General
 c     Public License along with Hermes.  If not, see
 c     <http://www.gnu.org/licenses/>.
-c     
+c
 C_Groups @(#)
 c***********************************************************************
 c
@@ -160,8 +160,8 @@ c     Declare variables:
 c
 c     Passed:
       logical   keep
-      integer   fid, goff10, ierr, m, mdim, n, ndim, nspare, nvp,
-     1          sprdim, tapp, vdim, voff10, xdim
+      integer   fid, goff10, ierr, m, m_arr(1), mdim, n, n_arr(1), ndim,
+     1          nspare, nvp, sprdim, tapp, vdim, voff10, xdim
       integer   ioff(1:*), ispare(1:sprdim), nx(1:mdim)
       real      x(1:xdim)
       real      v(1:vdim,1:ndim)
@@ -217,8 +217,10 @@ c
 c
 c ... Read in M and N
 c
-      call pfusio (fid, RE, 1, m, ierr)
-      call pfusio (fid, RE, 1, n, ierr)
+      call pfusio (fid, RE, 1, m_arr, ierr)
+      m = m_arr(1)
+      call pfusio (fid, RE, 1, n_arr, ierr)
+      n = n_arr(1)
 c
 c ... Read in dimensions for each spatial axis (two versions supported)
 c

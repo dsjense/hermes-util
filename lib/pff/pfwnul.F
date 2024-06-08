@@ -2,25 +2,25 @@
 c
 c***********************************************************************
 c     $Id$
-c     
+c
 c     Copyright (2008) Sandia Corporation. Under the terms of
 c     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
 c     Government retains certain rights in this software.
-c     
+c
 c     Hermes is free software: you can redistribute it and/or modify
 c     it under the terms of the GNU Lesser General Public License as
 c     published by the Free Software Foundation, either version 3 of
 c     the License, or (at your option) any later version.
-c     
+c
 c     Hermes is distributed in the hope that it will be useful, but
 c     WITHOUT ANY WARRANTY; without even the implied warranty of
 c     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c     GNU Lesser General Public License for more details.
-c     
+c
 c     You should have received a copy of the GNU Lesser General
 c     Public License along with Hermes.  If not, see
 c     <http://www.gnu.org/licenses/>.
-c     
+c
 C_Groups @(#)
 c***********************************************************************
 c
@@ -116,7 +116,7 @@ c ... Parameters:
       parameter ( PFMODU = 'PFWNUL' )
 c
 c     Internal
-      integer   fill, i, ifrm, tlen
+      integer   fill, i, ifrm, ifrm_arr(1), tlen
       HU_FPOS_TYPE cloc, floc, nloc, ploc
       HU_FPOS_TYPE pfutel
 c
@@ -171,7 +171,9 @@ c
         if (floc.lt.lstwrd(fid)) then
 c
           call pfusek ( fid, floc, ierr )
-          call pfusio ( fid, RE, 1, ifrm, ierr )
+          ifrm_arr = ifrm
+          call pfusio ( fid, RE, 1, ifrm_arr, ierr )
+          ifrm = ifrm_arr(1)
           if (ierr.ne.0) goto 999
 c
 c ....... if a NULL region, need to combine into one region

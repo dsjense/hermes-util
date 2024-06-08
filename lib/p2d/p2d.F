@@ -448,7 +448,13 @@ c
 c     Passed
       integer np
       real phi(*)
+c TODO: The ifdef statement below is a hack to make the code compile
+c       and still needs a proper fix.
+#ifdef USE_DP
+      REAL phidouble(*)
+#else
       REAL_8 phidouble(*)
+#endif
 c
 c     Internal
       integer i

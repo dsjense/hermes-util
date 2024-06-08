@@ -4,25 +4,25 @@
 c
 c***********************************************************************
 c   $Id$
-c   
+c
 c   Copyright (2008) Sandia Corporation. Under the terms of
 c   Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
 c   Government retains certain rights in this software.
-c   
+c
 c   Hermes is free software: you can redistribute it and/or modify
 c   it under the terms of the GNU Lesser General Public License as
 c   published by the Free Software Foundation, either version 3 of
 c   the License, or (at your option) any later version.
-c   
+c
 c   Hermes is distributed in the hope that it will be useful, but
 c   WITHOUT ANY WARRANTY; without even the implied warranty of
 c   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c   GNU Lesser General Public License for more details.
-c   
+c
 c   You should have received a copy of the GNU Lesser General
 c   Public License along with Hermes.  If not, see
 c   <http://www.gnu.org/licenses/>.
-c   
+c
 C_Groups @(#)
 c***********************************************************************
 c
@@ -131,7 +131,7 @@ c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, low, nblks, tapp
+      integer   fid, ierr, low, nblks, nblks_arr(1), tapp
       integer   ispare(5,nblks), locb(nblks)
       integer   imax(nblks), idlist(3,nblks)
       real      farray(low:*)
@@ -175,7 +175,9 @@ c
 c
 c ... Write # of blocks
 c
-      call pfusio (fid, WR, 1, nblks, ierr)
+      nblks_arr = nblks
+      call pfusio (fid, WR, 1, nblks_arr, ierr)
+      nblks = nblks_arr(1)
       if ( ierr.ne.0 ) goto 999
 c
 c ... handle special case of '&' in 1st character of blabel(1)

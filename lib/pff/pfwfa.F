@@ -2,25 +2,25 @@
 c
 c***********************************************************************
 c     $Id$
-c     
+c
 c     Copyright (2008) Sandia Corporation. Under the terms of
 c     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
 c     Government retains certain rights in this software.
-c     
+c
 c     Hermes is free software: you can redistribute it and/or modify
 c     it under the terms of the GNU Lesser General Public License as
 c     published by the Free Software Foundation, either version 3 of
 c     the License, or (at your option) any later version.
-c     
+c
 c     Hermes is distributed in the hope that it will be useful, but
 c     WITHOUT ANY WARRANTY; without even the implied warranty of
 c     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c     GNU Lesser General Public License for more details.
-c     
+c
 c     You should have received a copy of the GNU Lesser General
 c     Public License along with Hermes.  If not, see
 c     <http://www.gnu.org/licenses/>.
-c     
+c
 C_Groups @(#)
 c***********************************************************************
 c
@@ -88,9 +88,9 @@ c       pf2max  -  Maximum power-of-2 exponent that is in range for this
 c                  machine's default REAL data type
 c       pf2min  -  Minimum power-of-2 exponent that is in range for this
 c                  machine's default REAL data type
-c       pfrmin  -  Minimum floating point number that can be inverted 
+c       pfrmin  -  Minimum floating point number that can be inverted
 c                  without floating point overflow
-c       pfrmax  -  Minimum floating point number that can be represented 
+c       pfrmax  -  Minimum floating point number that can be represented
 c                  without floating point overflow
 c       rscale  -  inverse of "scale"
 c       scale   -  scale factor for converting integers to floats
@@ -177,8 +177,8 @@ c
 c
 c ..... write out "full-precision" flag
 c
-        call pfusio (fid, WR, 1, FP_FULL, ierr)
-        call pfusio (fid, WR, 1, foff10, ierr)
+        call pfusio (fid, WR, 1, (/FP_FULL/), ierr)
+        call pfusio (fid, WR, 1, (/foff10/), ierr)
         scale = 2*pfrmin
         ib_incr = 2
 c
@@ -207,8 +207,8 @@ c
 c
 c ..... Write out array offset and scale info
 c
-        call pfuf2i ( offset, foff10, prmbuf, ierr )
-        call pfuf2i ( scale, foff10, prmbuf(4), ierr )
+        call pfuf2i ( offset, (/foff10/), prmbuf, ierr )
+        call pfuf2i ( scale, (/foff10/), prmbuf(4), ierr )
         call pfusio (fid, WR, 6, prmbuf, ierr)
 c
         ib_incr = 1

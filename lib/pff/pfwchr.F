@@ -2,25 +2,25 @@
 c
 c***********************************************************************
 c     $Id$
-c     
+c
 c     Copyright (2008) Sandia Corporation. Under the terms of
 c     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
 c     Government retains certain rights in this software.
-c     
+c
 c     Hermes is free software: you can redistribute it and/or modify
 c     it under the terms of the GNU Lesser General Public License as
 c     published by the Free Software Foundation, either version 3 of
 c     the License, or (at your option) any later version.
-c     
+c
 c     Hermes is distributed in the hope that it will be useful, but
 c     WITHOUT ANY WARRANTY; without even the implied warranty of
 c     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c     GNU Lesser General Public License for more details.
-c     
+c
 c     You should have received a copy of the GNU Lesser General
 c     Public License along with Hermes.  If not, see
 c     <http://www.gnu.org/licenses/>.
-c     
+c
 C_Groups @(#)
 c***********************************************************************
 c
@@ -95,7 +95,8 @@ c ... Parameters:
       parameter ( TWO15 = 32768 )
 c
 c     Internal
-      integer   ib, ic, ilast, ioff, iw, nfw, nw, stlen, tilen
+      integer   ib, ic, ilast, ioff, iw, nfw, nw, nw_arr(1), stlen,
+     1          tilen
 c
 c ... External Block Data
       external  pffbd
@@ -148,7 +149,9 @@ c
 c
 c ... write length to file as a <INT>
 c
-      call pfusio (fid, WR, 1, nw, ierr)
+      nw_arr = nw
+      call pfusio (fid, WR, 1, nw_arr, ierr)
+      nw = nw_arr(1)
       if ( ierr.ne.0 ) goto 999
 c
 c ... pack 2 characters to each <INT> and write to file buffer by buffer

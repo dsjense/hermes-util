@@ -197,7 +197,7 @@ c
 c
       if ( use_i4 ) then
 c ..... write out "full-precision" flag
-        call pfusio (fid, WR, 1, INTP_4, ierr)
+        call pfusio (fid, WR, 1, (/INTP_4/), ierr)
         ib_incr = 2
       else
         ib_incr = 1

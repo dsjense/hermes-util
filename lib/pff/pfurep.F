@@ -2,25 +2,25 @@
 c
 c***********************************************************************
 c     $Id$
-c     
+c
 c     Copyright (2008) Sandia Corporation. Under the terms of
 c     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
 c     Government retains certain rights in this software.
-c     
+c
 c     Hermes is free software: you can redistribute it and/or modify
 c     it under the terms of the GNU Lesser General Public License as
 c     published by the Free Software Foundation, either version 3 of
 c     the License, or (at your option) any later version.
-c     
+c
 c     Hermes is distributed in the hope that it will be useful, but
 c     WITHOUT ANY WARRANTY; without even the implied warranty of
 c     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c     GNU Lesser General Public License for more details.
-c     
+c
 c     You should have received a copy of the GNU Lesser General
 c     Public License along with Hermes.  If not, see
 c     <http://www.gnu.org/licenses/>.
-c     
+c
 C_Groups @(#)
 c***********************************************************************
 c
@@ -29,15 +29,15 @@ c ----------------------------------------------------------------------
 c
 c     Summary:
 c
-c       - This routine is a UTILITY routine to repair a PFF DIRECTORIED 
+c       - This routine is a UTILITY routine to repair a PFF DIRECTORIED
 c         file that has been improperly closed.
 c         This function finds an available open FID, assigns the file
-c         "fname" to that FID, opens the file, attempts to load its 
+c         "fname" to that FID, opens the file, attempts to load its
 c         directory.  Failing this, it attempts to rebuild the directory
 c         from the header info in each dataset, one dataset at a time.
-c         If it cannot reconstruct the entire directory, it truncates 
-c         the file after the last dataset for which a directory entry 
-c         was successfully loaded.  It then closes the file, rewriting 
+c         If it cannot reconstruct the entire directory, it truncates
+c         the file after the last dataset for which a directory entry
+c         was successfully loaded.  It then closes the file, rewriting
 c         the directory if necessary.
 c
 c ----------------------------------------------------------------------
@@ -96,7 +96,7 @@ c
 c ... Included common decks:
 c ... pfbufm
 c       w:    currec(*), locbuf(*), fillum(*), lstwrd(*), extflg(*),
-c             eofre(*), maxrec(*), modrec(*), ubuf(*,*), dircnt(*), 
+c             eofre(*), maxrec(*), modrec(*), ubuf(*,*), dircnt(*),
 c             dircur(*)
 c       r/w:  wrflag(*)
 c ... pferrs
@@ -122,7 +122,7 @@ c     Passed:
       character fname*(*)
 c
 c     Internal
-      integer   dlen, fid, i, lun, tapp, traw, ilong(3)
+      integer   dlen, fid, i, i_arr(1), lun, tapp, traw, ilong(3)
       integer   mc, mt, nc, nt, nrfu, vds, lusave, ierrx
       HU_FPOS_TYPE ldptr, locsav, dloc
       character st*(MCHTYP), sc*(MCHTTL)
@@ -307,7 +307,9 @@ c
           if ( ierr.eq.0 ) then
             locsav = pfutel (fid, ierr)
             call pfusek ( fid, dloc + 1, ierr )
-            call pfusio (fid, RE, 1, i, ierr)
+            i_arr = i
+            call pfusio (fid, RE, 1, i_arr, ierr)
+            i = i_arr(1)
             if ( i.eq.DFAULT ) then
               call pful2i ( dlen, ilong, ierr )
               call pfusek ( fid, dloc + 1, ierr )

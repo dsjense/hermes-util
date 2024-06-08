@@ -1,4 +1,4 @@
-      subroutine pfwni3 ( fid, tapp, st, sc, nblks, mspare, nspare, 
+      subroutine pfwni3 ( fid, tapp, st, sc, nblks, mspare, nspare,
      &                    ispare, x, y, z, xlabel, ylabel,
      &                    zlabel, blabel, locx, locy, locz, locb, low,
      &                    imax, jmax, kmax, idlist, jdlist, kdlist,
@@ -6,25 +6,25 @@
 c
 c***********************************************************************
 c   $Id$
-c   
+c
 c   Copyright (2008) Sandia Corporation. Under the terms of
 c   Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
 c   Government retains certain rights in this software.
-c   
+c
 c   Hermes is free software: you can redistribute it and/or modify
 c   it under the terms of the GNU Lesser General Public License as
 c   published by the Free Software Foundation, either version 3 of
 c   the License, or (at your option) any later version.
-c   
+c
 c   Hermes is distributed in the hope that it will be useful, but
 c   WITHOUT ANY WARRANTY; without even the implied warranty of
 c   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c   GNU Lesser General Public License for more details.
-c   
+c
 c   You should have received a copy of the GNU Lesser General
 c   Public License along with Hermes.  If not, see
 c   <http://www.gnu.org/licenses/>.
-c   
+c
 C_Groups @(#)
 c***********************************************************************
 c
@@ -38,10 +38,10 @@ c         (non-uniform, 3D, Integer) dataset to a PFF file.
 c       - The input array is assumed to be block-3D.  Dimensioned size
 c         of each 3D block is passed as well as a do-list in each
 c         direction of each block for what is to be written to file.
-c       - If mskbits is zero, the supplied input array is simply 
-c         truncated to 16-bits and all integers in the array must be in 
+c       - If mskbits is zero, the supplied input array is simply
+c         truncated to 16-bits and all integers in the array must be in
 c         the range -32768 to 32767.
-c       - If mskbits is nonzero, the value written to the file is shifted 
+c       - If mskbits is nonzero, the value written to the file is shifted
 c         and masked from the supplied input iarray, i.e.,
 c               ival = mod( iarray/(2**shbits),2**mskbits)
 c         Note that in this mode, the supplied values in iarray must be
@@ -97,7 +97,7 @@ c       nblks   -  # of data blocks to be written to file
 c       mspare  -  1st dimension of ispare array ( mspare .ge. nspare)
 c       nspare  -  # of spare words used in each block
 c       mskbits -  # of bits from input word to be written to dataset
-c       shbits  -  # of bits to be shifted in input word before applying 
+c       shbits  -  # of bits to be shifted in input word before applying
 c                  bit mask (mskbits)
 c       sc      -  character string to be loaded with dataset comment
 c       st      -  character string to be loaded with dataset type label
@@ -160,8 +160,8 @@ c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, low, mskbits, mspare, nspare, nblks, shbits, 
-     &          tapp
+      integer   fid, ierr, low, mskbits, mspare, nspare, nblks,
+     &          nblks_arr(1), shbits, tapp
       integer   ispare(mspare,nblks)
       integer   locb(nblks), locx(nblks), locy(nblks), locz(nblks)
       integer   imax(nblks), jmax(nblks), kmax(nblks)
@@ -208,7 +208,9 @@ c
 c
 c ... Write # of blocks
 c
-      call pfusio (fid, WR, 1, nblks, ierr)
+      nblks_arr = nblks
+      call pfusio (fid, WR, 1, nblks_arr, ierr)
+      nblks = nblks_arr(1)
       if ( ierr.ne.0 ) goto 999
 c
 c ... handle special case of '&' in 1st character of blabel(1)

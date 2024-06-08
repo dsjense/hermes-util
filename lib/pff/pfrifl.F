@@ -4,25 +4,25 @@
 c
 c***********************************************************************
 c     $Id$
-c     
+c
 c     Copyright (2008) Sandia Corporation. Under the terms of
 c     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
 c     Government retains certain rights in this software.
-c     
+c
 c     Hermes is free software: you can redistribute it and/or modify
 c     it under the terms of the GNU Lesser General Public License as
 c     published by the Free Software Foundation, either version 3 of
 c     the License, or (at your option) any later version.
-c     
+c
 c     Hermes is distributed in the hope that it will be useful, but
 c     WITHOUT ANY WARRANTY; without even the implied warranty of
 c     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c     GNU Lesser General Public License for more details.
-c     
+c
 c     You should have received a copy of the GNU Lesser General
 c     Public License along with Hermes.  If not, see
 c     <http://www.gnu.org/licenses/>.
-c     
+c
 C_Groups @(#)
 c***********************************************************************
 c
@@ -143,7 +143,7 @@ c
 c     Passed:
       logical   keep
       integer   fadim, fldim, fid, foff10, idim, ierr
-      integer   nfa, nfl, ni, offdim, tapp
+      integer   nfa, nfa_arr(1), nfl, ni, offdim, tapp
       integer   iarray(1:idim), floff(1:offdim)
       real      farray(1:fadim), flist(1:fldim)
       character st*(*), sc*(*)
@@ -199,7 +199,9 @@ c
 c
 c ... Read in Float Flag
 c
-      call pfusio (fid, RE, 1, nfa, ierr)
+      nfa_arr = nfa
+      call pfusio (fid, RE, 1, nfa_arr, ierr)
+      nfa = nfa_arr(1)
       if ( ierr.ne.0 ) goto 999
 c
 c ... Read in Float List length as <LONG>
@@ -243,7 +245,9 @@ c ... if it is there, read in float array
 c
       if (nfa.ne.0) then
 c
+        nfa_arr = nfa
         call pfrfa( fid, fadim, keep, nfa, farray, foff10, farray, ierr)
+        nfa = nfa_arr(1)
 c
 c ..... if array truncation, set temp. error flag and clear IERR
 c

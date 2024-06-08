@@ -32,6 +32,7 @@
 #endif
 
 #include "pff.h"
+#include <stdlib.h>
 
 /*  Declare function */
 
@@ -74,6 +75,7 @@ long     len;
                    =  1,  I/O Error on Read
                    =  2,  I/O Error on Write
                    =  3,  Illegal Opcode
+                   =  4,  Error allocating array
 */
 {
   register int        i;
@@ -86,8 +88,13 @@ long     len;
 
   if ( iop == RE || iop == WR )  {
 
-    /* Set internal buffer to first part of target buffer */
-    buf = (short int *) iarr;
+    /* allocate an internal buffer */
+    buf = (short int *) malloc(len*sizeof(short int));
+    if ( buf == NULL )  {
+      *ierr = 4;
+      pf_wr_err ( module, *ierr, fid, "Error allocating array");
+      return;
+    }
 
     if ( iop == RE )  {
 
@@ -97,14 +104,23 @@ long     len;
       if ( ferr < len )   { 
         if ( feof(file) != 0 ) {
           *ierr = -1;
-          return;
         }
         else if ( ferror(file) != 0 ) {
           *ierr = 1;
           pf_wr_err ( module, *ierr, fid, 
                                  "Error encountered while reading from file" );
-          return;
         }
+        free(buf);
+        return;
+      }
+      /* Expand internal buffer values to target buffer */
+      for (i=len-1; i>=0; --i) {
+#ifdef HU_ENDIAN_IS_LSB_FIRST
+        iarr[i] = (short) ((255&buf[i])<<8) | (255&(buf[i]>>8));
+        EXTEND_SIGN(iarr[i]);
+#else
+        iarr[i] = buf[i];
+#endif
       }
     }
     else if ( iop == WR )  {
@@ -124,25 +140,18 @@ long     len;
         *ierr = 2;
         pf_wr_err ( module, *ierr, fid, 
                                 "Error encountered while writing to file" );
+        free(buf);
         return;
       }
     }
-    /* Expand internal buffer values to target buffer */
-    for (i=len-1; i>=0; --i)
-#ifdef HU_ENDIAN_IS_LSB_FIRST
-    {
-      iarr[i] = (short) ((255&buf[i])<<8) | (255&(buf[i]>>8));
-      EXTEND_SIGN(iarr[i]);
-    }
-#else
-                       iarr[i] = buf[i];
-#endif
+    free(buf);
   }
 
   else    {
     
-    *ierr=3;
+    *ierr = 3;
     pf_wr_err ( module, *ierr, NULL, "Illegal Opcode" );
   }
   return;
 }
+
