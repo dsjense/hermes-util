@@ -386,8 +386,8 @@ c
 c
       end
 
-      subroutine pfdprt_scalar ( luout, fid, width, low, high, npoint,
-     &                    poidir, cptr, ierr )
+      subroutine pfdprt_scalar(luout, fid, width, low, high, npoint,
+     &                         poidir, cptr, ierr)
         integer luout, fid, width, low, high(*), npoint, ierr
         integer poidir
         integer poidirs(1)
@@ -397,3 +397,4 @@ c
      &              ierr)
         poidir = poidirs(1)
       end subroutine
+
