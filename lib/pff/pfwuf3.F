@@ -158,7 +158,7 @@ c
 c     Declare variables:
 c
 c     Passed:
-      integer   fid, ierr, low, nblks, nblks_arr(1), tapp
+      integer   fid, ierr, low, nblks, tapp
       integer   ispare(5,nblks), locb(nblks)
       integer   imax(nblks), jmax(nblks), kmax(nblks)
       integer   idlist(3,nblks), jdlist(3,nblks), kdlist(3,nblks)
@@ -205,9 +205,7 @@ c
 c
 c ... Write # of blocks
 c
-      nblks_arr = nblks
-      call pfusio (fid, WR, 1, nblks_arr, ierr)
-      nblks = nblks_arr(1)
+      call pfusio_scalar (fid, WR, 1, nblks, ierr)
       if ( ierr.ne.0 ) goto 999
 c
 c ... handle special case of '&' in 1st character of blabel(1)

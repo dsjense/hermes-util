@@ -95,7 +95,7 @@ c ... Parameters:
       parameter ( TWO15 = 32768 )
 c
 c     Internal
-      integer   ib, ic, ilast, ioff, iw, nfw, nw, nw_arr(1), stlen,
+      integer   ib, ic, ilast, ioff, iw, nfw, nw, stlen,
      1          tilen
 c
 c ... External Block Data
@@ -149,9 +149,7 @@ c
 c
 c ... write length to file as a <INT>
 c
-      nw_arr = nw
-      call pfusio (fid, WR, 1, nw_arr, ierr)
-      nw = nw_arr(1)
+      call pfusio_scalar (fid, WR, 1, nw, ierr)
       if ( ierr.ne.0 ) goto 999
 c
 c ... pack 2 characters to each <INT> and write to file buffer by buffer

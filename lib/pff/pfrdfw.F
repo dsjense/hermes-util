@@ -107,7 +107,7 @@ c ... External Block Data
       external  pffbd
 c
 c     Internal
-      integer   i, iertmp, ifrm, ifrm_arr(1), nullen
+      integer   i, iertmp, ifrm, nullen
       HU_FPOS_TYPE nloc
       integer   buf(3)
       HU_FPOS_TYPE pfutel
@@ -137,9 +137,7 @@ c
 c
 c ... Read framing word
 c
-      ifrm_arr = ifrm
-      call pfusio (fid, RE, 1, ifrm_arr, ierr)
-      ifrm = ifrm_arr(1)
+      call pfusio_scalar (fid, RE, 1, ifrm, ierr)
       if ( ierr.ne.0 ) goto 20
 c
 c ... if this wasn't a framing word, need to look further
@@ -160,9 +158,7 @@ c
             nloc = lstadr + nullen
 c
             call pfusek (fid, nloc, ierr )
-            ifrm_arr = ifrm
-            call pfusio (fid, RE, 1, ifrm_arr, ierr)
-            ifrm = ifrm_arr(1)
+            call pfusio_scalar (fid, RE, 1, ifrm, ierr)
 c
             if (ifrm.eq.EOFFLG) then
               ierr = -1

@@ -2,25 +2,25 @@
 c
 c***********************************************************************
 c     $Id$
-c     
+c
 c     Copyright (2008) Sandia Corporation. Under the terms of
 c     Contract DE-AC04-94AL85000 with Sandia Corporation, the U.S.
 c     Government retains certain rights in this software.
-c     
+c
 c     Hermes is free software: you can redistribute it and/or modify
 c     it under the terms of the GNU Lesser General Public License as
 c     published by the Free Software Foundation, either version 3 of
 c     the License, or (at your option) any later version.
-c     
+c
 c     Hermes is distributed in the hope that it will be useful, but
 c     WITHOUT ANY WARRANTY; without even the implied warranty of
 c     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c     GNU Lesser General Public License for more details.
-c     
+c
 c     You should have received a copy of the GNU Lesser General
 c     Public License along with Hermes.  If not, see
 c     <http://www.gnu.org/licenses/>.
-c     
+c
 C_Groups @(#)
 c***********************************************************************
 c
@@ -261,7 +261,7 @@ c
         do 3 i=1,locbuf(fid)
           iarr(i+ipu) = ubuf(i,fid)
     3   continue
- 
+
       else
 c
 c     WRITE OPERATION
@@ -405,3 +405,11 @@ c
  1000 format(' %PFF-',a,'-DBG:  ',a,' Error Status = ',i5)
 c
       end
+
+      subroutine pfusio_scalar (fid, iop, nw, i, ierr)
+        integer   fid,iop,nw,i,ierr
+        integer iarr(1)
+        iarr(1) = i
+        call pfusio(fid, iop, nw, iarr, ierr)
+        i = iarr(1)
+      end subroutine

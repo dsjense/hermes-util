@@ -160,7 +160,7 @@ c     Declare variables:
 c
 c     Passed:
       logical   keep
-      integer   fid, goff10, ierr, m, m_arr(1), mdim, n, n_arr(1), ndim,
+      integer   fid, goff10, ierr, m, mdim, n, ndim,
      1          nspare, nvp, sprdim, tapp, vdim, voff10, xdim
       integer   ioff(1:*), ispare(1:sprdim), nx(1:mdim)
       real      x(1:xdim)
@@ -217,10 +217,8 @@ c
 c
 c ... Read in M and N
 c
-      call pfusio (fid, RE, 1, m_arr, ierr)
-      m = m_arr(1)
-      call pfusio (fid, RE, 1, n_arr, ierr)
-      n = n_arr(1)
+      call pfusio_scalar (fid, RE, 1, m, ierr)
+      call pfusio_scalar (fid, RE, 1, n, ierr)
 c
 c ... Read in dimensions for each spatial axis (two versions supported)
 c

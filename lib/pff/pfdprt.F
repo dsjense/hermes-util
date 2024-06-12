@@ -385,3 +385,15 @@ c
  1000 format(' %PFF-',a,'-DBG:  ',a,' Error Status = ',i5)
 c
       end
+
+      subroutine pfdprt_scalar ( luout, fid, width, low, high, npoint,
+     &                    poidir, cptr, ierr )
+        integer luout, fid, width, low, high(*), npoint, ierr
+        integer poidir
+        integer poidirs(1)
+        character cptr(*)*(*)
+        poidirs(1) = poidir
+        call pfdprt(luout, fid, width, low, high, npoint, poidirs, cptr,
+     &              ierr)
+        poidir = poidirs(1)
+      end subroutine

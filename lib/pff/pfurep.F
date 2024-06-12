@@ -122,7 +122,7 @@ c     Passed:
       character fname*(*)
 c
 c     Internal
-      integer   dlen, fid, i, i_arr(1), lun, tapp, traw, ilong(3)
+      integer   dlen, fid, i, lun, tapp, traw, ilong(3)
       integer   mc, mt, nc, nt, nrfu, vds, lusave, ierrx
       HU_FPOS_TYPE ldptr, locsav, dloc
       character st*(MCHTYP), sc*(MCHTTL)
@@ -307,9 +307,7 @@ c
           if ( ierr.eq.0 ) then
             locsav = pfutel (fid, ierr)
             call pfusek ( fid, dloc + 1, ierr )
-            i_arr = i
-            call pfusio (fid, RE, 1, i_arr, ierr)
-            i = i_arr(1)
+            call pfusio_scalar (fid, RE, 1, i, ierr)
             if ( i.eq.DFAULT ) then
               call pful2i ( dlen, ilong, ierr )
               call pfusek ( fid, dloc + 1, ierr )

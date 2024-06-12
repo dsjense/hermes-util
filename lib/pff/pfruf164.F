@@ -148,7 +148,7 @@ c     Declare variables:
 c
 c     Passed:
       logical   keep
-      integer   fid, ierr, mblks, mdim, mode, nblks, nblks_arr(1), tapp
+      integer   fid, ierr, mblks, mdim, mode, nblks, tapp
       integer   foff10(mblks), goff10(mblks)
       integer   ispare(5,mblks), nx(mblks)
       HU_FPOS_TYPE locfa(mblks)
@@ -205,9 +205,7 @@ c
 c
 c ... Read # of blocks
 c
-      nblks_arr = nblks
-      call pfusio (fid, RE, 1, nblks_arr, ierr)
-      nblks = nblks_arr(1)
+      call pfusio_scalar (fid, RE, 1, nblks, ierr)
       if ( ierr.ne.0 ) goto 999
 c
 c ... return if # of blocks is larger than array dimension size

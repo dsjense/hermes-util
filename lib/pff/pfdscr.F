@@ -116,7 +116,7 @@ c ... Parameters:
       parameter ( DHEADR = 5 )
 c
 c ... Internal
-      integer   actsiz, dptr, dptr_arr(1), hi, low, npoint, off
+      integer   actsiz, dptr, hi, low, npoint, off
 c
 c
 c ----------------------------------------------------------------------
@@ -186,10 +186,8 @@ c
         call pfdprt ( luttyo, fid, ttycol, low, hi, pmode, poidir,
      &                cptr, ierr )
       else
-        dptr_arr = dptr
-        call pfdprt ( luttyo, fid, ttycol, low, hi, npoint, dptr_arr,
+        call pfdprt_scalar ( luttyo, fid, ttycol, low, hi, npoint, dptr,
      &                '->', ierr )
-        dptr = dptr_arr(1)
       endif
 c
 c ----------------------------------------------------------------------

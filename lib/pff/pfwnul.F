@@ -116,7 +116,7 @@ c ... Parameters:
       parameter ( PFMODU = 'PFWNUL' )
 c
 c     Internal
-      integer   fill, i, ifrm, ifrm_arr(1), tlen
+      integer   fill, i, ifrm, tlen
       HU_FPOS_TYPE cloc, floc, nloc, ploc
       HU_FPOS_TYPE pfutel
 c
@@ -171,9 +171,7 @@ c
         if (floc.lt.lstwrd(fid)) then
 c
           call pfusek ( fid, floc, ierr )
-          ifrm_arr = ifrm
-          call pfusio ( fid, RE, 1, ifrm_arr, ierr )
-          ifrm = ifrm_arr(1)
+          call pfusio_scalar ( fid, RE, 1, ifrm, ierr )
           if (ierr.ne.0) goto 999
 c
 c ....... if a NULL region, need to combine into one region

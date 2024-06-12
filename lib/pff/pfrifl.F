@@ -143,7 +143,7 @@ c
 c     Passed:
       logical   keep
       integer   fadim, fldim, fid, foff10, idim, ierr
-      integer   nfa, nfa_arr(1), nfl, ni, offdim, tapp
+      integer   nfa, nfl, ni, offdim, tapp
       integer   iarray(1:idim), floff(1:offdim)
       real      farray(1:fadim), flist(1:fldim)
       character st*(*), sc*(*)
@@ -199,9 +199,7 @@ c
 c
 c ... Read in Float Flag
 c
-      nfa_arr = nfa
-      call pfusio (fid, RE, 1, nfa_arr, ierr)
-      nfa = nfa_arr(1)
+      call pfusio_scalar (fid, RE, 1, nfa, ierr)
       if ( ierr.ne.0 ) goto 999
 c
 c ... Read in Float List length as <LONG>
@@ -245,9 +243,7 @@ c ... if it is there, read in float array
 c
       if (nfa.ne.0) then
 c
-        nfa_arr = nfa
         call pfrfa( fid, fadim, keep, nfa, farray, foff10, farray, ierr)
-        nfa = nfa_arr(1)
 c
 c ..... if array truncation, set temp. error flag and clear IERR
 c

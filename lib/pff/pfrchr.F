@@ -135,9 +135,7 @@ c
 c
 c ... read length from file as a <INT>
 c
-      nw_arr = nw
-      call pfusio (fid, RE, 1, nw_arr, ierr)
-      nw = nw_arr(1)
+      call pfusio_scalar (fid, RE, 1, nw, ierr)
       if ( ierr.ne.0 ) goto 999
 c
 c ... is string length in legal range ( 0 .le. NW .lt. 2**15 ) ?

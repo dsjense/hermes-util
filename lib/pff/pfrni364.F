@@ -174,7 +174,7 @@ c
 c     Passed:
       logical   keep
       integer   fid, ierr, mblks, mdim, mgrdx, mgrdy, mgrdz, mode
-      integer   mspare, nblks, nblks_arr(1), nspare, tapp
+      integer   mspare, nblks, nspare, tapp
       integer   goff10(mblks)
       integer   ispare(mspare,mblks), lenia(mblks)
       integer   locx(mblks), locy(mblks), locz(mblks)
@@ -234,9 +234,7 @@ c
 c
 c ... Read # of blocks
 c
-      nblks_arr = nblks
-      call pfusio (fid, RE, 1, nblks_arr, ierr)
-      nblks = nblks_arr(1)
+      call pfusio_scalar (fid, RE, 1, nblks, ierr)
       if ( ierr.ne.0 ) goto 999
 c
 c ... return if # of blocks is larger than array dimension size
